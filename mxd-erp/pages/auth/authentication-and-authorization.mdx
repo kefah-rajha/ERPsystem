@@ -1,0 +1,52 @@
+import Image from 'next/image'
+
+
+# Authentication and Authorization
+
+import { Callout } from "nextra-theme-docs";
+import { Tabs, Steps, Cards, Card } from "nextra/components";
+
+# Welcome
+## Authorization
+This website has several types of users, each with specific permissions.
+and offers a customized experience for each user, tailored to their specific permissions.
+
+`admin` : has full control over the website.
+
+`customer` : Customers have access to their order details, including status, information, price, and payment options.
+
+`delivery` : person is making a delivery
+
+`sales staff` : Sales representatives have specific permissions related to the sales process and may be granted additional permissions by the manager.
+
+## Authentication
+there are two approaches for that in this website
+
+### The First Approache
+Customers can self-register through the registration form (sign up). Sales staff and delivery personnel are considered staff roles and can only be created by the admin through the dashboard.even the admin can create a new customer 
+<br />
+<Image src="/first approche.drawio (8).svg" alt="Hello" width={3000} height={2000} />
+<br />
+<br />
+Sign up design (figma)
+ <br />
+<Image src="/Sign Up.svg" alt="Hello" width={2000} height={2000} />
+
+
+### folder structure of Sign up  
+
+Client / <br />
+├── app/ <br />
+│   ├── (auth)/ <br />
+│   │   └── signup/ <br />
+│   │       └── pages.tsx <br />
+├── components/ <br />
+│   ├── authComponents/ <br />
+│   │   ├── Cardsignup.tsx <br />
+│   │   ├── Signup-form.tsx <br />
+│   │   └── Headersignup.tsx <br />
+└── ... (package.json, next.config.js) <br />
+### How it works؟؟
+
+The   `Headersignup.tsx` component is present within `Cardsignup.tsx`,then `Cardsignup.tsx` is called within `Signup-form.tsx.` The `form` is passed as a child component inside `Cardsignup` in `Signup-form.tsx`  component  Then, `Signup-form.tsx` is called from signup/`pages.tsx.`  to render it
+
