@@ -5,6 +5,8 @@ import { ThemeProvider } from "@/lib/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import Navbar from "@/components/header/navbar";
 import Sidebar from "@/components/header/sidebar";
+import { headers } from "next/headers";
+
 
 
 
@@ -20,6 +22,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headerList = headers();
+  const pathname = headerList.get("x-current-path");
+  const isSignUp=pathname?.includes("/Signup")
+  const isLogin=pathname?.includes("/Login")
+  const registry = isLogin || isSignUp
+  console.log(registry)
+
   return (
     <html lang="en">
       <body className={inter.className}>
@@ -29,6 +38,8 @@ export default function RootLayout({
             
             disableTransitionOnChange
           >
+            {  !registry &&
+            <>
             <div className="mx-auto">
             <Navbar />
             </div>
@@ -38,7 +49,8 @@ export default function RootLayout({
               </div>
               <div className="col-span-10">{children}</div>
 
-            </div>
+            </div></>}
+            {registry && <>{children}</>}
             
         
         <Toaster />

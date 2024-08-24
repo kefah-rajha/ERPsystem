@@ -5,7 +5,17 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { productToInvoice } from "@/context/productPosContext";
-import { Plus, RefreshCcw } from "lucide-react";
+import { Plus, RefreshCcw, ShoppingCartIcon } from "lucide-react";
+import Invoice from "@/components/POS/invoice";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Popover,
   PopoverContent,
@@ -76,6 +86,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import TablePOS from "@/components/POS/tablePOS";
 
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -89,6 +100,9 @@ const createInvoiceFormSchema = z.object({
     .max(30, {
       message: "Name must not be longer than 30 characters.",
     }),
+  Payment: z.string(),
+  Customer: z.string(),
+  Inventory: z.string(),
   // price: z.string({required_error:"error here"}).min(1,{message:"test"}),
   // Discount: z.string().default("0"),
   // maxQuantity: z.string(),
@@ -247,7 +261,7 @@ function CreateInvoice() {
             <div className="flex w-6/12 ">
               <FormField
                 control={form.control}
-                name="name"
+                name="Payment"
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormControl>
@@ -260,8 +274,8 @@ function CreateInvoice() {
                           <SelectValue placeholder="Payment Method" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Electronic">Cash</SelectItem>
-                          <SelectItem value="Electronic">Paypal</SelectItem>
+                          <SelectItem value="Cash">Cash</SelectItem>
+                          <SelectItem value="Paypal">Paypal</SelectItem>
                         </SelectContent>
                       </Select>
                     </FormControl>
@@ -277,7 +291,7 @@ function CreateInvoice() {
             <div className="flex w-6/12 ">
               <FormField
                 control={form.control}
-                name="name"
+                name="Customer"
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormControl>
@@ -290,8 +304,8 @@ function CreateInvoice() {
                           <SelectValue placeholder="Select Customer" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Electronic">ali mdb</SelectItem>
-                          <SelectItem value="Electronic">jak lil</SelectItem>
+                          <SelectItem value="ali">ali mdb</SelectItem>
+                          <SelectItem value="lil">jak lil</SelectItem>
                         </SelectContent>
                       </Select>
                     </FormControl>
@@ -305,7 +319,7 @@ function CreateInvoice() {
             <div className="flex w-6/12 ">
               <FormField
                 control={form.control}
-                name="name"
+                name="Inventory"
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormControl>
@@ -319,7 +333,7 @@ function CreateInvoice() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Electronic">Electronic</SelectItem>
-                          <SelectItem value="Electronic">Furniture</SelectItem>
+                          <SelectItem value="Furniture">Furniture</SelectItem>
                         </SelectContent>
                       </Select>
                     </FormControl>
@@ -331,175 +345,179 @@ function CreateInvoice() {
               </div>
             </div>
           </div>
-        </form>
-      </Form>
-      <Table className="border">
-        <TableHeader className="bg-foreground/5">
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Price</TableHead>
-            <TableHead className="hidden md:table-cell">SubTotal</TableHead>
-            <TableHead className="hidden md:table-cell">Quantity</TableHead>
-            <TableHead className="hidden md:table-cell">More</TableHead>
-            <TableHead></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>{rowsProducts}</TableBody>
-      </Table>
-      <div className="mt-4 flex flex-col gap-2">
-        <div className=" bg-[#464646] h-12  rounded-sm flex  px-4 items-center w-full">
-          <div className="flex items-center justify-start w-[33%] h-12 gap-2 ">
-            <div className="flex items-center justify-start gap-1 w-1/2">
-              <p>Items:</p>
-            </div>
-            <h3 className="font-bold text-[#888888]  w-1/2">2</h3>
-          </div>
-          <div className="flex items-center justify-start w-[33%] h-12 gap-2 ">
-            <div className="flex items-center justify-start gap-1 w-1/2">
-              <p>Total:</p>
-            </div>
-            <h3 className="font-bold text-[#888888]  w-1/2">{total}</h3>
-          </div>
-          <div className="flex items-center justify-start w-[33%] h-12 gap-2 ">
-            <div className="flex items-center justify-start gap-1 w-1/2">
-              <p>Tax:</p>
 
-              <div>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <SquareArrowOutUpRight
-                      width={16}
-                      height={16}
-                      className="text-foreground cursor-pointer "
-                    />
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80 bg-[#383838] flex gap-1 justify-start items-center">
-                    <Input
-                      type="number"
-                      className="h-10"
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setTax(+e.target.value)
-                      }
-                      value={tax}
-                    />
-                    <p className="bg-foreground h-8 rounded-sm text-black w-8 flex justify-center items-center">
-                      %
-                    </p>
-                  </PopoverContent>
-                </Popover>
+          {products !== undefined && <TablePOS products={products} />}
+
+          <div className="mt-4 flex flex-col gap-2">
+            <div className=" bg-[#464646] h-12  rounded-sm flex  px-4 items-center w-full">
+              <div className="flex items-center justify-start w-[33%] h-12 gap-2 ">
+                <div className="flex items-center justify-start gap-1 w-1/2">
+                  <p>Items:</p>
+                </div>
+                <h3 className="font-bold text-[#888888]  w-1/2">
+                  {products?.length}
+                </h3>
+              </div>
+              <div className="flex items-center justify-start w-[33%] h-12 gap-2 ">
+                <div className="flex items-center justify-start gap-1 w-1/2">
+                  <p>Total:</p>
+                </div>
+                <h3 className="font-bold text-[#888888]  w-1/2">{total}</h3>
+              </div>
+              <div className="flex items-center justify-start w-[33%] h-12 gap-2 ">
+                <div className="flex items-center justify-start gap-1 w-1/2">
+                  <p>Tax:</p>
+
+                  <div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <SquareArrowOutUpRight
+                          width={16}
+                          height={16}
+                          className="text-foreground cursor-pointer "
+                        />
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80 bg-[#383838] flex gap-1 justify-start items-center">
+                        <Input
+                          type="number"
+                          className="h-10"
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            setTax(+e.target.value)
+                          }
+                          value={tax}
+                        />
+                        <p className="bg-foreground h-8 rounded-sm text-black w-8 flex justify-center items-center">
+                          %
+                        </p>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+                <h3 className="font-bold text-[#888888]  w-1/2">{tax}%</h3>
               </div>
             </div>
-            <h3 className="font-bold text-[#888888]  w-1/2">{tax}%</h3>
-          </div>
-        </div>
-        <div className=" bg-[#464646] h-12  rounded-sm flex  px-4 items-center w-full">
-          <div className="flex items-center justify-start w-[33%] h-12 gap-2 ">
-            <div className="flex items-center justify-start gap-1 w-1/2">
-              <p>Coupon:</p>
+            <div className=" bg-[#464646] h-12  rounded-sm flex  px-4 items-center w-full">
+              <div className="flex items-center justify-start w-[33%] h-12 gap-2 ">
+                <div className="flex items-center justify-start gap-1 w-1/2">
+                  <p>Coupon:</p>
 
-              <div>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <SquareArrowOutUpRight
-                      width={16}
-                      height={16}
-                      className="text-foreground cursor-pointer "
-                    />
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80 bg-[#383838] flex gap-1 justify-start items-center">
-                    <Input
-                      type="string"
-                      className="h-10"
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setCoupon(e.target.value)
-                      }
-                      value={coupon}
-                    />
-                    {/* <p className="bg-foreground h-8 rounded-sm text-black w-8 flex justify-center items-center">
+                  <div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <SquareArrowOutUpRight
+                          width={16}
+                          height={16}
+                          className="text-foreground cursor-pointer "
+                        />
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80 bg-[#383838] flex gap-1 justify-start items-center">
+                        <Input
+                          type="string"
+                          className="h-10"
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            setCoupon(e.target.value)
+                          }
+                          value={coupon}
+                        />
+                        {/* <p className="bg-foreground h-8 rounded-sm text-black w-8 flex justify-center items-center">
                       %
                     </p> */}
-                  </PopoverContent>
-                </Popover>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+                <h3 className="font-bold text-[#888888] text-center w-1/2">
+                  {coupon}
+                </h3>
+              </div>
+              <div className="flex items-center justify-start w-[33%] h-12 gap-2 ">
+                <div className="flex items-center justify-start gap-1 w-1/2">
+                  <p>Discount:</p>
+
+                  <div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <SquareArrowOutUpRight
+                          width={16}
+                          height={16}
+                          className="text-foreground cursor-pointer "
+                        />
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80 bg-[#383838] flex gap-1 justify-start items-center">
+                        <Input
+                          type="number"
+                          className="h-10"
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            setDiscount(+e.target.value)
+                          }
+                          value={discount}
+                        />
+                        <p className="bg-foreground h-8 rounded-sm text-black w-8 flex justify-center items-center">
+                          %
+                        </p>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+                <h3 className="font-bold text-[#888888] text-center w-1/2">
+                  {discount}%
+                </h3>
+              </div>
+
+              <div className="flex items-center justify-start w-[33%] h-12 gap-2 ">
+                <div className="flex items-center justify-start gap-1 w-1/2">
+                  <p>Shipping:</p>
+
+                  <div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <SquareArrowOutUpRight
+                          width={16}
+                          height={16}
+                          className="text-foreground cursor-pointer "
+                        />
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80 bg-[#383838] flex gap-1 justify-start items-center">
+                        <Input
+                          type="number"
+                          className="h-10"
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                            setShipping(+e.target.value)
+                          }
+                          value={shipping}
+                        />
+                        <p className="bg-foreground h-8 rounded-sm text-black w-8 flex justify-center items-center">
+                          $
+                        </p>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+                <h3 className="font-bold text-[#888888]  text-center w-1/2">
+                  {shipping}$
+                </h3>
               </div>
             </div>
-            <h3 className="font-bold text-[#888888] text-center w-1/2">
-              {coupon}
-            </h3>
-          </div>
-          <div className="flex items-center justify-start w-[33%] h-12 gap-2 ">
-            <div className="flex items-center justify-start gap-1 w-1/2">
-              <p>Discount:</p>
+            <div className="flex justify-between items-center h-16 mt-4">
+              <h3 className="mt-4 text-2xl flex h-16">
+                Total: <strong>{finalPrice}</strong>{" "}
+              </h3>
 
-              <div>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <SquareArrowOutUpRight
-                      width={16}
-                      height={16}
-                      className="text-foreground cursor-pointer "
-                    />
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80 bg-[#383838] flex gap-1 justify-start items-center">
-                    <Input
-                      type="number"
-                      className="h-10"
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setDiscount(+e.target.value)
-                      }
-                      value={discount}
-                    />
-                    <p className="bg-foreground h-8 rounded-sm text-black w-8 flex justify-center items-center">
-                      %
-                    </p>
-                  </PopoverContent>
-                </Popover>
-              </div>
+              <Dialog >
+                <DialogTrigger asChild>
+                  <Button className="bg-[#d9b26a] hover:bg-yellow-500 text-foreground">
+                    <ShoppingCartIcon className="mr-2 h-4 w-4" />
+                    Place Order
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="w-screen">
+                  <Invoice />
+                </DialogContent>
+              </Dialog>
             </div>
-            <h3 className="font-bold text-[#888888] text-center w-1/2">
-              {discount}%
-            </h3>
           </div>
-
-          <div className="flex items-center justify-start w-[33%] h-12 gap-2 ">
-            <div className="flex items-center justify-start gap-1 w-1/2">
-              <p>Shipping:</p>
-
-              <div>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <SquareArrowOutUpRight
-                      width={16}
-                      height={16}
-                      className="text-foreground cursor-pointer "
-                    />
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80 bg-[#383838] flex gap-1 justify-start items-center">
-                    <Input
-                      type="number"
-                      className="h-10"
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setShipping(+e.target.value)
-                      }
-                      value={shipping}
-                    />
-                    <p className="bg-foreground h-8 rounded-sm text-black w-8 flex justify-center items-center">
-                      $
-                    </p>
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-            <h3 className="font-bold text-[#888888]  text-center w-1/2">
-              {shipping}$
-            </h3>
-          </div>
-        </div>
-        <div>
-          <h3 className="mt-4 text-2xl ">
-            Total: <strong>{finalPrice}</strong>{" "}
-          </h3>
-        </div>
-      </div>
+        </form>
+      </Form>
     </div>
   );
 }

@@ -4,8 +4,8 @@ import Loginform from "@/components/authComponent/Login-form";
 function page() {
   return (
     <>
-      <div className="h-20 w-full bg-[#272727] barShadow flex justify-center items-center">
-        <h3 className="text-4xl font-bold">
+      <div className="h-14 w-full bg-[#272727] barShadow flex justify-center items-center">
+        <h3 className="text-3xl font-bold">
           <span className="font-light">ERP</span>system
         </h3>
       </div>

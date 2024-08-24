@@ -5,8 +5,8 @@ function page() {
   return (
     <>
 
-    <div className="h-20 w-full bg-[#272727] barShadow flex justify-center items-center">
-      <h3 className="text-4xl font-bold"><span className="font-light">ERP</span>system</h3>
+    <div className="h-14 w-full bg-[#272727] barShadow flex justify-center items-center">
+      <h3 className="text-3xl font-bold"><span className="font-light">ERP</span>system</h3>
     </div>
     {/* bg-gradient is custom css  */}
     <div className=" bg-gradient  grid grid-cols-1 lg:grid-cols-2  heighWithOutBar" >
