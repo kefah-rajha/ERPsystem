@@ -7,7 +7,7 @@ const express_1 = __importDefault(require("express"));
 const router = express_1.default.Router();
 const user_1 = require("../Controller/user");
 // router.get("/",auth.getfind)
-router.post("/updateuser", user_1.user.updateUser);
+router.post("/profile/profileInfo", user_1.user.updateUser);
 // router.post("/Login",auth.login);
 // router.post("/logout",auth.logout);
 // router.get("/authorization",auth.getauth);

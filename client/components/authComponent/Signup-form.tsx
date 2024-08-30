@@ -52,9 +52,13 @@ function Signupform() {
   });
 
   async function onSubmit(data: SignUpFormValues) {
+    try{
     const SignupStatus = await signupFetch(data);
-    if (SignupStatus.success == false) {
-      console.log(SignupStatus);
+
+    
+    console.log(SignupStatus ,"ss")
+  
+    if (SignupStatus?.success == false) {
       toast({
         variant: "custum",
         title: "Uh oh! Something went wrong.❌",
@@ -66,14 +70,18 @@ function Signupform() {
         action: <ToastAction altText="Goto schedule to undo">Yes</ToastAction>,
       });
     } else {
+      console.log(SignupStatus);
+
       toast({
         variant: "default",
         title: "Congratulations✅.",
         description: "Sign Up Is Done",
       });
-      if (SignupStatus.refreash_token) {
+      if (SignupStatus?.refreash_token) {
         push("/");
       }
+    }}catch(err:unknown){
+      console.log(err)
     }
   }
 

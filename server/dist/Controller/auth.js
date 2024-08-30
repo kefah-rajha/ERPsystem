@@ -34,6 +34,8 @@ exports.auth = {
                 const finaluser = new schemaUser_1.UserModel({
                     userName: newusername,
                     password,
+                    name: "",
+                    brithday: ""
                 });
                 console.log(finaluser, "finaluser");
                 yield finaluser.save();

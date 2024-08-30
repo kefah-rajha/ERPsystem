@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import DatePicker from "react-datepicker";
 import Image from "next/image";
-import { z } from "zod";
+import { string, z } from "zod";
 import {
   Form,
   FormControl,
@@ -33,6 +33,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import {UpdateProfile} from "@/lib/profileFetch/profileUpdate"
 
 
 function ProfileInfo() {
@@ -70,7 +71,10 @@ function ProfileInfo() {
   const form = useForm<profileFormValues>({
     resolver: zodResolver(profileFormSchema),
   });
-  async function onSubmit(data: profileFormValues) {}
+  async function onSubmit(data: profileFormValues) {
+    data.Brithday=date
+    const updateDataProfileInfo= await UpdateProfile(data , "/api/profile/profileInfo")
+  }
   return (
     <div className="flex">
       <div className="w-2/3 ">

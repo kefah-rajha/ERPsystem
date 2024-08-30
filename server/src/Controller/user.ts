@@ -8,7 +8,7 @@ dotenv.config()
 export const user = {
     updateUser: async (req: any, res: any) => {
         try {
-            const token = req.cookies.refreash_token;
+            const token = req.cookies;
             console.log(token)
             return res.status(200).json({
                 

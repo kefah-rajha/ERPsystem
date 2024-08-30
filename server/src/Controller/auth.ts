@@ -25,6 +25,8 @@ export const auth = {
         const finaluser = new UserModel({
           userName: newusername,
           password,
+          name:"",
+          brithday:""
         });
         console.log(finaluser, "finaluser");
         

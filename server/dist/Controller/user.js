@@ -19,8 +19,11 @@ dotenv_1.default.config();
 exports.user = {
     updateUser: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const token = req.cookies.refreash_token;
+            const token = req.cookies;
             console.log(token);
+            return res.status(200).json({
+                success: true,
+            });
             const { userId, name, phone, brithday, languag } = req.body;
             const user_id = yield schemaUserDetails_1.UserDetailsModel.findOne({ userId });
             if (!user_id) {

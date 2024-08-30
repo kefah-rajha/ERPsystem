@@ -1,4 +1,4 @@
-"use server";
+"use client";
 import React from "react";
 import { SignUpDataType } from "@/dataType/dataTypeAuth/dataTypeAuth";
 import { LoginDataType } from "@/dataType/dataTypeAuth/dataTypeAuth";
@@ -27,6 +27,7 @@ interface loginError {
 interface loginSuccess {
   refreash_token: string;
   success: true;
+
 }
 
 export async function loginFetch(
@@ -71,7 +72,7 @@ export async function signupFetch(
 ): Promise<SignUpError | SignUpSuccess> {
   console.log(formData, "formData");
   try {
-    const fetchData = await fetch(`${URLDATA}/api/SignUp`, {
+    const fetchData = await fetch(`/api/SignUp`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -85,6 +86,9 @@ export async function signupFetch(
     const res = await fetchData.json();
     console.log(res, "res");
     return res;
+
+
+
   } catch (erro: any) {
     console.log(erro.message);
     return {
