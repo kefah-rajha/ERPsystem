@@ -27,6 +27,7 @@ export const auth = {
           password,
         });
         console.log(finaluser, "finaluser");
+        
         await finaluser.save();
 
         const create_token = createAccessToken({ id: finaluser._id });

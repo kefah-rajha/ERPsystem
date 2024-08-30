@@ -7,7 +7,7 @@ interface UserDetails {
     name:string;
     phone:string;
     brithday:string,
-    languag:string
+    
 }
 
 const UserDetailsSchema = new Schema<UserDetails>({
@@ -15,7 +15,7 @@ const UserDetailsSchema = new Schema<UserDetails>({
     name: { type: String, required: true },
     phone: { type: String, required: true, unique: true ,default:"" },
     brithday: { type: String ,default:""},
-    languag: { type: String ,default: "en"},
+   
 
 
 });

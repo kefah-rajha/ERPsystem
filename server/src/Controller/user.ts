@@ -8,7 +8,12 @@ dotenv.config()
 export const user = {
     updateUser: async (req: any, res: any) => {
         try {
-            console.log(req.body)
+            const token = req.cookies.refreash_token;
+            console.log(token)
+            return res.status(200).json({
+                
+                success: true,
+            });
 
             const { userId, name, phone, brithday, languag } =
                 req.body as UserDetailsType;

@@ -118,5 +118,9 @@
                 0 0 50px #ffffff,
                 0 0 200px #f9f9f9;
 }
+input:not(:empty) {
+  outline: none; /* لإزالة حدود التركيز */
+  background-color: transparent; /* لإلغاء لون الخلفية */
+}
 
 }

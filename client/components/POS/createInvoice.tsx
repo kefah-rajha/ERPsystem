@@ -499,13 +499,13 @@ function CreateInvoice() {
               </div>
             </div>
             <div className="flex justify-between items-center h-16 mt-4">
-              <h3 className="mt-4 text-2xl flex h-16">
-                Total: <strong>{finalPrice}</strong>{" "}
+              <h3 className=" text-2xl flex  items-center h-full">
+                Total: {finalPrice}{" "}
               </h3>
 
               <Dialog >
                 <DialogTrigger asChild>
-                  <Button className="bg-[#d9b26a] hover:bg-yellow-500 text-foreground">
+                  <Button className="bg-[#d9b26a] hover:bg-yellow-500 text-foreground ">
                     <ShoppingCartIcon className="mr-2 h-4 w-4" />
                     Place Order
                   </Button>

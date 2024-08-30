@@ -7,6 +7,5 @@ const UserDetailsSchema = new mongoose_1.Schema({
     name: { type: String, required: true },
     phone: { type: String, required: true, unique: true, default: "" },
     brithday: { type: String, default: "" },
-    languag: { type: String, default: "en" },
 });
 exports.UserDetailsModel = (0, mongoose_1.model)('UserDetails', UserDetailsSchema);

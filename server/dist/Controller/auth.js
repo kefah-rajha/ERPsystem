@@ -63,11 +63,12 @@ exports.auth = {
         console.log(req.body);
         try {
             const { password, userName } = req.body;
+            //make all user name lowerCase
             const newusername = userName.toLowerCase().replace(/ /g, "");
             const user_name = yield schemaUser_1.UserModel.findOne({ userName: newusername });
             if (!user_name) {
                 res.status(400).json({ success: false,
-                    message: "the email name isnt exist" });
+                    message: "the user name name isnt exist" });
             }
             else {
                 if (password !== (user_name === null || user_name === void 0 ? void 0 : user_name.password)) {
@@ -94,6 +95,7 @@ exports.auth = {
             });
         }
     }),
+    // i am working on this
     getauth: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const token = req.cookies.refreash_token;
         // const data = await jwt.verify(token, process.env.REFRESH_TOKEN_SECRET as string);
