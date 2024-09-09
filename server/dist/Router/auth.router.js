@@ -10,6 +10,6 @@ const auth_1 = require("../Controller/auth");
 router.post("/SignUp", auth_1.auth.SignUpFun);
 router.post("/Login", auth_1.auth.login);
 // router.post("/logout",auth.logout);
-// router.get("/authorization",auth.getauth);
+router.get("/authorization", auth_1.auth.getauth);
 // router.get("/logout",auth.logout);
 exports.default = router;

@@ -4,8 +4,8 @@ import Signupform from "@/components/authComponent/Signup-form";
 function page() {
   return (
     <>
-
-    <div className="h-14 w-full bg-[#272727] barShadow flex justify-center items-center">
+    <div className="absolute h-screen w-screen z-50">
+    <div className="h-14 w-full bg-[#272727] barShadow flex justify-center items-center ">
       <h3 className="text-3xl font-bold"><span className="font-light">ERP</span>system</h3>
     </div>
     {/* bg-gradient is custom css  */}
@@ -18,6 +18,7 @@ function page() {
         <h2 className="xl:text-[96px] text-[80px] font-bold bg-gradient-to-r from-foreground to-gray-700  leading-none text-transparent bg-clip-text">ERPsystem</h2>
         <p className="text-[20px] text-[#8D8787] pl-2 mt-4">Manage Everything From One Place</p>
       
+      </div>
       </div>
     </div>
     </>

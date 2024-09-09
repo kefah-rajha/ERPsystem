@@ -72,7 +72,7 @@ function Loginform() {
         description: "login Is Done",
       });
       if (LoginStatus.refreash_token) {
-        push("/");
+        push("/dashboard");
       }
     }
   }

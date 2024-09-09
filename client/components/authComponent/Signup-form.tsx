@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/form";
 import { Button } from "../ui/button";
 import { Input } from "@/components/ui/input";
-import { Mail, Key, UserRound, Eye } from "lucide-react";
+import { Mail, Key, UserRound, Eye, Replace } from "lucide-react";
 import { useFormStatus, useFormState } from "react-dom";
 import { signupFetch } from "@/lib/action/actionFecth";
 import { any, string } from "zod";
@@ -41,7 +41,7 @@ function Signupform() {
    //toast for showing the result of the fetch data
    const { toast } = useToast();
    // push for route the user to /dashboard   If he logged in correctly
-   const { push } = useRouter();
+   const { replace } = useRouter();
  //for showing the password if he is true or disappear if he is false
    const [passwordShown, setPasswordShown] = useState(false);
 
@@ -78,7 +78,7 @@ function Signupform() {
         description: "Sign Up Is Done",
       });
       if (SignupStatus?.refreash_token) {
-        push("/");
+        replace("/dashboard");
       }
     }}catch(err:unknown){
       console.log(err)

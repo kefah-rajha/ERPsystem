@@ -4,20 +4,27 @@ import { Schema, model, connect } from 'mongoose';
 // models/User.ts
 interface UserDetails {
     userId:string;
-    name:string;
-    phone:string;
-    brithday:string,
+    phone: string;
+    email: string;
+    address: string;
+    website: string;
+    postCode: string;
+    city: string;
+    street: string;
     
 }
 
 const UserDetailsSchema = new Schema<UserDetails>({
-    userId: { type: String, required: true },
-    name: { type: String, required: true },
-    phone: { type: String, required: true, unique: true ,default:"" },
-    brithday: { type: String ,default:""},
-   
+    userId:  String ,
+    email: String,
+    address: String ,
+    phone:   String,
+    website:  String ,
+    postCode: { type: String },
+    city: { type: String },
+    street: { type: String },
 
 
 });
 
-export const UserDetailsModel = model<UserDetails>('UserDetails', UserDetailsSchema);
+export const UserDetailsModel = model<UserDetails>('contactInfo', UserDetailsSchema);

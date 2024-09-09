@@ -35,10 +35,16 @@ exports.auth = {
                     userName: newusername,
                     password,
                     name: "",
-                    brithday: ""
+                    Brithday: ""
                 });
                 console.log(finaluser, "finaluser");
-                yield finaluser.save();
+                const userInfo = yield finaluser.save();
+                if (!userInfo) {
+                    return res.status(400).json({
+                        success: false,
+                        message: "uh, there is thing, try later",
+                    });
+                }
                 const create_token = createAccessToken({ id: finaluser._id });
                 const refreash_token = createRefreashToken({ id: finaluser._id });
                 res.cookie("refreash_token", refreash_token, {
@@ -69,13 +75,17 @@ exports.auth = {
             const newusername = userName.toLowerCase().replace(/ /g, "");
             const user_name = yield schemaUser_1.UserModel.findOne({ userName: newusername });
             if (!user_name) {
-                res.status(400).json({ success: false,
-                    message: "the user name name isnt exist" });
+                res.status(400).json({
+                    success: false,
+                    message: "the user name name isnt exist"
+                });
             }
             else {
                 if (password !== (user_name === null || user_name === void 0 ? void 0 : user_name.password)) {
-                    res.status(400).json({ success: false,
-                        message: "the password isnt True" });
+                    res.status(400).json({
+                        success: false,
+                        message: "the password isnt True"
+                    });
                 }
                 const create_token = createAccessToken({ id: user_name === null || user_name === void 0 ? void 0 : user_name._id });
                 const refreash_token = createRefreashToken({ id: user_name === null || user_name === void 0 ? void 0 : user_name._id });
@@ -100,14 +110,21 @@ exports.auth = {
     // i am working on this
     getauth: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const token = req.cookies.refreash_token;
-        // const data = await jwt.verify(token, process.env.REFRESH_TOKEN_SECRET as string);
-        // const userToken = await UserModel.findById(data.id as Types.ObjectId).select("-password");
-        // if (!userToken) res.status(403).json({ message: "this is not exist" });
-        // const accessToken = createAccessToken({ id: data.id });
-        // return res.status(200).json({
-        //   token: accessToken,
-        //   user: userToken,
-        // });
+        const userIdByToken = jsonwebtoken_1.default.verify(token, process.env.REFRESH_TOKEN_SECRET);
+        const userID = userIdByToken.id;
+        const userToken = yield schemaUser_1.UserModel.findById(userID);
+        console.log(userToken);
+        // const newAccessToken = createAccessToken({ id: userID});
+        //   await res.cookie("refreash_token", newAccessToken, {
+        //     httpOnly: true,
+        //     secure: true,
+        //     path: "api/authorization",
+        //     maxAge: 30 * 24 * 60 * 60 * 1000, // 30days
+        //   });
+        return res.status(402).json({
+            data: userToken,
+            success: true,
+        });
     }),
     logout: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {

@@ -1,10 +1,12 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import DatePicker from "react-datepicker";
 import Image from "next/image";
 import { z } from "zod";
+import { toast, useToast } from "../ui/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import {
   Form,
   FormControl,
@@ -37,25 +39,66 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { responseUserInfo } from "@/dataType/dataTypeProfile/dataTypeProfile";
+import {responseCompanyInfo } from "@/dataType/dataTypeProfile/dataTypeProfile";
+
+
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { UpdateCompanyInfo } from "@/lib/profileFetch/profileUpdate";
+interface dataType {
+  data: responseUserInfo;
+  stepsHandle: (stepButton: number) => void;
+}
 
-function ContanctInfo() {
-  const [date, setDate] = React.useState<Date>();
-  const [phone, setPhone] = useState("");
+function ContanctInfo({ data, stepsHandle }: dataType) {
+  !data && null;
 
-  //     const searchParams = useSearchParams();
-  //     const numberStepParam = Number(searchParams.get("step")) || 1;
-  //    const params = new URLSearchParams(searchParams);
-  //    const pathname = usePathname();
-  //    console.log(params, pathname);
-  //    const { replace, push } = useRouter();
+  const [companyInfo, setCompanyInfo] = useState<responseCompanyInfo>({
+    nameComapny: "",
+    userId: "",
+    phone: "",
+    email: "",
+    address: "",
+    website: "",
+    postCode: "",
+    city: "",
+    street: "",
+  });
 
-  //      params.set("step", "1");
-  //      replace(`${pathname}?${params.toString()}`);
+  const { push } = useRouter();
+  useEffect(() => {
+    let ignore = false;
+    fetch(`/api/profile/companyInfo/${data._id}`)
+      .then((res) => {
+        if (!res) {
+          push("/Login");
+        }
+        return res.json();
+      })
+      .then((jsonData) => {
+        if (!ignore) {
+          console.log(jsonData, "setUser contantINFO");
+          console.log(jsonData ,"sccscscswdwd")
+
+          setCompanyInfo(jsonData.data);
+        }
+      })
+      .catch((err: unknown) => {
+        console.log(err);
+      })
+      .finally(() => {
+        if (!ignore) {
+          console.log("noLoding");
+        }
+      });
+    return () => {
+      ignore = true;
+    };
+  }, [data._id, push]);
 
   const profileFormSchema = z.object({
-    companyName:z.string(),
+    nameComapny:z.string(),
     phone: z
       .string()
       .refine(isValidPhoneNumber, { message: "Invalid phone number" })
@@ -64,7 +107,7 @@ function ContanctInfo() {
     address: z.string().min(5, {
       message: "Name must be  More 5 characters .",
     }),
-    website: z.any(),
+    website: z.string(),
     postCode: z.string(),
     city: z.string(),
     street: z.string(),
@@ -73,12 +116,49 @@ function ContanctInfo() {
 
   const form = useForm<profileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues: {
-      phone: "+1",
-    },
+    
+      values: {
+        phone: companyInfo?.phone,
+        nameComapny:companyInfo?.nameComapny,
+        email:companyInfo?.email ,
+        address:companyInfo?.address,
+        website: companyInfo?.website,
+        postCode: companyInfo?.postCode,
+        city: companyInfo?.city,
+        street: companyInfo?.street,
+      },
+    
   });
   
-  async function onSubmit(data: profileFormValues) {}
+  async function onSubmit(dataForm: profileFormValues) {
+    console.log(dataForm, "test....");
+
+    const updateDataProfileInfo = await UpdateCompanyInfo(
+      dataForm,
+      `/api/profile/companyInfo/${data._id}`
+    );
+
+    console.log(updateDataProfileInfo);
+    if (updateDataProfileInfo.success == true) {
+      toast({
+        variant: "default",
+        title: "Congratulations✅.",
+        description: updateDataProfileInfo?.message,
+      });
+      stepsHandle(4);
+    } else {
+      toast({
+        variant: "custum",
+        title: "Uh oh! Something went wrong.❌",
+        description: (
+          <p className="mt-2  rounded-md text-foreground/75 whitespace-pre-line p-4 w-full">
+            {updateDataProfileInfo.message}
+          </p>
+        ),
+        action: <ToastAction altText="Goto schedule to undo">Yes</ToastAction>,
+      });
+    }
+  }
   return (
     <div className="flex ">
       <div className="w-2/3 ">
@@ -86,7 +166,7 @@ function ContanctInfo() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="w-11/12">
           <FormField
               control={form.control}
-              name="companyName"
+              name="nameComapny"
               render={({ field }) => (
                 <FormItem className="relative ">
                   <UsersRound className="absolute top-[50%]  translate-y-[-50%] right-4  text-gray-400 h-4 w-4 sm:h-4 sm:w-4 " />

@@ -6,8 +6,7 @@ import Image from 'next/image'
 import { Callout } from "nextra-theme-docs";
 import { Tabs, Steps, Cards, Card } from "nextra/components";
 
-# Welcome
-## Authorization
+# 1 - Authorization
 This website has several types of users, each with specific permissions.
 and offers a customized experience for each user, tailored to their specific permissions.
 
@@ -19,10 +18,13 @@ and offers a customized experience for each user, tailored to their specific per
 
 `sales staff` : Sales representatives have specific permissions related to the sales process and may be granted additional permissions by the manager.
 
-## Authentication
-there are two approaches for that in this website
+### Authentication
 
-### The First Approache
+there are two approaches for that in this website
+<br />
+##  Front-end
+### Sign Up
+#### The First Approache
 Customers can self-register through the registration form (sign up). Sales staff and delivery personnel are considered staff roles and can only be created by the admin through the dashboard.even the admin can create a new customer 
 <br />
 <Image src="/first approche.drawio (8).svg" alt="Hello" width={3000} height={2000} />
@@ -33,7 +35,7 @@ Sign up design (figma)
 <Image src="/Sign Up.svg" alt="Hello" width={2000} height={2000} />
 
 
-### folder structure of Sign up  
+#### folder structure of Sign up  
 
 Client / <br />
 ├── app/ <br />
@@ -46,7 +48,61 @@ Client / <br />
 │   │   ├── Signup-form.tsx <br />
 │   │   └── Headersignup.tsx <br />
 └── ... (package.json, next.config.js) <br />
-### How it works؟؟
+#### How it works؟؟
 
 The   `Headersignup.tsx` component is present within `Cardsignup.tsx`,then `Cardsignup.tsx` is called within `Signup-form.tsx.` The `form` is passed as a child component inside `Cardsignup` in `Signup-form.tsx`  component  Then, `Signup-form.tsx` is called from signup/`pages.tsx.`  to render it
+
+## Back-End
+<Image src="/auth.png" alt="Hello" width={2000} height={2000} />
+#### index.tx
+The main file to run the server <br/>
+Configuring route "autRouter" in the express server
+ ```js filename="index.ts"
+app.use("/api",authRouter)
+```
+
+
+ #### Route folder 
+  The route folder for application's routing logic
+
+ file `auth.router` 
+  ```js filename="auth.routers.ts"
+router.post("/SignUp",auth.SignUpFun);
+router.post("/Login",auth.login);
+ router.get("/authorization",auth.getauth);
+
+```
+#### Controller Folder 
+-Handling incoming requests<br/>
+-Performing business logic<br/>
+-Returning responses<br/>
+  File `auth.ts` handle:<br/>
+  
+   ```js filename="auth.ts"
+SignUpFun: async (req: any, res: any) => {//logic
+}
+login: async (req: any, res: any) => {//logic
+}
+getauth: async (req: any, res: any) => {//logic
+ } 
+
+```
+
+
+## DataBase
+in file `Controller/auth.ts` handling the data with `database`  .
+#### Modal folder
+`Modal` folder inside it  we build collection for auth called `UserModel` in file called `schemaUser.ts`
+```js filename="schemaUser.ts"
+const userSchema = new Schema<User>({
+    userName: { type: String, required: true },
+    password: { type: String, required: true },
+    name:{ type: String},
+    Brithday:{type:String}
+
+});
+
+export const UserModel = model<User>('User', userSchema); 
+```
+
 

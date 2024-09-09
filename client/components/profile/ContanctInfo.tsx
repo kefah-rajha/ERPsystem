@@ -1,6 +1,6 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import DatePicker from "react-datepicker";
 import Image from "next/image";
@@ -31,6 +31,8 @@ import { Calendar as CalendarIcon, Key } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { toast, useToast } from "../ui/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import {
   Popover,
   PopoverContent,
@@ -38,21 +40,60 @@ import {
 } from "@/components/ui/popover";
 import { PhoneInput } from "@/components/ui/phone-input";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { UpdateContactInfo } from "@/lib/profileFetch/profileUpdate";
+import { responseUserInfo } from "@/dataType/dataTypeProfile/dataTypeProfile";
+import { responseContanctInfo } from "@/dataType/dataTypeProfile/dataTypeProfile";
+import { useRouter } from "next/navigation";
 
-function ContanctInfo() {
-  const [date, setDate] = React.useState<Date>();
+interface dataType {
+  data: responseUserInfo;
+  stepsHandle: (stepButton: number) => void;
+}
+
+function ContanctInfo({ data, stepsHandle }: dataType) {
+  !data && null;
+
   const [phone, setPhone] = useState("");
+  const [contatcInfo, setContantInfo] = useState<responseContanctInfo>({
+    userId: "",
+    phone: "",
+    email: "",
+    address: "",
+    website: "",
+    postCode: "",
+    city: "",
+    street: "",
+  });
+  const { push } = useRouter();
+  useEffect(() => {
+    let ignore = false;
+    fetch(`/api/profile/contactInfo/${data._id}`)
+      .then((res) => {
+        if (!res) {
+          push("/Login");
+        }
+        return res.json();
+      })
+      .then((jsonData) => {
+        if (!ignore) {
+          console.log(jsonData, "setUser contantINFO");
 
-  //     const searchParams = useSearchParams();
-  //     const numberStepParam = Number(searchParams.get("step")) || 1;
-  //    const params = new URLSearchParams(searchParams);
-  //    const pathname = usePathname();
-  //    console.log(params, pathname);
-  //    const { replace, push } = useRouter();
-
-  //      params.set("step", "1");
-  //      replace(`${pathname}?${params.toString()}`);
+          setContantInfo(jsonData.data);
+        }
+      })
+      .catch((err: unknown) => {
+        console.log(err);
+      })
+      .finally(() => {
+        if (!ignore) {
+          console.log("noLoding");
+        }
+      });
+    return () => {
+      ignore = true;
+    };
+  }, [data._id, push]);
+  !contatcInfo && null
 
   const profileFormSchema = z.object({
     phone: z
@@ -63,21 +104,57 @@ function ContanctInfo() {
     address: z.string().min(5, {
       message: "Name must be  More 5 characters .",
     }),
-    website: z.any(),
+    website: z.string(),
     postCode: z.string(),
     city: z.string(),
     street: z.string(),
   });
   type profileFormValues = z.infer<typeof profileFormSchema>;
-
+  console.log(contatcInfo?.phone, "contatcInfo?.phone,");
+  
   const form = useForm<profileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues: {
-      phone: "+1",
+    values: {
+      phone: contatcInfo?.phone,
+      email:contatcInfo?.email ,
+      address:contatcInfo?.address,
+      website: contatcInfo.website,
+      postCode: contatcInfo.postCode,
+      city: contatcInfo.city,
+      street: contatcInfo.street,
     },
+    
   });
-  
-  async function onSubmit(data: profileFormValues) {}
+  async function onSubmit(dataForm: profileFormValues) {
+    console.log(dataForm, "test....");
+
+    const updateDataProfileInfo = await UpdateContactInfo(
+      dataForm,
+      `/api/profile/contactInfo/${data._id}`
+    );
+
+    console.log(updateDataProfileInfo);
+    if (updateDataProfileInfo.success == true) {
+      toast({
+        variant: "default",
+        title: "Congratulations✅.",
+        description: updateDataProfileInfo?.message,
+      });
+      stepsHandle(3);
+    } else {
+      toast({
+        variant: "custum",
+        title: "Uh oh! Something went wrong.❌",
+        description: (
+          <p className="mt-2  rounded-md text-foreground/75 whitespace-pre-line p-4 w-full">
+            {updateDataProfileInfo.message}
+          </p>
+        ),
+        action: <ToastAction altText="Goto schedule to undo">Yes</ToastAction>,
+      });
+    }
+  }
+
   return (
     <div className="flex ">
       <div className="w-2/3 ">
@@ -93,7 +170,6 @@ function ContanctInfo() {
                   <FormControl className="w-full">
                     <PhoneInput
                       placeholder="Phone Number"
-                      
                       autoComplete="off"
                       {...field}
                       className="w-full  pr-4 py-2  border h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:focus:bg-[#302f2f]"
@@ -115,7 +191,6 @@ function ContanctInfo() {
                     <Input
                       placeholder="Email"
                       type="email"
-                      
                       autoComplete="off"
                       {...field}
                       className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:focus:bg-[#302f2f]"

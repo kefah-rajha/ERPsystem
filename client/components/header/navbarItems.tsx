@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ChevronDown ,BellIcon,Scan} from 'lucide-react';
 import { Button } from '../ui/button';
-
+import Link from "next/link"
 
 function NavbarItems() {
   return (
@@ -34,7 +34,9 @@ function NavbarItems() {
 
   </DropdownMenuTrigger>
   <DropdownMenuContent className='bg-[#2F2F2F] mt-2'>
-        <DropdownMenuItem>Profile</DropdownMenuItem>
+        <DropdownMenuItem>
+          <Link href="/dashboard/profile">Profile</Link>
+          </DropdownMenuItem>
     <DropdownMenuSeparator />
     <DropdownMenuItem>Log Out</DropdownMenuItem>
   </DropdownMenuContent>

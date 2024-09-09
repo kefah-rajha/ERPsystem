@@ -3,6 +3,8 @@ import jwt from "jsonwebtoken";
 import { userAuthType } from "../DataType/authType";
 import { Types } from "mongoose";
 import dotenv from "dotenv";
+import { UserDetailsModel } from "../Modal/schemaUserDetails";
+
 dotenv.config();
 
 export const auth = {
@@ -14,7 +16,7 @@ export const auth = {
 
       const newusername = userName.toLowerCase().replace(/ /g, "");
       const user_name = await UserModel.findOne({ userName: newusername });
-   
+
 
       if (user_name) {
         return res.status(400).json({
@@ -25,12 +27,20 @@ export const auth = {
         const finaluser = new UserModel({
           userName: newusername,
           password,
-          name:"",
-          brithday:""
+          name: "",
+          Brithday: ""
         });
         console.log(finaluser, "finaluser");
-        
-        await finaluser.save();
+
+        const userInfo = await finaluser.save();
+        if (!userInfo) {
+  
+          return res.status(400).json({
+            success: false,
+            message: "uh, there is thing, try later",
+          });
+
+        }
 
         const create_token = createAccessToken({ id: finaluser._id });
         const refreash_token = createRefreashToken({ id: finaluser._id });
@@ -63,14 +73,19 @@ export const auth = {
       const newusername = userName.toLowerCase().replace(/ /g, "");
       const user_name = await UserModel.findOne({ userName: newusername });
 
-      if (!user_name ) {
-        res.status(400).json({  success: false,
-          message: "the user name name isnt exist" });
+      if (!user_name) {
+        res.status(400).json({
+          success: false,
+          message: "the user name name isnt exist"
+        });
       } else {
 
-        if(password !== user_name?.password ){
-           res.status(400).json({ success: false,
-            message: "the password isnt True" });}
+        if (password !== user_name?.password) {
+          res.status(400).json({
+            success: false,
+            message: "the password isnt True"
+          });
+        }
 
         const create_token = createAccessToken({ id: user_name?._id });
         const refreash_token = createRefreashToken({ id: user_name?._id });
@@ -83,7 +98,7 @@ export const auth = {
 
         return res
           .status(200)
-          .json({ success: true, user: user_name, refreash_token});
+          .json({ success: true, user: user_name, refreash_token });
       }
     } catch (error: any) {
       res.status(402).json({
@@ -94,16 +109,25 @@ export const auth = {
   },
   // i am working on this
   getauth: async (req: any, res: any) => {
-    const token = req.cookies.refreash_token;
+    const token = req.cookies.refreash_token
+    const userIdByToken = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET as string)
+    const userID = (userIdByToken as any).id
+    const userToken = await UserModel.findById(userID as Types.ObjectId);
+    console.log(userToken)
+    // const newAccessToken = createAccessToken({ id: userID});
+    //   await res.cookie("refreash_token", newAccessToken, {
+    //     httpOnly: true,
+    //     secure: true,
+    //     path: "api/authorization",
+    //     maxAge: 30 * 24 * 60 * 60 * 1000, // 30days
+    //   });
+    return res.status(402).json({
+      data: userToken,
+      success: true,
+    });
 
-    // const data = await jwt.verify(token, process.env.REFRESH_TOKEN_SECRET as string);
-    // const userToken = await UserModel.findById(data.id as Types.ObjectId).select("-password");
-    // if (!userToken) res.status(403).json({ message: "this is not exist" });
-    // const accessToken = createAccessToken({ id: data.id });
-    // return res.status(200).json({
-    //   token: accessToken,
-    //   user: userToken,
-    // });
+
+
   },
   logout: async (req: any, res: any) => {
     try {

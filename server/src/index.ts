@@ -10,12 +10,14 @@ import userRouter from "./Router/user.router"
 import { connect } from "mongoose";
 
 import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser'
 
 
 dotenv.config();
 
 const app: Express = express();
 const port = process.env.PORT || 4000;
+app.use(cookieParser())
 const corsOptions: cors.CorsOptions = {
   origin: 'http://your-client-domain.com', // Replace with your client's origin
   credentials: true, // Allow cookies
@@ -39,6 +41,7 @@ app.get("/", (req: Request, res: Response) => {
 });
 app.use("/api",authRouter)
 app.use("/api",userRouter)
+
 
 
 
