@@ -1,6 +1,6 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useEffect, useState } from "react";
+import React, { useContext } from "react";
 import { useForm } from "react-hook-form";
 import DatePicker from "react-datepicker";
 import Image from "next/image";
@@ -14,6 +14,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {UserContext}from "@/context/userContext"
+
 import { UserRound, UsersRound, ArrowBigRightDash, Brush } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
@@ -39,6 +41,8 @@ interface dataType {
 }
 function CreateProfileInfo({ stepsHandle }: dataType) {
   const { toast } = useToast();
+  const userContext=useContext(UserContext)
+
   // push for route the user to /dashboard   If he logged in correctly
   const { push } = useRouter();
   const [date, setDate] = React.useState<Date>();
@@ -69,27 +73,28 @@ function CreateProfileInfo({ stepsHandle }: dataType) {
     dataForm.Brithday = date;
     console.log(typeof dataForm.Brithday, "test....");
 
-    const updateDataProfileInfo = await createprofileUser(
+    const createDataProfileInfo = await createprofileUser(
       dataForm,
       `/api/createUser`
     );
 
-    console.log(updateDataProfileInfo.data._id,"updateDataProfileInfo");
-    if (updateDataProfileInfo.success == true) {
+    console.log(createDataProfileInfo.data._id,"updateDataProfileInfo");
+    if (createDataProfileInfo.success == true) {
       toast({
         variant: "default",
         title: "Congratulations✅.",
-        description: updateDataProfileInfo?.message,
+        description: createDataProfileInfo?.message,
       });
-    localStorage.setItem("idNewUser",updateDataProfileInfo.data._id )
+    localStorage.setItem("idNewUser",createDataProfileInfo.data._id )
       stepsHandle(2);
+      userContext?.setUsers([...userContext.users,createDataProfileInfo.data])
     } else {
       toast({
         variant: "custum",
         title: "Uh oh! Something went wrong.❌",
         description: (
           <p className="mt-2  rounded-md text-foreground/75 whitespace-pre-line p-4 w-full">
-            {updateDataProfileInfo.message}
+            {createDataProfileInfo.message}
           </p>
         ),
         action: <ToastAction altText="Goto schedule to undo">Yes</ToastAction>,

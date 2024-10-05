@@ -57,7 +57,7 @@ function Page() {
     return () => {
       ignore = true;
     };
-  }, [push]);
+  }, [push,step]);
   useEffect(() => {
     const stepsHandle = (stepButton: number) => {
       console.log(stepButton);

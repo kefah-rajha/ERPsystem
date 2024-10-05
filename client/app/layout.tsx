@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/lib/theme-provider"
-import { Toaster } from "@/components/ui/toaster"
+import { ThemeProvider } from "@/lib/theme-provider";
+import { Toaster } from "@/components/ui/toaster";
 
 import { headers } from "next/headers";
-
-
-
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,29 +20,24 @@ export default function RootLayout({
 }>) {
   const headerList = headers();
   const pathname = headerList.get("x-current-path");
-  const isSignUp=pathname?.includes("/Signup")
-  const isLogin=pathname?.includes("/Login")
-  const registry = isLogin || isSignUp
-  console.log(registry)
+  const isSignUp = pathname?.includes("/Signup");
+  const isLogin = pathname?.includes("/Login");
+  const registry = isLogin || isSignUp;
+  console.log(registry);
 
   return (
     <html lang="en">
-      <body className={inter.className}>
-      <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            
-            disableTransitionOnChange
-          >
-       
-           
-             <>{children}</>
-            
-        
-        <Toaster />
-        </ThemeProvider>
+      <body className={inter.className} style={{overflow:"hidden"}}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          disableTransitionOnChange
+        >
+          <>{children}</>
 
-        </body>
+          <Toaster />
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

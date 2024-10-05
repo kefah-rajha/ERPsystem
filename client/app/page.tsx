@@ -11,7 +11,7 @@ export default function Home() {
   useEffect(()=>{
     push("/dashboard")
 
-  })
+  },[push])
   return (
     <main className=" h-screen overflow-hidden   bg-gradient">
       

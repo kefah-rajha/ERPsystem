@@ -116,10 +116,10 @@ function UpdateContanctInfo({ id, stepsHandle }: dataType) {
       phone: contatcInfo?.phone,
       email:contatcInfo?.email ,
       address:contatcInfo?.address,
-      website: contatcInfo.website,
-      postCode: contatcInfo.postCode,
-      city: contatcInfo.city,
-      street: contatcInfo.street,
+      website: contatcInfo?.website,
+      postCode: contatcInfo?.postCode,
+      city: contatcInfo?.city,
+      street: contatcInfo?.street,
     },
     
   });

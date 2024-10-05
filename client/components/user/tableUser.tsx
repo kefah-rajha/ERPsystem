@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState ,useContext} from "react";
 import { AllusersResponse } from "@/dataType/dataTypeUser/dataTypeUser";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -58,10 +58,13 @@ import Link from "next/link";
 import PaginationComponent from "@/components/user/Pagination";
 import CounterUsers from "@/components/user/counterUsers";
 import { toast } from "@/components/ui/use-toast";
+import {UserContext}from "@/context/userContext"
+
 
 function TableUser() {
   const searchParams = useSearchParams();
   const { push, replace } = useRouter();
+  const userContext=useContext(UserContext)
 
   const numberPageParam = Number(searchParams.get("page")) || 1;
   const params = new URLSearchParams(searchParams);
@@ -79,7 +82,6 @@ function TableUser() {
     numberProducts
   );
 
-  const [users, setUsers] = useState<AllusersResponse[] | null>();
 
   useEffect(() => {
     let ignore = false;
@@ -94,7 +96,7 @@ function TableUser() {
         if (!ignore) {
           console.log(jsonData, "setUser test");
 
-          setUsers(jsonData.data);
+          userContext?.setUsers(jsonData.data);
         }
       })
       .catch((err: unknown) => {
@@ -109,6 +111,7 @@ function TableUser() {
       ignore = true;
     };
     
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [numberPageParam, push]);
   const deleteProduct=async(id:string)=>{
     const fetchDeleteData=await fetch(  `/api/deleteUser/${id}`,{
@@ -128,12 +131,12 @@ function TableUser() {
 
    }
    if (res.success == true) {
-    const newProducts = users?.filter(
+    const newProducts = userContext?.users?.filter(
       (item: AllusersResponse) => item._id !== id
     );
     console.log(newProducts);
     if (newProducts) {
-      setUsers(newProducts);
+      userContext?.setUsers(newProducts);
       toast({
         variant: "default",
         title: "Congratulations✅.",
@@ -143,10 +146,10 @@ function TableUser() {
     }
   }
   }
-  const rowsUser = users?.map((user: AllusersResponse) => (
+  const rowsUser = userContext?.users?.map((user: AllusersResponse) => (
     <TableRow key={user._id} className="cursor-pointer ">
       <TableCell className=" w-[16.6%] border border-r-2 border-b-2  border-gray-800">
-        <strong>{user.name.toLowerCase()} ali muhmad</strong>
+        <strong>{user.name.toLowerCase()}</strong>
       </TableCell>
       <TableCell className=" w-[20%] border-r-2 border-b-2 border-gray-800 ">
         {user.name.toLowerCase()}gmail.com
@@ -158,7 +161,7 @@ function TableUser() {
         +9635956558
       </TableCell>
       <TableCell className="hidden md:table-cell w-[12.4%] border-r-2 border-b-2 border-gray-800">
-        <Badge className="bg-orange-300 border-r-4">customer</Badge>
+        <Badge className="bg-foreground/5 text-foreground/60 border-r-4">{user?.role}</Badge>
       </TableCell>
       <TableCell className=" w-[16.6%] border-r-1 border-b-2 border-gray-800">
         <DropdownMenu>
@@ -183,9 +186,9 @@ function TableUser() {
                   Edit
                 </Button>
               </DialogTrigger>
-              <DialogContent className="w-full bg-gradient">
+              <DialogContent className="w-[90%] h-[95vh] bg-gradient">
                 <DialogHeader>
-                  <DialogTitle>Create Users</DialogTitle>
+                  <DialogTitle>Update Users</DialogTitle>
                 </DialogHeader>
                 <UpdateUser id={user._id}/>
               </DialogContent>

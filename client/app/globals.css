@@ -92,6 +92,10 @@
     background: linear-gradient(225deg, #464646 15%, #272727 100%);
 
   }
+  .second-card-gradient{
+    background: linear-gradient(225deg, #464646 15%, #272727 100%);
+
+  }
   .inputCustom{
     background:#242323;
     box-shadow: inset -9px 4px 4px rgba(0,0,0,.25);

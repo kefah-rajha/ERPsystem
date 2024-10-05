@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import  cors from 'cors';
 import authRouter from "./Router/auth.router"
 import userRouter from "./Router/user.router"
-
+import categoryRouter from "./Router/category.router"
 
 
 
@@ -41,6 +41,8 @@ app.get("/", (req: Request, res: Response) => {
 });
 app.use("/api",authRouter)
 app.use("/api",userRouter)
+app.use("/api",categoryRouter)
+
 
 
 

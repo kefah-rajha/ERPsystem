@@ -22,13 +22,106 @@ exports.user = {
     getAllUsers: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const { pageNumber } = req.params;
-            const resallPost = yield schemaUser_1.UserModel.find().sort({
-                createdAt: -1,
-            });
-            return res.status(200).json({
-                data: resallPost,
-                success: true,
-            });
+            const { fieldSort, sort, role, fields, fieldSearch, searchInput } = req.body;
+            const sortAsNumber = sort == "1" ? 1 : -1;
+            const regex = searchInput == "" ? new RegExp(/^[a-zA-Z0-9]+$/) : new RegExp(`^${searchInput}`, 'i');
+            console.log(regex, "regex");
+            const search = {
+                $match: {
+                    [fieldSearch]: { $regex: regex }
+                }
+            };
+            const RoleSort = {
+                $match: {
+                    role: role
+                }
+            };
+            const SortAlphB = {
+                $sort: {
+                    [fieldSort]: sortAsNumber
+                }
+            };
+            const EmptyFields = {
+                $match: {
+                    $or: [
+                        { "contact.email": "" },
+                        { "contact.phone": "" },
+                        { "company.name": "" },
+                        { "name": "" },
+                    ]
+                }
+            };
+            const pipline = [
+                {
+                    $lookup: {
+                        from: "contactInfo",
+                        localField: "contactId",
+                        foreignField: "_id",
+                        as: "contact"
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "Usercompany",
+                        localField: "companyId",
+                        foreignField: "_id",
+                        as: "company"
+                    }
+                },
+                {
+                    $unwind: {
+                        path: "$contact",
+                        preserveNullAndEmptyArrays: true
+                    }
+                },
+                {
+                    $unwind: {
+                        path: "$company",
+                        preserveNullAndEmptyArrays: true
+                    }
+                },
+            ];
+            if (role !== "All" && fields !== "Empty") {
+                const resallPost = yield schemaUser_1.UserModel.aggregate([...pipline, search, RoleSort, SortAlphB]);
+                console.log(resallPost);
+                return res.status(200).json({
+                    data: resallPost,
+                    success: true,
+                });
+            }
+            else if (fields == "Empty" && role !== "All") {
+                const resallPost = yield schemaUser_1.UserModel.aggregate([...pipline, search, EmptyFields,
+                    RoleSort, SortAlphB
+                ]);
+                return res.status(200).json({
+                    data: resallPost,
+                    success: true,
+                });
+            }
+            else if (fields !== "Empty" && role == "All") {
+                const resallPost = yield schemaUser_1.UserModel.aggregate([...pipline, search, SortAlphB
+                ]);
+                return res.status(200).json({
+                    data: resallPost,
+                    success: true,
+                });
+            }
+            else if (fields == "Empty" && role == "All") {
+                console.log(role !== "All" && fields !== "Empty");
+                const resallPost = yield schemaUser_1.UserModel.aggregate([...pipline, search, EmptyFields, SortAlphB
+                ]);
+                return res.status(200).json({
+                    data: resallPost,
+                    success: true,
+                });
+            }
+            // data=[]
+            // const resallPost = await UserModel.find().sort()
+            // data.push(...resallPost)
+            // return res.status(200).json({
+            //   data: data,
+            //   success: true,
+            // });
         }
         catch (error) {
             return res.status(200).json({
@@ -134,6 +227,7 @@ exports.user = {
             }
             else {
                 return res.status(200).json({
+                    data: userAfterUpdat,
                     message: "Update Is Done",
                     success: true,
                 });
@@ -300,16 +394,12 @@ exports.user = {
             console.log(id);
             const userDelete = yield schemaUser_1.UserModel.findByIdAndDelete(id);
             if (userDelete === null || userDelete === void 0 ? void 0 : userDelete._id) {
-                const userContactDelete = yield schemaUser_1.UserModel.findByIdAndDelete(id);
-                if (userContactDelete === null || userContactDelete === void 0 ? void 0 : userContactDelete._id) {
-                    const userCompanyDelete = yield schemaUser_1.UserModel.findByIdAndDelete(id);
-                    if (userCompanyDelete === null || userCompanyDelete === void 0 ? void 0 : userCompanyDelete._id) {
-                        res.status(200).json({
-                            message: "delete user is done",
-                            success: true,
-                        });
-                    }
-                }
+                const userContactDelete = yield schemaUserDetails_1.UserDetailsModel.findOneAndDelete({ userId: id });
+                const userCompanyDelete = yield schemaCompanyUser_1.UserCompanyModel.findOneAndDelete({ userId: id });
+                res.status(200).json({
+                    message: "delete user is done",
+                    success: true,
+                });
             }
             else {
                 res.status(402).json({
@@ -325,4 +415,24 @@ exports.user = {
             });
         }
     }),
+    userFilter: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const filterItem = yield schemaUserDetails_1.UserDetailsModel.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    city: { $addToSet: "$city" },
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    city: 1,
+                }
+            }
+        ]);
+        res.status(200).json({
+            data: filterItem,
+            success: true,
+        });
+    })
 };

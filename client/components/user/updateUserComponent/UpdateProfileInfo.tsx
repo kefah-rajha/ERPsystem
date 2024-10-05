@@ -1,6 +1,6 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import DatePicker from "react-datepicker";
 import Image from "next/image";
@@ -32,6 +32,8 @@ import { UpdateProfile } from "@/lib/profileFetch/profileUpdate";
 import { responseUserInfo } from "@/dataType/dataTypeProfile/dataTypeProfile";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
+import {UserContext}from "@/context/userContext"
+
 
 interface dataType {
   id: string;
@@ -39,6 +41,8 @@ interface dataType {
 }
 function UpdateProfileInfo({ id, stepsHandle }: dataType) {
   const { toast } = useToast();
+  const userContext=useContext(UserContext)
+
   // push for route the user to /dashboard   If he logged in correctly
   const { push } = useRouter();
   const [date, setDate] = React.useState<Date>();
@@ -51,7 +55,7 @@ function UpdateProfileInfo({ id, stepsHandle }: dataType) {
   });
   useEffect(() => {
     let ignore = false;
-    fetch(`/api/profile/profileInfo/${id}`)
+    fetch(`/api/profile/getProfileInfo/${id}`)
       .then((res) => {
         return res.json();
       })
@@ -112,7 +116,7 @@ function UpdateProfileInfo({ id, stepsHandle }: dataType) {
 
     const updateDataProfileInfo = await UpdateProfile(
       dataForm,
-      `/api/profile/profileInfo/${data._id}`
+      `/api/profile/UpdateprofileInfo/${data._id}`
     );
 
     console.log(updateDataProfileInfo);
@@ -123,6 +127,20 @@ function UpdateProfileInfo({ id, stepsHandle }: dataType) {
         description: updateDataProfileInfo?.message,
       });
       stepsHandle(2);
+      userContext?.setUsers((prevUser)=>{
+
+       return prevUser.map((user) => {
+
+        if (user._id === updateDataProfileInfo.data._id) {
+        console.log(updateDataProfileInfo?.data,"scsc")
+          return updateDataProfileInfo.data
+        } else {
+          return user;
+        }})
+  
+      });
+
+      
     } else {
       toast({
         variant: "custum",

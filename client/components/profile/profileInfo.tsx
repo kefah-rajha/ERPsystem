@@ -33,21 +33,19 @@ import { responseUserInfo } from "@/dataType/dataTypeProfile/dataTypeProfile";
 import { useToast } from "../ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 
-
-
 interface dataType {
   data: responseUserInfo;
-  stepsHandle:(stepButton: number)=>void
+  stepsHandle: (stepButton: number) => void;
 }
-function ProfileInfo({ data ,stepsHandle}: dataType) {
+function ProfileInfo({ data, stepsHandle }: dataType) {
   !data && null;
   const { toast } = useToast();
-   // push for route the user to /dashboard   If he logged in correctly
-   const { push } = useRouter();
+  // push for route the user to /dashboard   If he logged in correctly
+  const { push } = useRouter();
   const [date, setDate] = React.useState<Date>();
-  useEffect(()=>{
-setDate(data.Brithday)
-  },[data])
+  useEffect(() => {
+    setDate(data.Brithday);
+  }, [data]);
 
   const profileFormSchema = z.object({
     userName: z
@@ -64,37 +62,37 @@ setDate(data.Brithday)
     password: z.string().min(5, {
       message: "Name must be  More 5 characters .",
     }),
-    Brithday: z.any()
+    Brithday: z.any(),
   });
   type profileFormValues = z.infer<typeof profileFormSchema>;
 
   const form = useForm<profileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues: {
+    values: {
       userName: data?.userName,
       password: data?.password,
-      Brithday: new Date('1991-08-01'),
+      Brithday: data?.Brithday,
       name: data?.name,
     },
   });
   async function onSubmit(dataForm: profileFormValues) {
     dataForm.Brithday = date;
-    console.log(typeof dataForm.Brithday,"test....")
-    
+    console.log(typeof dataForm.Brithday, "test....");
+
     const updateDataProfileInfo = await UpdateProfile(
       dataForm,
-      `/api/profile/profileInfo/${data._id}`
+      `/api/profile/UpdateprofileInfo/${data._id}`
     );
-    
-    console.log(updateDataProfileInfo)
-    if(updateDataProfileInfo.success == true    ){
+
+    console.log(updateDataProfileInfo);
+    if (updateDataProfileInfo.success == true) {
       toast({
         variant: "default",
         title: "Congratulations✅.",
-        description:updateDataProfileInfo?.message ,
+        description: updateDataProfileInfo?.message,
       });
-      stepsHandle(2)
-    }else{
+      stepsHandle(2);
+    } else {
       toast({
         variant: "custum",
         title: "Uh oh! Something went wrong.❌",
@@ -105,9 +103,7 @@ setDate(data.Brithday)
         ),
         action: <ToastAction altText="Goto schedule to undo">Yes</ToastAction>,
       });
-
     }
-
   }
   console.log(data?.name, "dwd");
   return (
@@ -190,8 +186,15 @@ setDate(data.Brithday)
                 <PopoverContent className="w-auto p-0">
                   <input
                     type="date"
-                    onChange={(e: any) => setDate(e.target.value)}
-                    
+                    onChange={(e: any) => {
+                      const selectedDate = new Date(e.target.value);
+                      const utcDate = new Date(
+                        selectedDate.getUTCFullYear(),
+                        selectedDate.getUTCMonth(),
+                        selectedDate.getUTCDate()
+                      );
+                      setDate(utcDate);
+                    }}
                   />
                 </PopoverContent>
               </Popover>

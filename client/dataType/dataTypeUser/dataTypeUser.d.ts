@@ -4,4 +4,5 @@ export interface AllusersResponse{
     name: string;
     password: string;
     Brithday?: any;
+    role:string
 }

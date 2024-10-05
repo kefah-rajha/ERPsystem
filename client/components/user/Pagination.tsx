@@ -43,7 +43,7 @@ export default function PaginationComponent({
             <PaginationLink
               onClick={() => handlePageChange(1)}
               isActive={numberPageParam === 1 ? true : false}
-              className={cn(numberPageParam === 1 ? "bg-orange-300 text-background hover:bg-orange-600 cursor-pointer h-8 w-8" :null )}
+              className={cn(numberPageParam === 1 ? "card-gradient text-orange-300  border shadow-lg hover:bg-orange-600 cursor-pointer h-8 w-8" :null )}
             >
               1
             </PaginationLink>
@@ -67,7 +67,7 @@ export default function PaginationComponent({
             <PaginationLink
               onClick={() => handlePageChange(numberPageParam)}
               isActive={numberPageParam === numberPageParam ? true : false}
-              className="bg-orange-300 text-background hover:bg-orange-600 "
+              className="card-gradient text-orange-300  border shadow-lg hover:bg-orange-500 "
             >
               {numberPageParam}
             </PaginationLink>
