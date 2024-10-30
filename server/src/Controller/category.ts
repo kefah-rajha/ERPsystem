@@ -26,8 +26,24 @@ export const category = {
     },
     getCategories: async (req: any, res: any) => {
         try {
+        
+            const resAllCategory = await Category.find({ parent: null }).populate("children")
+            return res.status(200).json({
+                data: resAllCategory,
+                success: true,
+            });
+        } catch (error: unknown) {
+            return res.status(400).json({
+                message: error,
+                success: false,
+            });
+        }
+
+    },
+    getSelectSubCategories :async (req: any, res: any) => {
+        try {
             console.log("ddd")
-            const resAllCategory = await Category.find({ parent: null })
+            const resAllCategory = await Category.find()
             return res.status(200).json({
                 data: resAllCategory,
                 success: true,

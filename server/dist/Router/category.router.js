@@ -15,4 +15,5 @@ router.post("/Subcategory/createSubCategory/:id", category_1.category.createSubC
 router.get("/Subcategory/getSubCategories/:id", category_1.category.getSubCategories);
 router.post("/Subcategory/UpdateSubCategory/:id", category_1.category.updateSubCategory);
 router.delete("/subCategory/deleteSubCategory/:parentID/:id", category_1.category.deleteSubCategory);
+router.get("/category/getSelectCategories", category_1.category.getCategories);
 exports.default = router;

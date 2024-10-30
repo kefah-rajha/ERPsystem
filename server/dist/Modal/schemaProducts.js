@@ -33,21 +33,18 @@ const attributes = new mongoose_1.default.Schema({
     },
 });
 const productSchema = new mongoose_1.Schema({
-    name: { type: String, required: true },
-    Description: String,
-    price: Number,
-    Discount: Number,
-    maxQuantity: Number,
-    minQuantity: Number,
-    Status: String,
-    Category: String,
-    subCategory: String,
-    // stock: { type: Number, default: 0 },
-    photos: [String],
-    // Dynamic attributes with type information
-    attributes: {
-        type: attributes,
-        // Allows specific type information
-    }
+    name: { type: String },
+    SKU: { type: String },
+    brandName: { type: String },
+    productTag: { type: String },
+    price: { type: String },
+    Discount: { type: String },
+    SupplierName: { type: String },
+    salesCode: { type: String },
+    purchaseCode: { type: String },
+    supplierCode: { type: String },
+    trackInventory: { type: Boolean },
+    allowOutOfStock: { type: Boolean },
+    Description: { type: String },
 });
 exports.ProductModel = (0, mongoose_1.model)('Products', productSchema);

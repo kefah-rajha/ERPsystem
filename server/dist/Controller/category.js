@@ -37,8 +37,23 @@ exports.category = {
     }),
     getCategories: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
+            const resAllCategory = yield schemaCategory_1.Category.find({ parent: null }).populate("children");
+            return res.status(200).json({
+                data: resAllCategory,
+                success: true,
+            });
+        }
+        catch (error) {
+            return res.status(400).json({
+                message: error,
+                success: false,
+            });
+        }
+    }),
+    getSelectSubCategories: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
             console.log("ddd");
-            const resAllCategory = yield schemaCategory_1.Category.find({ parent: null });
+            const resAllCategory = yield schemaCategory_1.Category.find();
             return res.status(200).json({
                 data: resAllCategory,
                 success: true,

@@ -9,6 +9,7 @@ const cors_1 = __importDefault(require("cors"));
 const auth_router_1 = __importDefault(require("./Router/auth.router"));
 const user_router_1 = __importDefault(require("./Router/user.router"));
 const category_router_1 = __importDefault(require("./Router/category.router"));
+const products_router_1 = __importDefault(require("./Router/products.router"));
 const mongoose_1 = require("mongoose");
 const body_parser_1 = __importDefault(require("body-parser"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
@@ -36,6 +37,7 @@ app.get("/", (req, res) => {
 app.use("/api", auth_router_1.default);
 app.use("/api", user_router_1.default);
 app.use("/api", category_router_1.default);
+app.use("/api", products_router_1.default);
 app.listen(port, () => {
     console.log(`[server]: Server is running at http://localhost:${port}`);
 });
