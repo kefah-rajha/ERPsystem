@@ -191,7 +191,7 @@ function SidebarItems() {
               )}
             />
 
-            <span className="font-light text-sm"> Catogeories</span>
+            <span className="font-light text-sm"> Categories</span>
           </Link>
         </div>
         </motion.div>

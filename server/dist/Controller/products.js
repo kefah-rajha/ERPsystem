@@ -12,6 +12,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.products = void 0;
 const schemaProducts_1 = require("../Modal/schemaProducts");
 exports.products = {
+    getAllProducts: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const { pageNumber } = req.params;
+            const resallPost = yield schemaProducts_1.ProductModel.find().sort({
+                createdAt: -1
+            });
+            console.log(resallPost);
+            res.status(200).json({
+                allposts: resallPost
+            });
+        }
+        catch (error) {
+            console.log(error);
+        }
+    }),
     ceateProduct: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const data = req.body;

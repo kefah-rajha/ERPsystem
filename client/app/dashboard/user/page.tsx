@@ -13,7 +13,7 @@ import { UserProvider } from "@/context/userContext"
 function Page() {
   
   return (
-    <div className=' bg-gradient heighWithOutBar pt-4'>
+    <div className='  heighWithOutBar pt-4'>
       <UserProvider>
         <div className='h-14 flex items-center container justify-end gap-2'>
           <UserFilter/>  
