@@ -14,6 +14,7 @@ import {
   SettingsIcon,
   ShoppingCartIcon,
   StoreIcon,
+
   UserIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -31,6 +32,9 @@ function SidebarItems() {
     }
     if (Url.includes("user")) {
       setIsActive("user");
+    }
+    if (Url.includes("supplier")) {
+      setIsActive("supplier");
     }
     if (Url.includes("POS")) {
       setIsActive("POS");
@@ -76,6 +80,19 @@ function SidebarItems() {
         >
           <UserIcon className="w-5 h-5 text-purple-400" />
           <span>User</span>
+        </Link>
+        <Link
+          href="/dashboard/supplier"
+          className={cn(
+            isActive == "supplier" ? "card-gradient" : " hover:bg-[#313131]  ",
+            " h-12 flex m-0 items-center space-x-2 pl-2"
+          )}
+          onClick={() => setIsActive("Supplier")}
+          style={{ margin: "0" }}
+          prefetch={false}
+        >
+          <Asterisk className="w-5 h-5 text-purple-400" />
+          <span>Supplier</span>
         </Link>
         <Link
           href="/dashboard/Products"

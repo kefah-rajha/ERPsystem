@@ -19,13 +19,14 @@ export const user = {
   getAllUsers: async (req: any, res: any) => {
     try {
       const { pageNumber } = req.params;
-      const { fieldSort, sort, role, fields ,fieldSearch,searchInput} = req.body;
+      const { fieldSort, sort, role, fields, fieldSearch, searchInput } = req.body;
+      console.log(fields, fieldSearch)
       const sortAsNumber = sort == "1" ? 1 : -1
-      const regex = searchInput == "" ? new RegExp (/^[a-zA-Z0-9]+$/)  : new RegExp(`^${searchInput}`, 'i') 
-      console.log(regex,"regex")
+      const regex = searchInput == "" ? new RegExp(/^[a-zA-Z0-9]+$/) : new RegExp(`^${searchInput}`, 'i')
+      console.log(regex, "regex")
       const search = {
         $match: {
-          [fieldSearch]: { $regex:regex }
+          [fieldSearch]: { $regex: regex }
         }
       }
       const RoleSort = {
@@ -33,7 +34,7 @@ export const user = {
           role: role
         }
       }
-      const SortAlphB = {
+      const SortAlphaB = {
         $sort: {
           [fieldSort]: sortAsNumber
 
@@ -50,7 +51,7 @@ export const user = {
           ]
         }
       }
-      const pipline: any = [
+      const pipeline: any = [
         {
           $lookup: {
             from: "contactInfo",
@@ -59,94 +60,67 @@ export const user = {
             as: "contact"
           }
         },
-        {
-          $lookup: {
-            from: "Usercompany",
-            localField: "companyId",
-            foreignField: "_id",
-            as: "company"
-          }
-        },
+     
         {
           $unwind: {
             path: "$contact",
             preserveNullAndEmptyArrays: true
           }
         },
-        {
-          $unwind: {
-            path: "$company",
-            preserveNullAndEmptyArrays: true
-          }
-        },
-
+       {
+        $match: {
+          name  : { $regex: regex }
+        }}
 
 
       ]
-   
+
       if (role !== "All" && fields !== "Empty") {
-       
-        const resallPost = await UserModel.aggregate([...pipline,search,RoleSort, SortAlphB])
-        console.log(resallPost)
+        console.log("i am working")
+        const recallPost = await UserModel.aggregate([...pipeline, RoleSort, SortAlphaB])
+        console.log("i am working",recallPost)
+        console.log(recallPost)
         return res.status(200).json({
-          data: resallPost,
+          data: recallPost,
           success: true,
         });
       } else if (fields == "Empty" && role !== "All") {
-       
-        const resallPost = await UserModel.aggregate([...pipline,search,EmptyFields,
-          RoleSort, SortAlphB
+        console.log("i am working2")
+        const recallPost = await UserModel.aggregate([...pipeline, search, EmptyFields,
+          RoleSort, SortAlphaB
 
         ])
         return res.status(200).json({
-          data: resallPost,
+          data: recallPost,
           success: true,
         });
 
-      }else if (fields !== "Empty" && role == "All") {
-        
-        
-        const resallPost = await UserModel.aggregate([...pipline,search,SortAlphB
+      } else if (fields !== "Empty" && role == "All") {
+        console.log("i am working3")
+
+        const recallPost = await UserModel.aggregate([...pipeline, SortAlphaB
 
         ])
+        console.log("i am working3",recallPost)
         return res.status(200).json({
-          data: resallPost,
+          data: recallPost,
           success: true,
         });
 
-      }else if (fields == "Empty" && role == "All") {
+      } else if (fields == "Empty" && role == "All") {
+        console.log("i am working4")
         console.log(role !== "All" && fields !== "Empty")
-        
-        const resallPost = await UserModel.aggregate([...pipline,search,EmptyFields, SortAlphB
+
+        const recallPost = await UserModel.aggregate([...pipeline, search, EmptyFields, SortAlphaB
 
         ])
         return res.status(200).json({
-          data: resallPost,
+          data: recallPost,
           success: true,
         });
 
       }
 
-
-
-
-      // data=[]
-      // const resallPost = await UserModel.find().sort()
-      // data.push(...resallPost)
-
-
-
-
-
-
-
-
-
-
-      // return res.status(200).json({
-      //   data: data,
-      //   success: true,
-      // });
 
     } catch (error: unknown) {
       return res.status(200).json({
@@ -156,7 +130,7 @@ export const user = {
     }
   },
   getNumberUsers: async (req: any, res: any) => {
-    console.log("scscsc");
+    console.log("scss");
     UserModel.countDocuments()
       .then((count) => {
         console.log(count);
@@ -198,7 +172,7 @@ export const user = {
           success: true,
         });
       } else {
-        const userAfterUpdat = await UserDetailsModel.findOneAndUpdate(
+        const userAfterUpdate = await UserDetailsModel.findOneAndUpdate(
           { userId: userId },
           {
             phone,
@@ -211,7 +185,7 @@ export const user = {
           },
           { new: true }
         ); // Return updated user
-        if (userAfterUpdat == null) {
+        if (userAfterUpdate == null) {
           return res.status(400).json({
             message: "This user Is'nt Exist",
             success: false,
@@ -249,19 +223,19 @@ export const user = {
 
       const updateData = req.body as UserinfoType;
 
-      const userAfterUpdat = await UserModel.findOneAndUpdate(
+      const userAfterUpdate = await UserModel.findOneAndUpdate(
         { _id: userId },
         updateData,
         { new: true }
       ); // Return updated user
-      if (userAfterUpdat == null) {
+      if (userAfterUpdate == null) {
         return res.status(400).json({
           message: "This user Is'nt Exist",
           success: false,
         });
       } else {
         return res.status(200).json({
-          data: userAfterUpdat,
+          data: userAfterUpdate,
           message: "Update Is Done",
           success: true,
         });
@@ -322,7 +296,7 @@ export const user = {
           success: true,
         });
       } else {
-        const userAfterUpdat = await UserCompanyModel.findOneAndUpdate(
+        const userAfterUpdate = await UserCompanyModel.findOneAndUpdate(
           { userId: userId },
           {
             phone,
@@ -336,7 +310,7 @@ export const user = {
           },
           { new: true }
         ); // Return updated user
-        if (userAfterUpdat == null) {
+        if (userAfterUpdate == null) {
           return res.status(400).json({
             message: "This user Is'nt Exist",
             success: false,
@@ -375,10 +349,10 @@ export const user = {
         name: item["Last name"],
         Brithday: item["Date of birth"],
       };
-      const finaluser = new UserModel(userInfo);
-      const userDataAfterSave = await finaluser.save();
-      const contanctInfo = {
-        userId: finaluser._id,
+      const finale = new UserModel(userInfo);
+      const userDataAfterSave = await finale.save();
+      const contactInfo = {
+        userId: finale._id,
         phone: item["Phone"],
         email: item["Email"],
         address: item["Adress"],
@@ -387,7 +361,7 @@ export const user = {
         city: item["City"],
         street: item["State / Region"],
       };
-      const contactInfoUser = new UserDetailsModel(contanctInfo);
+      const contactInfoUser = new UserDetailsModel(contactInfo);
       await contactInfoUser.save();
     });
   },
@@ -406,15 +380,15 @@ export const user = {
           message: "The User Name Is Exist ,Choose A Unique Username",
         });
       } else {
-        const finaluser = new UserModel({
+        const finale = new UserModel({
           userName: newusername,
           password,
           name,
           Brithday,
         });
-        console.log(finaluser, "finaluser");
+        console.log(finale, "finale");
 
-        const userInfo = await finaluser.save();
+        const userInfo = await finale.save();
         if (!userInfo) {
           return res.status(400).json({
             success: false,

@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState ,useContext} from "react";
-import { AllusersResponse } from "@/dataType/dataTypeUser/dataTypeUser";
+import { AllSupplierResponse } from "@/dataType/dataTypeSupplier/dataTypeSupplier";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import UpdateUser from "@/components/user/updateUser";
+import UpdateSupplier from "@/components/supplier/updateSupplier";
 
 import {
   AlertDialog,
@@ -58,13 +58,13 @@ import Link from "next/link";
 import PaginationComponent from "@/components/user/Pagination";
 import CounterUsers from "@/components/user/counterUsers";
 import { toast } from "@/components/ui/use-toast";
-import {UserContext}from "@/context/userContext"
+import {SupplierContext}from "@/context/supplierContext"
 
 
 function TableUser() {
   const searchParams = useSearchParams();
   const { push, replace } = useRouter();
-  const userContext=useContext(UserContext)
+  const supplierContext=useContext(SupplierContext)
 
   const numberPageParam = Number(searchParams.get("page")) || 1;
   const params = new URLSearchParams(searchParams);
@@ -75,6 +75,7 @@ function TableUser() {
   replace(`${pathname}?${params.toString()}`);
   const [numberProducts, setNumberProducts] = useState<number>(0);
   const [countPages, setCountPages] = useState<number>(1);
+  // const [countItems,setCountItems]=useState<number>()
   let startNumberProductInThePage = (numberPageParam - 1) * 10 + 1;
   let endNumberProductInThePage = Math.min(
     startNumberProductInThePage + 9,
@@ -82,9 +83,9 @@ function TableUser() {
   );
 
 
- 
-  const deleteProduct=async(id:string)=>{
-    const fetchDeleteData=await fetch(  `/api/deleteUser/${id}`,{
+
+  const deleteSupplier=async(id:string)=>{
+    const fetchDeleteData=await fetch(  `/api/deleteSupplier/${id}`,{
       method:"Delete",
     headers: {    "Content-Type": "application/json",
     "Access-Control-Allow-Headers": "Content-Type",
@@ -101,12 +102,12 @@ function TableUser() {
 
    }
    if (res.success == true) {
-    const newProducts = userContext?.users?.filter(
-      (item: AllusersResponse) => item._id !== id
+    const newSupplier = supplierContext?.supplier?.filter(
+      (item: AllSupplierResponse) => item._id !== id
     );
-    console.log(newProducts);
-    if (newProducts) {
-      userContext?.setUsers(newProducts);
+    console.log(newSupplier);
+    if (newSupplier) {
+      supplierContext?.setSupplier(newSupplier);
       toast({
         variant: "default",
         title: "Congratulations✅.",
@@ -116,22 +117,22 @@ function TableUser() {
     }
   }
   }
-  const rowsUser = userContext?.users?.map((user: AllusersResponse) => (
-    <TableRow key={user._id} className="cursor-pointer ">
+  const rowsUser = supplierContext?.supplier?.map((supplier: AllSupplierResponse) => (
+    <TableRow key={supplier._id} className="cursor-pointer ">
       <TableCell className=" w-[16.6%] border border-r-2 border-b-2  border-gray-800">
-        <strong>{user.name.toLowerCase()}</strong>
+        <strong>{supplier.firstName.toLowerCase()}</strong>
       </TableCell>
       <TableCell className=" w-[20%] border-r-2 border-b-2 border-gray-800 ">
-        {user.name.toLowerCase()}gmail.com
+        {supplier.firstName.toLowerCase()}gmail.com
       </TableCell>
       <TableCell className="hidden md:table-cell w-[16.6%] border-r-2 border-b-2 border-gray-800">
-        {user.userName.toLowerCase()}
+        {supplier.email.toLowerCase()}
       </TableCell>
       <TableCell className="hidden md:table-cell w-[16.6%] border-r-2 border-b-2 border-gray-800">
-        +9635956558
+        {supplier.phone}
       </TableCell>
       <TableCell className="hidden md:table-cell w-[12.4%] border-r-2 border-b-2 border-gray-800">
-        <Badge className="bg-foreground/5 text-foreground/60 border-r-4">{user?.role}</Badge>
+        <Badge className="bg-foreground/5 text-foreground/60 border-r-4">{supplier?.city}</Badge>
       </TableCell>
       <TableCell className=" w-[16.6%] border-r-1 border-b-2 border-gray-800">
         <DropdownMenu>
@@ -144,7 +145,7 @@ function TableUser() {
           <button
             className="ml-2 hover:text-foreground hover:bg-foreground/10 p-2 rounded-sm text-orange-300"
             onClick={() => {
-              push(`/dashboard/user/${user._id}`);
+              push(`/dashboard/supplier/${supplier._id}`);
             }}
           >
             <CalendarPlus />
@@ -160,7 +161,7 @@ function TableUser() {
                 <DialogHeader>
                   <DialogTitle>Update Users</DialogTitle>
                 </DialogHeader>
-                <UpdateUser id={user._id}/>
+                <UpdateSupplier id={supplier._id}/>
               </DialogContent>
             </Dialog>
 
@@ -173,7 +174,7 @@ function TableUser() {
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>
-                    Are you absolutely sure ,Delete {user.name}?
+                    Are you absolutely sure ,Delete {supplier.firstName}?
                   </AlertDialogTitle>
                   <AlertDialogDescription>
                     This action cannot be undone. This will permanently delete
@@ -183,7 +184,7 @@ function TableUser() {
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction>
-                     <Button onClick={() => deleteProduct(user._id)}>
+                     <Button onClick={() => deleteSupplier(supplier._id)}>
                               Continue
                             </Button> 
                   </AlertDialogAction>
@@ -205,7 +206,7 @@ function TableUser() {
             <TableHead>Email</TableHead>
             <TableHead className="hidden md:table-cell">Company Name</TableHead>
             <TableHead className="hidden md:table-cell">Phone Number</TableHead>
-            <TableHead className="hidden md:table-cell">Role</TableHead>
+            <TableHead className="hidden md:table-cell">Address</TableHead>
 
             <TableHead>
               <span className="sr-only">Action</span>

@@ -23,6 +23,7 @@ exports.user = {
         try {
             const { pageNumber } = req.params;
             const { fieldSort, sort, role, fields, fieldSearch, searchInput } = req.body;
+            console.log(fields, fieldSearch);
             const sortAsNumber = sort == "1" ? 1 : -1;
             const regex = searchInput == "" ? new RegExp(/^[a-zA-Z0-9]+$/) : new RegExp(`^${searchInput}`, 'i');
             console.log(regex, "regex");
@@ -36,7 +37,7 @@ exports.user = {
                     role: role
                 }
             };
-            const SortAlphB = {
+            const SortAlphaB = {
                 $sort: {
                     [fieldSort]: sortAsNumber
                 }
@@ -51,7 +52,7 @@ exports.user = {
                     ]
                 }
             };
-            const pipline = [
+            const pipeline = [
                 {
                     $lookup: {
                         from: "contactInfo",
@@ -61,67 +62,57 @@ exports.user = {
                     }
                 },
                 {
-                    $lookup: {
-                        from: "Usercompany",
-                        localField: "companyId",
-                        foreignField: "_id",
-                        as: "company"
-                    }
-                },
-                {
                     $unwind: {
                         path: "$contact",
                         preserveNullAndEmptyArrays: true
                     }
                 },
                 {
-                    $unwind: {
-                        path: "$company",
-                        preserveNullAndEmptyArrays: true
+                    $match: {
+                        name: { $regex: regex }
                     }
-                },
+                }
             ];
             if (role !== "All" && fields !== "Empty") {
-                const resallPost = yield schemaUser_1.UserModel.aggregate([...pipline, search, RoleSort, SortAlphB]);
-                console.log(resallPost);
+                console.log("i am working");
+                const recallPost = yield schemaUser_1.UserModel.aggregate([...pipeline, RoleSort, SortAlphaB]);
+                console.log("i am working", recallPost);
+                console.log(recallPost);
                 return res.status(200).json({
-                    data: resallPost,
+                    data: recallPost,
                     success: true,
                 });
             }
             else if (fields == "Empty" && role !== "All") {
-                const resallPost = yield schemaUser_1.UserModel.aggregate([...pipline, search, EmptyFields,
-                    RoleSort, SortAlphB
+                console.log("i am working2");
+                const recallPost = yield schemaUser_1.UserModel.aggregate([...pipeline, search, EmptyFields,
+                    RoleSort, SortAlphaB
                 ]);
                 return res.status(200).json({
-                    data: resallPost,
+                    data: recallPost,
                     success: true,
                 });
             }
             else if (fields !== "Empty" && role == "All") {
-                const resallPost = yield schemaUser_1.UserModel.aggregate([...pipline, search, SortAlphB
+                console.log("i am working3");
+                const recallPost = yield schemaUser_1.UserModel.aggregate([...pipeline, SortAlphaB
                 ]);
+                console.log("i am working3", recallPost);
                 return res.status(200).json({
-                    data: resallPost,
+                    data: recallPost,
                     success: true,
                 });
             }
             else if (fields == "Empty" && role == "All") {
+                console.log("i am working4");
                 console.log(role !== "All" && fields !== "Empty");
-                const resallPost = yield schemaUser_1.UserModel.aggregate([...pipline, search, EmptyFields, SortAlphB
+                const recallPost = yield schemaUser_1.UserModel.aggregate([...pipeline, search, EmptyFields, SortAlphaB
                 ]);
                 return res.status(200).json({
-                    data: resallPost,
+                    data: recallPost,
                     success: true,
                 });
             }
-            // data=[]
-            // const resallPost = await UserModel.find().sort()
-            // data.push(...resallPost)
-            // return res.status(200).json({
-            //   data: data,
-            //   success: true,
-            // });
         }
         catch (error) {
             return res.status(200).json({
@@ -131,7 +122,7 @@ exports.user = {
         }
     }),
     getNumberUsers: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        console.log("scscsc");
+        console.log("scss");
         schemaUser_1.UserModel.countDocuments()
             .then((count) => {
             console.log(count);
@@ -171,7 +162,7 @@ exports.user = {
                 });
             }
             else {
-                const userAfterUpdat = yield schemaUserDetails_1.UserDetailsModel.findOneAndUpdate({ userId: userId }, {
+                const userAfterUpdate = yield schemaUserDetails_1.UserDetailsModel.findOneAndUpdate({ userId: userId }, {
                     phone,
                     email,
                     address,
@@ -180,7 +171,7 @@ exports.user = {
                     city,
                     street,
                 }, { new: true }); // Return updated user
-                if (userAfterUpdat == null) {
+                if (userAfterUpdate == null) {
                     return res.status(400).json({
                         message: "This user Is'nt Exist",
                         success: false,
@@ -218,8 +209,8 @@ exports.user = {
         try {
             const userId = req.params.id;
             const updateData = req.body;
-            const userAfterUpdat = yield schemaUser_1.UserModel.findOneAndUpdate({ _id: userId }, updateData, { new: true }); // Return updated user
-            if (userAfterUpdat == null) {
+            const userAfterUpdate = yield schemaUser_1.UserModel.findOneAndUpdate({ _id: userId }, updateData, { new: true }); // Return updated user
+            if (userAfterUpdate == null) {
                 return res.status(400).json({
                     message: "This user Is'nt Exist",
                     success: false,
@@ -227,7 +218,7 @@ exports.user = {
             }
             else {
                 return res.status(200).json({
-                    data: userAfterUpdat,
+                    data: userAfterUpdate,
                     message: "Update Is Done",
                     success: true,
                 });
@@ -280,7 +271,7 @@ exports.user = {
                 });
             }
             else {
-                const userAfterUpdat = yield schemaCompanyUser_1.UserCompanyModel.findOneAndUpdate({ userId: userId }, {
+                const userAfterUpdate = yield schemaCompanyUser_1.UserCompanyModel.findOneAndUpdate({ userId: userId }, {
                     phone,
                     nameComapny,
                     email,
@@ -290,7 +281,7 @@ exports.user = {
                     city,
                     street,
                 }, { new: true }); // Return updated user
-                if (userAfterUpdat == null) {
+                if (userAfterUpdate == null) {
                     return res.status(400).json({
                         message: "This user Is'nt Exist",
                         success: false,
@@ -332,10 +323,10 @@ exports.user = {
                 name: item["Last name"],
                 Brithday: item["Date of birth"],
             };
-            const finaluser = new schemaUser_1.UserModel(userInfo);
-            const userDataAfterSave = yield finaluser.save();
-            const contanctInfo = {
-                userId: finaluser._id,
+            const finale = new schemaUser_1.UserModel(userInfo);
+            const userDataAfterSave = yield finale.save();
+            const contactInfo = {
+                userId: finale._id,
                 phone: item["Phone"],
                 email: item["Email"],
                 address: item["Adress"],
@@ -344,7 +335,7 @@ exports.user = {
                 city: item["City"],
                 street: item["State / Region"],
             };
-            const contactInfoUser = new schemaUserDetails_1.UserDetailsModel(contanctInfo);
+            const contactInfoUser = new schemaUserDetails_1.UserDetailsModel(contactInfo);
             yield contactInfoUser.save();
         }));
     }),
@@ -361,14 +352,14 @@ exports.user = {
                 });
             }
             else {
-                const finaluser = new schemaUser_1.UserModel({
+                const finale = new schemaUser_1.UserModel({
                     userName: newusername,
                     password,
                     name,
                     Brithday,
                 });
-                console.log(finaluser, "finaluser");
-                const userInfo = yield finaluser.save();
+                console.log(finale, "finale");
+                const userInfo = yield finale.save();
                 if (!userInfo) {
                     return res.status(400).json({
                         success: false,

@@ -1,0 +1,21 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const router = express_1.default.Router();
+const supplier_1 = require("../Controller/supplier");
+router.post("/supplier/getSuppliers/10", supplier_1.supplier.getAllSupplier);
+router.post("/supplier/UpdateSupplier/:id", supplier_1.supplier.updateSupplier);
+// router.get("/profile/getProfileInfo/:id",user.getProfileInfoUser);
+// router.post("/profile/contactInfo/:id",user.updateContactInfoUser);
+// router.get("/profile/contactInfo/:id",user.getContactInfoUser);
+//  router.post("/profile/companyInfo/:id",user.updatecompanyInfoUser);
+//  router.get("/profile/companyInfo/:id",user.getCompanyInfo);
+//  router.post("/importUsers",user.ImportUser);
+//  router.get("/getNumberUsers",user.getNumberUsers);
+router.post("/supplier/createSupplier", supplier_1.supplier.createSupplier);
+router.delete("/deleteSupplier/:id", supplier_1.supplier.deleteSupplier);
+//  router.get("/userFilter/",user.userFilter);
+exports.default = router;

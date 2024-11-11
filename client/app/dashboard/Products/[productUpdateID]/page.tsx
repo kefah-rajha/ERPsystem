@@ -47,13 +47,14 @@ import {
 } from "@/components/ui/table";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useForm } from "react-hook-form";
+import { usePathname } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "@/components/ui/use-toast";
 import PurchasSalesProdcutsForm from "@/components/product/purchasSalesProdcutsForm";
 import InventoryDetailsProduct from "@/components/product/inventoryDetailsProduct";
-import StatusProduct from "@/components/product/statusProduct"
-
+import StatusProduct from "@/components/product/statusProduct";
+import { useRouter } from "next/navigation";
 import { Description } from "@radix-ui/react-toast";
 import PhotosProduct from "@/components/product/PhotosProduct";
 const createProductFormSchema = z.object({
@@ -74,8 +75,8 @@ const createProductFormSchema = z.object({
   salesCode: z.string(),
   purchaseCode: z.string(),
   supplierCode: z.string(),
-  trackInventory: z.enum(["false", "true"]),
-  allowOutOfStock: z.enum(["false", "true"]),
+  trackInventory:  z.string().optional(),
+  allowOutOfStock:  z.string().optional().default("false"),
   Description: z.string().min(2, {
     message: "Name must be at least 2 characters.",
   }),
@@ -90,9 +91,71 @@ export default function Editproducts() {
   console.log(dataProductCategories, "dataProductCategories");
   const [nameSKU, setNameSKU] = useState<string>("");
   const [dataMainCategory, setDataMainCategory] = useState<string>("");
+  const {push}=useRouter()
+  const pathname = usePathname();
+  const id = pathname?.split("/").pop();
+  console.log(id, "id");
+  const [product, setProduct] = useState({
+    name: "",
+    SKU: "",
+    brandName: "",
+    productTag: "",
+    price: "",
+    Discount: "",
+    SupplierName: "",
+    salesCode: "",
+    purchaseCode: "",
+    supplierCode: "",
+    trackInventory: true,
+    allowOutOfStock: false,
+    Description: "",
+  });
+  console.log(typeof String(product.trackInventory),"ssssssssssssssssssssssssss")
+
+  useEffect(() => {
+    let ignore = false;
+    console.log(id, "id in getProduct");
+    fetch(`/api/products/getProduct/${id}`)
+      .then((res) => {
+        return res.json();
+      })
+      .then((jsonData) => {
+        if (!ignore) {
+          console.log(jsonData.posts, "product in SHowing");
+
+          setProduct(jsonData.posts);
+        }
+      })
+      .catch((err: unknown) => {
+        console.log(err);
+      })
+      .finally(() => {
+        if (!ignore) {
+          console.log("noLoding");
+        }
+      });
+    return () => {
+      ignore = true;
+    };
+  }, [id]);
 
   const form = useForm<productFormValues>({
     resolver: zodResolver(createProductFormSchema),
+    values: {
+      name: product?.name,
+      SKU: product?.SKU,
+      brandName: product?.brandName,
+      productTag: product?.productTag,
+      price: product?.price,
+      Discount: product?.Discount,
+      SupplierName: product?.supplierCode,
+      salesCode: product?.salesCode,
+      purchaseCode: product?.purchaseCode,
+      supplierCode: product?.supplierCode,
+      trackInventory: String(product.trackInventory),
+      allowOutOfStock: String(product.allowOutOfStock),
+      Description: product?.Description,
+    },
   });
 
   useEffect(() => {
@@ -106,7 +169,7 @@ export default function Editproducts() {
 
   async function onSubmit(data: productFormValues) {
     console.log(data, "data...");
-console.log(
+    console.log(
       dataMainCategory,
       dataProductCategories,
       "dataProductCategories"
@@ -114,15 +177,15 @@ console.log(
     const IDsAllCategories: any[] = [];
     if (dataProductCategories.length > 0) {
       dataProductCategories.map((subCategory: any) => {
-        IDsAllCategories.push( subCategory.id);
+        IDsAllCategories.push(subCategory.id);
       });
     }
-    IDsAllCategories.unshift(dataMainCategory)
+    IDsAllCategories.unshift(dataMainCategory);
     console.log(IDsAllCategories, "IDsAllCategories");
 
     const allData = { ...data, photos: inputImages };
     console.log(allData, "alldata");
-    const FetchData = await fetch("/api/products/createProduct", {
+    const FetchData = await fetch(`/api/products/updateProduct/${id}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -135,6 +198,9 @@ console.log(
     const res = await FetchData.json();
 
     console.log(res);
+    if(res.success == true){
+      push("/dashboard/Products")
+    }
     toast({
       title: "You submitted the following values:",
       description: (
@@ -164,7 +230,7 @@ console.log(
                       <span className="sr-only">Back</span>
                     </Button>
                     <h1 className="flex-1 shrink-0 whitespace-nowrap text-[3rem] font-semibold tracking-tight sm:grow-0">
-                      Create Product
+                      Update Product
                     </h1>
                     <Badge variant="outline" className="ml-auto sm:ml-0">
                       In stock
@@ -174,8 +240,8 @@ console.log(
                         Discard
                       </Button>
                       <Button size="sm" type="submit">
-            Save Product
-          </Button>
+                        Update Product
+                      </Button>
                     </div>
                   </div>
                   <p className="text-[#444746] text-2xl">
@@ -258,6 +324,7 @@ console.log(
                                 )}
                               />
                             </div>
+                           
                             <div className="grid gap-3">
                               <Label htmlFor="name" className="px-2">
                                 Brand name
@@ -351,7 +418,7 @@ console.log(
                         </CardContent>
                       </Card>
                       <PurchasSalesProdcutsForm form={form} />
-                      <InventoryDetailsProduct form={form} trackInventory={true} allowOutOfStock={true} />
+                      <InventoryDetailsProduct form={form} trackInventory={product.trackInventory} allowOutOfStock={product.allowOutOfStock} />
                       <CategorySelect
                         form={form}
                         changeDataProductCategories={
@@ -359,19 +426,16 @@ console.log(
                         }
                         changeDataProductCategory={changeDataProductCategory}
                       />
-
                     </div>
-                                  <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
-
-                    <StatusProduct form={form}/>
-                    <PhotosProduct/> 
-                   </div>
+                    <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
+                      <StatusProduct form={form} />
+                      <PhotosProduct />
+                    </div>
                   </div>
                 </div>
               </main>
             </div>
           </div>
-      
         </form>
       </Form>
     </div>

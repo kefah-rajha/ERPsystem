@@ -183,6 +183,7 @@ export default function Products() {
           <button
             className="ml-2 hover:text-foreground hover:bg-foreground/10 p-2 rounded-sm text-orange-300"
             onClick={() => {
+              console.log("i am clicking")
               push(`/dashboard/Products/showProduct/${product._id}`);
             }}
           >

@@ -1,6 +1,6 @@
 "use  client";
 import React, { useContext, useEffect, useState } from "react";
-import {UserContext}from "@/context/userContext"
+import {SupplierContext}from "@/context/supplierContext"
 
 import { Button } from "@/components/ui/button";
 import {
@@ -24,15 +24,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-function UserFilter() {
+function SupplierFilter() {
   const [filter, setFilter] = useState();
-  const [fieldSort, setFieldSort] = useState<string>("name");
+  const [fieldSort, setFieldSort] = useState<string>("firstName");
   const [sort, setSort] = useState<string>("1");
-  const [role, setRole] = useState<string>("All");
   const [fields, setFields] = useState<string>("All");
-  const [fieldSearch, setFieldSearch] = useState<string>("name");
+  const [fieldSearch, setFieldSearch] = useState<string>("firstName");
   const [searchInput, setSearchInput] = useState<string>("");
-  const userContext=useContext(UserContext)
+  const supplierContext=useContext(SupplierContext)
 
 
   searchInput;
@@ -66,14 +65,13 @@ function UserFilter() {
     const data = {
       fieldSort,
       sort,
-      role,
       fields,
       fieldSearch,
       searchInput,
     };
     console.log(data,"users")
 
-    const fetchData= await fetch("/api/getUsers/10",{
+    const fetchData= await fetch("/api/supplier/getSuppliers/10",{
       method:"POST",
       headers: {    "Content-Type": "application/json",
       "Access-Control-Allow-Headers": "Content-Type",
@@ -85,7 +83,7 @@ function UserFilter() {
     })
     const res= await fetchData.json()
     if(res.data){
-      userContext?.setUsers(res.data)
+        supplierContext?.setSupplier(res.data)
     }
     console.log(res)
   };
@@ -108,10 +106,10 @@ function UserFilter() {
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Categories</SelectLabel>
-              <SelectItem value="name">Name</SelectItem>
-              <SelectItem value="email">Email</SelectItem>
-              <SelectItem value="nameComapny">Company Name</SelectItem>
-              <SelectItem value="phone">Phone Number</SelectItem>
+              <SelectItem value="firstName">Name</SelectItem>
+              <SelectItem value="companyName">Company Name</SelectItem>
+              <SelectItem value="address">Address</SelectItem>
+              <SelectItem value="city">City</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -154,6 +152,7 @@ function UserFilter() {
 
           <div className="flex justify-between items-center gap-2">
             <Select onValueChange={setFieldSort} value={fieldSort}>
+              
               <SelectTrigger
                 id="status"
                 aria-label="A-Z order"
@@ -162,10 +161,15 @@ function UserFilter() {
                 <SelectValue placeholder="Field" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="name">Name</SelectItem>
-                <SelectItem value="email">Email</SelectItem>
-                <SelectItem value="CompanyName">Company Name</SelectItem>
-                <SelectItem value="phone">Phone Number</SelectItem>
+              <SelectGroup>
+
+              <SelectLabel>Categories</SelectLabel>
+              <SelectItem value="firstName">Name</SelectItem>
+              <SelectItem value="companyName">Company Name</SelectItem>
+              <SelectItem value="address">Address</SelectItem>
+              <SelectItem value="city">City</SelectItem>
+              </SelectGroup>
+
               </SelectContent>
             </Select>
             <Select onValueChange={setSort} value={sort}>
@@ -182,27 +186,7 @@ function UserFilter() {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex gap-2 justify-between items-center">
-            <p className="h-8 w-fit pl-2 pr-4 bg-[#595959] text-[#A19D9D] flex justify-start items-center rounded-sm">
-              Role
-            </p>
-            <Select onValueChange={setRole} value={role}>
-              <SelectTrigger
-                id="status"
-                aria-label="Role"
-                className=" bg-[#595959] border-none h-8  w-fit text-[#A19D9D]"
-              >
-                <SelectValue placeholder="All" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All">All</SelectItem>
-                <SelectItem value="Customer">Customer</SelectItem>
-                <SelectItem value="Admin">Admin</SelectItem>
-                <SelectItem value="SalesStaff">Sales Staff </SelectItem>
-                <SelectItem value="Deliver">Deliver </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          
           <div className="flex gap-2 justify-between items-center">
             <p className="h-8 w-fit pl-2 pr-4 bg-[#595959] text-[#A19D9D] flex justify-center items-center rounded-sm">
               Fields
@@ -242,6 +226,6 @@ function UserFilter() {
   );
 }
 
-export default UserFilter;
+export default SupplierFilter;
 
 
