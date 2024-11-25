@@ -78,7 +78,6 @@ function CreateProfileInfo({ stepsHandle }: dataType) {
       `/api/createUser`
     );
 
-    console.log(createDataProfileInfo.data._id,"updateDataProfileInfo");
     if (createDataProfileInfo.success == true) {
       toast({
         variant: "default",

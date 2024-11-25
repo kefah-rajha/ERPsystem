@@ -6,7 +6,7 @@ import { products } from "../Controller/products";
 router.get("/products/getProducts/:pageNumber",products.getAllProducts)
 
 //  router.get("/getProduct/:id",products.getProduct)
- router.post("products/products/createProduct",products.ceateProduct);
+ router.post("/products/createProduct",products.createProduct);
  router.post("/products/updateProduct/:id",products.updateProduct);
  router.get("/products/getProduct/:id",products.getProduct)
 // router.post("/updateProduct",auth.logout);

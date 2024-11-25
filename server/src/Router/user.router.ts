@@ -18,8 +18,6 @@ router.get("/profile/contactInfo/:id",user.getContactInfoUser);
 
 
 
-
-
  
  
 

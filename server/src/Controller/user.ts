@@ -123,9 +123,9 @@ export const user = {
 
 
     } catch (error: unknown) {
-      return res.status(200).json({
+      return res.status(500).json({
         message: error,
-        success: true,
+        success: false,
       });
     }
   },
@@ -140,9 +140,9 @@ export const user = {
         });
       })
       .catch((err) => {
-        return res.status(200).json({
+        return res.status(500).json({
           message: err,
-          success: true,
+          success: false,
         });
       });
   },
@@ -166,7 +166,12 @@ export const user = {
           city,
           street,
         });
-        await contactInfoUser.save();
+        const contactInfoUserData=await contactInfoUser.save();
+        const updatedUser = await UserModel.findByIdAndUpdate(
+          userId,
+          { contactID: contactInfoUserData?._id },
+          { new: true, runValidators: true }
+        );
         return res.status(200).json({
           message: "Update Is Done",
           success: true,
@@ -290,7 +295,14 @@ export const user = {
           city,
           street,
         });
-        await companyInfoUser.save();
+       
+
+       const companyInfoUserData= await companyInfoUser.save();
+        const updatedUser = await UserModel.findByIdAndUpdate(
+          userId,
+          { companyID: companyInfoUserData._id },
+          { new: true, runValidators: true }
+        );
         return res.status(200).json({
           message: "Update Is Done",
           success: true,

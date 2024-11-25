@@ -115,9 +115,9 @@ exports.user = {
             }
         }
         catch (error) {
-            return res.status(200).json({
+            return res.status(500).json({
                 message: error,
-                success: true,
+                success: false,
             });
         }
     }),
@@ -132,9 +132,9 @@ exports.user = {
             });
         })
             .catch((err) => {
-            return res.status(200).json({
+            return res.status(500).json({
                 message: err,
-                success: true,
+                success: false,
             });
         });
     }),
@@ -155,7 +155,8 @@ exports.user = {
                     city,
                     street,
                 });
-                yield contactInfoUser.save();
+                const contactInfoUserData = yield contactInfoUser.save();
+                const updatedUser = yield schemaUser_1.UserModel.findByIdAndUpdate(userId, { contactID: contactInfoUserData === null || contactInfoUserData === void 0 ? void 0 : contactInfoUserData._id }, { new: true, runValidators: true });
                 return res.status(200).json({
                     message: "Update Is Done",
                     success: true,
@@ -264,7 +265,8 @@ exports.user = {
                     city,
                     street,
                 });
-                yield companyInfoUser.save();
+                const companyInfoUserData = yield companyInfoUser.save();
+                const updatedUser = yield schemaUser_1.UserModel.findByIdAndUpdate(userId, { companyID: companyInfoUserData._id }, { new: true, runValidators: true });
                 return res.status(200).json({
                     message: "Update Is Done",
                     success: true,

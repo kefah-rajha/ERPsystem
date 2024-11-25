@@ -8,7 +8,7 @@ const router = express_1.default.Router();
 const supplier_1 = require("../Controller/supplier");
 router.post("/supplier/getSuppliers/10", supplier_1.supplier.getAllSupplier);
 router.post("/supplier/UpdateSupplier/:id", supplier_1.supplier.updateSupplier);
-// router.get("/profile/getProfileInfo/:id",user.getProfileInfoUser);
+router.get("/supplier/getSupplier/:id", supplier_1.supplier.getSupplier);
 // router.post("/profile/contactInfo/:id",user.updateContactInfoUser);
 // router.get("/profile/contactInfo/:id",user.getContactInfoUser);
 //  router.post("/profile/companyInfo/:id",user.updatecompanyInfoUser);

@@ -8,7 +8,7 @@ const router = express_1.default.Router();
 const products_1 = require("../Controller/products");
 router.get("/products/getProducts/:pageNumber", products_1.products.getAllProducts);
 //  router.get("/getProduct/:id",products.getProduct)
-router.post("products/products/createProduct", products_1.products.ceateProduct);
+router.post("/products/createProduct", products_1.products.createProduct);
 router.post("/products/updateProduct/:id", products_1.products.updateProduct);
 router.get("/products/getProduct/:id", products_1.products.getProduct);
 // router.post("/updateProduct",auth.logout);

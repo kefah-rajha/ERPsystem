@@ -52,19 +52,12 @@ import { z } from "zod";
 import { toast } from "@/components/ui/use-toast";
 import PurchasSalesProdcutsForm from "@/components/product/purchasSalesProdcutsForm";
 import InventoryDetailsProduct from "@/components/product/inventoryDetailsProduct";
-import StatusProduct from "@/components/product/statusProduct"
+import StatusProduct from "@/components/product/statusProduct";
 
 import { Description } from "@radix-ui/react-toast";
 import PhotosProduct from "@/components/product/PhotosProduct";
 const createProductFormSchema = z.object({
-  name: z
-    .string()
-    .min(2, {
-      message: "Name must be at least 2 characters.",
-    })
-    .max(30, {
-      message: "Name must not be longer than 30 characters.",
-    }),
+  name: z.string(),
   SKU: z.string(),
   brandName: z.string().optional(),
   productTag: z.string().optional(),
@@ -74,16 +67,15 @@ const createProductFormSchema = z.object({
   salesCode: z.string(),
   purchaseCode: z.string(),
   supplierCode: z.string(),
+  stock:z.string(),
   trackInventory: z.enum(["false", "true"]),
   allowOutOfStock: z.enum(["false", "true"]),
-  Description: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
-  }),
+  Description: z.string(),
   // Status: z.enum(["archive", "published", "draft"]),
 });
 type productFormValues = z.infer<typeof createProductFormSchema>;
 // eslint-disable-next-line react-hooks/rules-of-hooks
-export default function Editproducts() {
+export default function CreateProducts() {
   type ImageData = string | ArrayBuffer | [];
   const [inputImages, setInputImages] = useState<ImageData[]>([]);
   const [dataProductCategories, setDataProductCategories] = useState([]);
@@ -105,23 +97,17 @@ export default function Editproducts() {
   }, [form.watch().name]);
 
   async function onSubmit(data: productFormValues) {
-    console.log(data, "data...");
-console.log(
-      dataMainCategory,
-      dataProductCategories,
-      "dataProductCategories"
-    );
     const IDsAllCategories: any[] = [];
     if (dataProductCategories.length > 0) {
       dataProductCategories.map((subCategory: any) => {
-        IDsAllCategories.push( subCategory.id);
+        IDsAllCategories.push(subCategory.id);
       });
     }
-    IDsAllCategories.unshift(dataMainCategory)
+    IDsAllCategories.unshift(dataMainCategory);
     console.log(IDsAllCategories, "IDsAllCategories");
 
     const allData = { ...data, photos: inputImages };
-    console.log(allData, "alldata");
+    console.log(allData, "allData");
     const FetchData = await fetch("/api/products/createProduct", {
       method: "POST",
       headers: {
@@ -174,8 +160,8 @@ console.log(
                         Discard
                       </Button>
                       <Button size="sm" type="submit">
-            Save Product
-          </Button>
+                        Save Product
+                      </Button>
                     </div>
                   </div>
                   <p className="text-[#444746] text-2xl">
@@ -209,6 +195,8 @@ console.log(
                                         className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
                                       />
                                     </FormControl>
+                                    <FormDescription />
+                                    <FormMessage />
                                   </FormItem>
                                 )}
                               />
@@ -231,6 +219,31 @@ console.log(
                                         className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
                                       />
                                     </FormControl>
+                                    <FormDescription />
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            <div className="grid gap-3">
+                              <Label htmlFor="name" className="px-2">
+                                Stock
+                              </Label>
+                              <FormField
+                                control={form.control}
+                                name="stock"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <Input
+                                        {...field}
+                                        type="number"
+                                        placeholder="Enter your prompt here"
+                                        className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
+                                      />
+                                    </FormControl>
+                                    <FormDescription />
+                                    <FormMessage />
                                   </FormItem>
                                 )}
                               />
@@ -343,6 +356,8 @@ console.log(
                                         rows={4}
                                       />
                                     </FormControl>
+                                    <FormDescription />
+                                    <FormMessage />
                                   </FormItem>
                                 )}
                               />
@@ -351,27 +366,24 @@ console.log(
                         </CardContent>
                       </Card>
                       <PurchasSalesProdcutsForm form={form} />
-                      <InventoryDetailsProduct form={form} trackInventory={true} allowOutOfStock={true} />
+                       <InventoryDetailsProduct form={form} trackInventory={true} allowOutOfStock={true} />
                       <CategorySelect
                         form={form}
                         changeDataProductCategories={
                           changeDataProductCategories
                         }
                         changeDataProductCategory={changeDataProductCategory}
-                      />
-
+                      /> 
                     </div>
-                                  <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
-
-                    <StatusProduct form={form}/>
-                    <PhotosProduct/> 
-                   </div>
+                    <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
+                      <StatusProduct form={form} />
+                      <PhotosProduct />
+                    </div>
                   </div>
                 </div>
               </main>
             </div>
           </div>
-      
         </form>
       </Form>
     </div>

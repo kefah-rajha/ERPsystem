@@ -46,5 +46,6 @@ const productSchema = new mongoose_1.Schema({
     trackInventory: { type: Boolean },
     allowOutOfStock: { type: Boolean },
     Description: { type: String },
+    stock: { type: String },
 });
 exports.ProductModel = (0, mongoose_1.model)('Products', productSchema);

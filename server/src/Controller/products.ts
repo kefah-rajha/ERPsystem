@@ -36,10 +36,11 @@ export const products = {
       console.log(error)
     }
   },
-  ceateProduct: async (req: any, res: any) => {
+  createProduct: async (req: any, res: any) => {
     try {
-
       const data = req.body
+      console.log(data)
+
       const newProduct = new ProductModel(
         data
       )

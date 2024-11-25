@@ -41,9 +41,10 @@ exports.products = {
             console.log(error);
         }
     }),
-    ceateProduct: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    createProduct: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const data = req.body;
+            console.log(data);
             const newProduct = new schemaProducts_1.ProductModel(data);
             yield newProduct.save();
             return res.status(200).json({

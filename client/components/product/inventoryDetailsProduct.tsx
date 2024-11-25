@@ -76,6 +76,7 @@ function InventoryDetailsProduct({ form,trackInventory, allowOutOfStock}: Invent
                       </SelectContent>
                     </Select>
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -104,6 +105,7 @@ function InventoryDetailsProduct({ form,trackInventory, allowOutOfStock}: Invent
                       </SelectContent>
                     </Select>
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />

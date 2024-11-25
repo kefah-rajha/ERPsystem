@@ -67,6 +67,8 @@ function PurchasSalesProdcutsForm({form}:purchasSalesProdcutsFormType) {
                     className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
                   />
                 </FormControl>
+                <FormDescription />
+        <FormMessage />
               </FormItem>
             )}
           />
@@ -89,6 +91,8 @@ function PurchasSalesProdcutsForm({form}:purchasSalesProdcutsFormType) {
                     className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
                   />
                 </FormControl>
+                <FormDescription />
+        <FormMessage />
               </FormItem>
             )}
           />

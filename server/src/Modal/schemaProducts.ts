@@ -10,6 +10,7 @@ interface Product {
   productTag: string;
   price: string;
   Discount: string;
+  stock:string,
   SupplierName:string;
   salesCode: string;
   purchaseCode: string;
@@ -40,6 +41,8 @@ const productSchema = new Schema<Product>({
   trackInventory: { type: Boolean},
   allowOutOfStock: { type: Boolean},
   Description:{ type: String},
+  stock:{ type: String},
+
 
 });
 

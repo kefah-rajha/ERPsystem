@@ -73,6 +73,22 @@ exports.supplier = {
             });
         }
     }),
+    getSupplier: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        const userId = req.params.id;
+        const getDataSupplier = yield schemaSupplier_1.supplierModel.findOne({ _id: userId });
+        console.log(getDataSupplier, "getDataUSer");
+        if (!getDataSupplier) {
+            return res.status(400).json({
+                success: false,
+            });
+        }
+        else {
+            return res.status(200).json({
+                data: getDataSupplier,
+                success: true,
+            });
+        }
+    }),
     createSupplier: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             console.log(req.body);
