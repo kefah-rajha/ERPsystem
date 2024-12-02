@@ -8,17 +8,23 @@ import { ProductList } from "@/components/SalesOrder/product-table/ProductList"
 import { SelectedProducts } from "@/components/SalesOrder/product-table/SelectedProducts"
 import { SectionHeader } from "@/components/SalesOrder/product-table/SectionHeader"
 import {SalesOrderProductsSelectedContext} from "@/context/saleOrderSelectedProducts"
+import { Button } from "@/components/ui/button"
 interface ProductTableProps {
   products: ProductSalesOrder[]
+  closeDialog:(close:boolean)=>void
 }
 
-export default function ProductTable({ products }: ProductTableProps) {
+export default function ProductTable({ products ,closeDialog}: ProductTableProps) {
   const salesOrderProductsSelectedContext =useContext(SalesOrderProductsSelectedContext)
 
   const [selectedProducts, setSelectedProducts] = useState<ProductSalesOrder[]>([])
-  useEffect(() => {
+  const confirmSelectedProductsFun=() => {
+    console.log("test Click")
     salesOrderProductsSelectedContext?.setSalesOrderProductsSelected(selectedProducts)
-  },[salesOrderProductsSelectedContext, selectedProducts])
+    closeDialog(false)
+  
+  }
+  
 
   const handleSelect = (product: ProductSalesOrder) => {
     setSelectedProducts(prev => 
@@ -47,6 +53,9 @@ export default function ProductTable({ products }: ProductTableProps) {
           onRemove={handleSelect}
         />
       </Card>
+      <div className="flex justify-end ">
+      <Button variant="default" onClick={()=>confirmSelectedProductsFun()}>Save changes</Button>
+      </div>
     </div>
   )
 }

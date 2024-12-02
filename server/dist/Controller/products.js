@@ -18,11 +18,15 @@ exports.products = {
             console.log(id, "test");
             const resPost = yield schemaProducts_1.ProductModel.findById(id);
             res.status(200).json({
-                posts: resPost
+                posts: resPost,
+                success: true,
             });
         }
         catch (error) {
-            console.log(error);
+            return res.status(400).json({
+                message: error,
+                success: false,
+            });
         }
     }),
     getAllProducts: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -38,7 +42,10 @@ exports.products = {
             });
         }
         catch (error) {
-            console.log(error);
+            return res.status(400).json({
+                message: error,
+                success: false,
+            });
         }
     }),
     createProduct: (req, res) => __awaiter(void 0, void 0, void 0, function* () {

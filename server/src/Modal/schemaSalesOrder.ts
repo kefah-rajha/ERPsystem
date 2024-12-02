@@ -11,8 +11,9 @@ interface OrderItem {
 
 interface Customer {
   name: string;
-  contact: string;
+  shipmentAddress: string;
   phone: string;
+  customerEmail: string;
 }
 
 interface SalesStaff {
@@ -24,13 +25,22 @@ interface SalesOrder {
   orderNumber: string;
   orderDate: Date;
   customer: Customer;
-  salesStaff: SalesStaff;
+  supplier: SalesStaff;
   items: OrderItem[];
-  subtotal: number;
+  netTotal: number;
   totalVat: number;
-  grandTotal: number;
+  totalAmount: number;
   status: 'pending' | 'processed' | 'completed' | 'cancelled';
   notes?: string;
+  vatRate: number,
+  includeVat: boolean,
+  currency: string,
+  paymentTerm:"Cash"|
+  "Card" |
+  "Bank Transfers" |
+  "Checks" |
+  "Electronic Payments" |
+  "Deferred Payments",
 }
 
 // Schemas
@@ -54,7 +64,7 @@ const OrderItemSchema = new Schema<OrderItem>({
   },
   totalAmount: {
     type: Number,
-    required: true
+    
   }
 });
 
@@ -70,7 +80,7 @@ const SalesOrderSchema = new Schema<SalesOrder>(
       default: Date.now
     },
     customer: {
-      name: {
+      userName: {
         type: String,
         required: true
       },
@@ -81,20 +91,21 @@ const SalesOrderSchema = new Schema<SalesOrder>(
       phone: {
         type: String,
         required: true
+      },
+      shipmentAddress: {
+        type: String,
+        required: true
       }
     },
-    salesStaff: {
+    supplier: {
       name: {
         type: String,
         required: true
       },
-      code: {
-        type: String,
-        required: true
-      }
+
     },
     items: [OrderItemSchema],
-    subtotal: {
+    netTotal: {
       type: Number,
       required: true
     },
@@ -102,7 +113,11 @@ const SalesOrderSchema = new Schema<SalesOrder>(
       type: Number,
       required: true
     },
-    grandTotal: {
+    totalAmount: {
+      type: Number,
+      
+    },
+    vatRate: {
       type: Number,
       required: true
     },
@@ -110,6 +125,24 @@ const SalesOrderSchema = new Schema<SalesOrder>(
       type: String,
       enum: ['pending', 'processed', 'completed', 'cancelled'],
       default: 'pending'
+    },
+    currency: {
+      type: String,
+      required: true
+    },
+    includeVat :{
+      type: Boolean,
+      required: true
+    },
+    paymentTerm: {
+      type: String,
+      enum: ["Cash",
+        "Card" ,
+        "Bank Transfers" ,
+        "Checks" ,
+        "Electronic Payments" ,
+        "Deferred Payments"],
+      default: 'Cash'
     },
     notes: String
   },
@@ -119,8 +152,7 @@ const SalesOrderSchema = new Schema<SalesOrder>(
 );
 
 // Indexes
-SalesOrderSchema.index({ orderNumber: 1 });
-SalesOrderSchema.index({ 'customer.name': 1 });
+SalesOrderSchema.index({ 'customer.userName': 1 });
 SalesOrderSchema.index({ orderDate: -1 });
 
 // Virtual populate setup

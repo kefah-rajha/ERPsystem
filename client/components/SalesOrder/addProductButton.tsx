@@ -37,30 +37,42 @@ function AddProductButton() {
   const [fieldSearch, setFieldSearch] = useState<string>("name");
   const [searchInput, setSearchInput] = useState<string>("");
   const [products, setProducts] = useState<ProductSalesOrder[]>([]);
+  const [open, setOpen] = useState(false)
+    const closeDialog=(close:boolean)=>{
+      setOpen(close)
+    }
+
 
   const SearchHandler = async () => {
+    
     console.log(searchInput);
     const data = {
       fieldSearch,
       searchInput,
     };
     console.log(data, "users");
-
-    const fetchData = await fetch("/api/searchProductSalesOrder", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Headers": "Content-Type",
-        "Access-Control-Allow-Methods": "*",
-        "Access-Control-Allow-Origin": "*",
-      },
-      body: JSON.stringify(data),
-    });
-    const res = await fetchData.json();
-    console.log(res.data, "res");
-    if (res.data) {
-      setProducts(res.data);
+    if(searchInput !==""){
+      
+      const fetchData = await fetch("/api/searchProductSalesOrder", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Headers": "Content-Type",
+          "Access-Control-Allow-Methods": "*",
+          "Access-Control-Allow-Origin": "*",
+        },
+        body: JSON.stringify(data),
+      });
+      const res = await fetchData.json();
+      console.log(res.data, "res");
+      if (res.data) {
+        setProducts(res.data);
+      }
+    }else{
+      setProducts([]);
     }
+
+ 
   };
   useEffect(() => {
     const getData = setTimeout(() => {
@@ -70,8 +82,10 @@ function AddProductButton() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchInput]);
 
+
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="default" className="">
           Add Products
@@ -110,10 +124,10 @@ function AddProductButton() {
             </div>
           </form>
         </div>
-        <ProductTable products={products} />
+        <ProductTable products={products}  closeDialog={closeDialog}/>
 
         <DialogFooter>
-          <Button type="submit">Save changes</Button>
+          
         </DialogFooter>
       </DialogContent>
     </Dialog>

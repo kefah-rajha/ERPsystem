@@ -8,14 +8,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const schemaUser_1 = require("../Modal/schemaUser");
 const schemaSupplier_1 = require("../Modal/schemaSupplier");
 const schemaProducts_1 = require("../Modal/schemaProducts");
-const mongoose_1 = __importDefault(require("mongoose"));
 const schemaSalesOrder_1 = require("../Modal/schemaSalesOrder");
 const salesOrder = {
     searchCustomer: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -25,8 +21,8 @@ const salesOrder = {
             const customers = yield schemaUser_1.UserModel.find({
                 userName: regex,
                 role: 'Customer' // Only search users with customer role
-            })
-                .populate("phone")
+            }).select('userName')
+                .populate("contactID", "phone postCode city street email")
                 .limit(5)
                 .exec();
             console.log(customers);
@@ -105,29 +101,29 @@ const salesOrder = {
     createSalesOrder: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const data = req.body;
+            console.log(data === null || data === void 0 ? void 0 : data.values, "data?.values");
             const order = new schemaSalesOrder_1.SalesOrderModel({
                 orderNumber: `SO-${Date.now()}`,
                 customer: {
-                    name: 'John Doe',
-                    contact: 'john@example.com',
-                    phone: '1234567890'
+                    userName: data === null || data === void 0 ? void 0 : data.values.customer,
+                    shipmentAddress: data === null || data === void 0 ? void 0 : data.values.shipmentAddress,
+                    phone: data === null || data === void 0 ? void 0 : data.values.phone,
+                    customerEmail: data === null || data === void 0 ? void 0 : data.values.customerEmail
                 },
-                salesStaff: {
-                    name: 'Jane Smith',
-                    code: 'SS001'
+                supplier: {
+                    name: data === null || data === void 0 ? void 0 : data.values.supplier
                 },
-                items: [{
-                        product: new mongoose_1.default.Types.ObjectId('product_id_here'),
-                        quantity: 2,
-                        vat: 0.2,
-                        vatAmount: 20,
-                        totalAmount: 120
-                    }],
-                subtotal: 100,
-                totalVat: 20,
-                grandTotal: 120
+                items: data.items,
+                netTotal: data === null || data === void 0 ? void 0 : data.values.netAmount,
+                totalVat: data === null || data === void 0 ? void 0 : data.values.vatAmount,
+                totalAmount: data === null || data === void 0 ? void 0 : data.values.totalAmount,
+                vatRate: data === null || data === void 0 ? void 0 : data.values.vatRate,
+                includeVat: data === null || data === void 0 ? void 0 : data.values.includeVat,
+                currency: data === null || data === void 0 ? void 0 : data.values.currency,
+                paymentTerm: data === null || data === void 0 ? void 0 : data.values.paymentTerm
             });
             const saveOrder = yield order.save();
+            console.log(saveOrder);
             if (saveOrder) {
                 return res.status(200).json({
                     data: saveOrder,
@@ -136,11 +132,122 @@ const salesOrder = {
             }
         }
         catch (error) {
+            console.log(error);
             return res.status(500).json({
                 message: error,
                 success: false,
             });
         }
-    })
+    }),
+    getSalesOrders: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const { from, to, page = 1, limit = 10 } = req.query;
+            console.log(from, to, page, limit);
+            // Validate input dates
+            if (!from || !to) {
+                return res.status(400).json({
+                    message: 'Both from and to dates are required'
+                });
+            }
+            // Convert string dates to Date objects
+            const fromDate = new Date(from);
+            const toDate = new Date(to);
+            // Calculate skip value for pagination
+            const skip = (page - 1) * limit;
+            // Retrieve total count of orders
+            const totalOrders = yield schemaSalesOrder_1.SalesOrderModel.countDocuments({
+                createdAt: {
+                    $gte: fromDate,
+                    $lte: toDate
+                }
+            });
+            // Retrieve paginated Sales Orders
+            const salesOrders = yield schemaSalesOrder_1.SalesOrderModel.find({
+                createdAt: {
+                    $gte: fromDate,
+                    $lte: toDate
+                }
+            })
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(Number(limit))
+                .populate("items.product", "name _id price");
+            // Calculate total pages
+            const totalPages = Math.ceil(totalOrders / limit);
+            // Return paginated results
+            res.status(200).json({
+                page: Number(page),
+                totalPages,
+                totalOrders,
+                ordersCount: salesOrders.length,
+                salesOrders
+            });
+        }
+        catch (error) {
+            res.status(500).json({
+                message: 'Error retrieving sales orders',
+                error: error
+            });
+        }
+    }),
+    deleteSalesOrder: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const { id } = req.params;
+            const saleOrderDelete = yield schemaSalesOrder_1.SalesOrderModel.findByIdAndDelete(id);
+            console.log(saleOrderDelete);
+            if (saleOrderDelete === null || saleOrderDelete === void 0 ? void 0 : saleOrderDelete._id) {
+                res.status(200).json({
+                    message: "delete sales order is done",
+                    success: true,
+                });
+            }
+            else {
+                res.status(402).json({
+                    message: "delete user is falid",
+                    success: false,
+                });
+            }
+        }
+        catch (error) {
+            res.status(402).json({
+                message: error,
+                success: false,
+            });
+        }
+    }),
+    UpdateSaleOrder: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const { id } = req.params;
+            console.log(id, "test");
+            const resSaleOrder = yield schemaSalesOrder_1.SalesOrderModel.findById(id).populate("items.product");
+            res.status(200).json({
+                posts: resSaleOrder,
+                success: true,
+            });
+        }
+        catch (error) {
+            return res.status(400).json({
+                message: error,
+                success: false,
+            });
+        }
+    }),
+    updateSalesOrder: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const { id } = req.params;
+            const data = req.body;
+            const UpdateData = yield schemaSalesOrder_1.SalesOrderModel.findByIdAndUpdate(id, data, { new: true });
+            return res.status(200).json({
+                data: UpdateData,
+                success: true,
+            });
+        }
+        catch (error) {
+            return res.status(400).json({
+                message: error,
+                success: false,
+            });
+        }
+    }),
 };
 exports.default = salesOrder;

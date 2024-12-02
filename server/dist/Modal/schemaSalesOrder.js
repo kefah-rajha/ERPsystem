@@ -23,7 +23,6 @@ const OrderItemSchema = new mongoose_1.Schema({
     },
     totalAmount: {
         type: Number,
-        required: true
     }
 });
 const SalesOrderSchema = new mongoose_1.Schema({
@@ -37,31 +36,31 @@ const SalesOrderSchema = new mongoose_1.Schema({
         default: Date.now
     },
     customer: {
-        name: {
+        userName: {
             type: String,
             required: true
         },
-        contact: {
+        customerEmail: {
             type: String,
             required: true
         },
         phone: {
             type: String,
             required: true
+        },
+        shipmentAddress: {
+            type: String,
+            required: true
         }
     },
-    salesStaff: {
+    supplier: {
         name: {
             type: String,
             required: true
         },
-        code: {
-            type: String,
-            required: true
-        }
     },
     items: [OrderItemSchema],
-    subtotal: {
+    netTotal: {
         type: Number,
         required: true
     },
@@ -69,7 +68,10 @@ const SalesOrderSchema = new mongoose_1.Schema({
         type: Number,
         required: true
     },
-    grandTotal: {
+    totalAmount: {
+        type: Number,
+    },
+    vatRate: {
         type: Number,
         required: true
     },
@@ -78,13 +80,30 @@ const SalesOrderSchema = new mongoose_1.Schema({
         enum: ['pending', 'processed', 'completed', 'cancelled'],
         default: 'pending'
     },
+    currency: {
+        type: String,
+        required: true
+    },
+    includeVat: {
+        type: Boolean,
+        required: true
+    },
+    paymentTerm: {
+        type: String,
+        enum: ["Cash",
+            "Card",
+            "Bank Transfers",
+            "Checks",
+            "Electronic Payments",
+            "Deferred Payments"],
+        default: 'Cash'
+    },
     notes: String
 }, {
     timestamps: true
 });
 // Indexes
-SalesOrderSchema.index({ orderNumber: 1 });
-SalesOrderSchema.index({ 'customer.name': 1 });
+SalesOrderSchema.index({ 'customer.userName': 1 });
 SalesOrderSchema.index({ orderDate: -1 });
 // Virtual populate setup
 SalesOrderSchema.virtual('productDetails', {

@@ -21,7 +21,9 @@ interface ProductListProps {
 
 export function ProductList({ products, selectedProducts, onSelect }: ProductListProps) {
   return (
-    <Table>
+    <>
+    { products.length == 0 && <p className="text-center ">No products found</p>}
+    { products.length > 0 &&<Table>
       <TableHeader>
         <TableRow>
           <TableHead>Image</TableHead>
@@ -32,6 +34,7 @@ export function ProductList({ products, selectedProducts, onSelect }: ProductLis
           <TableHead className="text-right">Action</TableHead>
         </TableRow>
       </TableHeader>
+      
       <TableBody>
         {products.map((product) => (
           <TableRow key={product._id}>
@@ -55,7 +58,9 @@ export function ProductList({ products, selectedProducts, onSelect }: ProductLis
             </TableCell>
           </TableRow>
         ))}
+        
       </TableBody>
-    </Table>
+    </Table>}
+    </>
   )
 }

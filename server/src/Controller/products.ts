@@ -10,11 +10,15 @@ export const products = {
       const resPost = await ProductModel.findById( id )
      
       res.status(200).json({
-        posts: resPost
+        posts: resPost,
+        success: true,
       })
 
     } catch (error) {
-      console.log(error)
+      return res.status(400).json({
+        message: error,
+        success: false,
+      });
     }
 
   },
@@ -33,7 +37,10 @@ export const products = {
       })
 
     } catch (error) {
-      console.log(error)
+      return res.status(400).json({
+        message: error,
+        success: false,
+      });
     }
   },
   createProduct: async (req: any, res: any) => {

@@ -31,15 +31,22 @@ interface itemsOrder {
 
 interface ProductSelectedType {
  getTotalAmount:(amount:number)=>void
+ handleOrderProductsSelected:(ProductSelected:itemsOrder[])=>void
+ itemsProduct?:itemsOrder[]
 }
 
-export default function ProductSelected({getTotalAmount}:ProductSelectedType) {
+export default function ProductSelected({getTotalAmount,handleOrderProductsSelected,itemsProduct}:ProductSelectedType) {
     const salesOrderProductsSelectedContext =useContext(SalesOrderProductsSelectedContext)
 
   const [orderItems, setOrderItems] = useState<itemsOrder[] >([])
   const ProductSelected= salesOrderProductsSelectedContext?.salesOrderProductsSelected
-
-
+useEffect(()=>{
+  if(itemsProduct !== undefined){
+  setOrderItems(itemsProduct)}
+},[itemsProduct])
+useEffect(()=>{
+  handleOrderProductsSelected(orderItems)
+},[handleOrderProductsSelected, orderItems])
   useEffect(() => {
     if(ProductSelected !==undefined){
     

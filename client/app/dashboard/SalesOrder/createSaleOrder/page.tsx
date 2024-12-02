@@ -56,6 +56,7 @@ import {
 } from "@/components/ui/command";
 import ProductSelected from "@/components/SalesOrder/ProductSelected";
 import CurrencyAndVatAndAmount from "@/components/SalesOrder/CurrencyAndVatAndAmount";
+import { toast } from "@/components/ui/use-toast";
 interface ContactInfoCustomerSearchResultsDataType {
   _id: string;
   phone: string;
@@ -72,6 +73,15 @@ interface customerSearchResultsDataType {
 }
 
 type customerSearchResultsDataTypeArray = customerSearchResultsDataType[];
+interface itemsOrderSendToApiType {
+    
+  quantity: number;
+  vat: number;
+  vatAmount: number;
+  totalAmount: number;
+  product: string;
+ 
+}
 
 const formSchema = z.object({
   customer: z.string().min(1, { message: "Customer is required" }),
@@ -93,7 +103,6 @@ const formSchema = z.object({
   orderDate: z.date({
     required_error: "Order date is required",
   }),
-  totalAmount: z.number().min(0.01, "Total amount must be greater than 0"),
   currency: z.string().min(1, "Please select a currency"),
   vatRate: z.string().min(1, "Please select a VAT rate"),
   includeVat: z.boolean(),
@@ -203,7 +212,7 @@ export default function SalesOrderManagement() {
     if (includeVat) {
       vatAmount = +(totalAmount * vat).toFixed(2)
       netAmount = totalAmount;
-      setFinishAmount(totalAmount - +vatAmount)
+      setFinishAmount(totalAmount + +vatAmount)
 
     } else {
       netAmount = totalAmount
@@ -248,10 +257,74 @@ export default function SalesOrderManagement() {
 
     return () => clearTimeout(debounceTimer);
   }, [supplierSearchQuery]);
+  interface itemsOrder {
+    
+    quantity: number;
+    vat: number;
+    vatAmount: number;
+    totalAmount: number;
+    _id: string;
+    name: string;
+    SKU: string;
+    brandName: string;
+    productTag: string;
+    price: string;
+    Discount: string;
+    SupplierName: string;
+    salesCode: string;
+    purchaseCode: string;
+    supplierCode: string;
+    Description: string;
+    stock:string;
+}
+const OrderProductsSelectToSendApi: itemsOrderSendToApiType[] =[]
+  const handleOrderProductsSelected=(OrderProductsSelected:itemsOrder[])=>{
+    const products = OrderProductsSelected?.map(product => ({
+      product:product._id,
+      quantity:product.quantity,
+      vat:product.vat,
+      vatAmount:product.vatAmount,
+      totalAmount:product.totalAmount,
+    })) 
+    OrderProductsSelectToSendApi.push(...products)
+    console.log(OrderProductsSelectToSendApi)
 
-  function onSubmit(values: FormValues) {
-    console.log(values);
-    // TODO: Handle form submission
+  }
+
+  async function onSubmit (valuesForm: FormValues) {
+    const values ={
+      ...valuesForm,
+      netAmount:calculatedValues.netAmount,
+      vatAmount:calculatedValues.vatAmount,
+      totalAmount:finishAmount
+    }
+    
+    const data={
+      values:values,
+      items:OrderProductsSelectToSendApi}
+    
+    const FetchData = await fetch("/api/createSaleOrder", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Methods": "*",
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify(data),
+    });
+    const res = await FetchData.json();
+
+    console.log(res ,"data");
+    toast({
+      title: "You submitted the following values:",
+      description: (
+        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+          <p>Create New Sale Order Is Done</p>
+        </pre>
+      ),
+    });
+    
   }
   const paymentTermOptions = [
     "Cash",
@@ -687,7 +760,7 @@ export default function SalesOrderManagement() {
           <Card className="mt-2 py-5">
             <CardContent>
               <AddProductButton />
-              <ProductSelected getTotalAmount={getTotalAmount} />
+              <ProductSelected getTotalAmount={getTotalAmount} handleOrderProductsSelected={handleOrderProductsSelected} />
             </CardContent>
           </Card>
         </div>
