@@ -4,7 +4,7 @@ import { Schema, model, connect } from 'mongoose';
 // models/User.ts
 interface UserCompany {
     userId:string;
-    nameComapny:string;
+    nameCompany:string;
     phone: string;
     email: string;
     address: string;
@@ -17,7 +17,7 @@ interface UserCompany {
 
 const UserCompanySchema = new Schema<UserCompany>({
     userId: { type: String },
-    nameComapny:{type:String},
+    nameCompany:{type:String},
     email:{ type: String},
     address: { type: String },
     phone: { type: String,unique:false},

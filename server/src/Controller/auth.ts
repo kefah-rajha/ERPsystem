@@ -4,8 +4,22 @@ import { userAuthType } from "../DataType/authType";
 import { Types } from "mongoose";
 import dotenv from "dotenv";
 import { UserDetailsModel } from "../Modal/schemaUserDetails";
-
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+  AccessTokenPayload
+} from '../utils/jwt';
 dotenv.config();
+const sendRefreshTokenCookie = (res: any, refreshToken: string) => {
+  const maxAge = 7 * 24 * 60 * 60 * 1000;
+  res.cookie('jid', refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: maxAge
+  });
+};
 
 export const auth = {
   SignUpFun: async (req: any, res: any) => {
@@ -24,36 +38,39 @@ export const auth = {
           message: "The User Name Is Exist ,Choose A Unique Username",
         });
       } else {
-        const finaluser = new UserModel({
+        const finalUser = new UserModel({
           userName: newusername,
           password,
           name: "",
           Brithday: ""
         });
-        console.log(finaluser, "finaluser");
+        console.log(finalUser, "finalUser");
 
-        const userInfo = await finaluser.save();
+        const userInfo = await finalUser.save();
         if (!userInfo) {
-  
+
           return res.status(400).json({
             success: false,
             message: "uh, there is thing, try later",
           });
 
         }
+        const userJWT = {
+          _id: userInfo._id.toString(),
+          userName: userInfo.userName,
+          role: userInfo.role
+        }
 
-        const create_token = createAccessToken({ id: finaluser._id });
-        const refreash_token = createRefreashToken({ id: finaluser._id });
-        res.cookie("refreash_token", refreash_token, {
-          httpOnly: true,
-          secure: true,
-          SameSite: "none",
-          path: "api/authorization",
-          maxAge: 30 * 7 * 24 * 60 * 60 * 1000,
-        });
+        const accessToken = generateAccessToken(userJWT);
+        const refreshToken = generateRefreshToken(userJWT);
+        await UserModel.updateOne({ _id: userInfo._id }, { $set: { refreshToken: refreshToken } });
+
+        sendRefreshTokenCookie(res, refreshToken);
+
 
         return res.status(200).json({
-          refreash_token,
+          refreshToken,
+          
           success: true,
         });
       }
@@ -86,20 +103,21 @@ export const auth = {
             message: "the password isnt True"
           });
         }
+        const userJWT = {
+          _id: user_name._id.toString(),
+          userName: user_name.userName,
+          role: user_name.role
+        }
+        const accessToken = generateAccessToken(userJWT);
+        const refreshToken = generateRefreshToken(userJWT);
+        await UserModel.updateOne({ _id: user_name._id }, { $set: { refreshToken: refreshToken } });
 
-        const create_token = createAccessToken({ id: user_name?._id });
-        const refreash_token = createRefreashToken({ id: user_name?._id });
-        res.cookie("refreash_token", refreash_token, {
-          httpOnly: true,
-          secure: true,
-          path: "api/authorization",
-          maxAge: 30 * 24 * 60 * 60 * 1000, // 30days
-        });
-
-        return res
-          .status(200)
-          .json({ success: true, user: user_name, refreash_token });
-      }
+        sendRefreshTokenCookie(res, refreshToken);
+        return res.status(200).json({
+          refreshToken,
+          
+          success: true,
+        });}
     } catch (error: any) {
       res.status(402).json({
         message: error.message as string,
@@ -109,43 +127,75 @@ export const auth = {
   },
   // i am working on this
   getauth: async (req: any, res: any) => {
-    const token = req.cookies.refreash_token
-    const userIdByToken = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET as string)
-    const userID = (userIdByToken as any).id
-    const userToken = await UserModel.findById(userID as Types.ObjectId);
-    console.log(userToken)
-    // const newAccessToken = createAccessToken({ id: userID});
-    //   await res.cookie("refreash_token", newAccessToken, {
-    //     httpOnly: true,
-    //     secure: true,
-    //     path: "api/authorization",
-    //     maxAge: 30 * 24 * 60 * 60 * 1000, // 30days
-    //   });
-    return res.status(402).json({
-      data: userToken,
+    const token = req.cookies.jid;
+
+    if (!token) {
+      return res.status(401).json({ accessToken: '', message: 'No refresh token cookie' });
+    }
+
+    let payload: ReturnType<typeof verifyRefreshToken> = null;
+    try {
+      payload = verifyRefreshToken(token);
+    } catch (err) {
+      console.error("Refresh Token Verification Error:", err);
+      return res.status(401).json({ accessToken: '', message: 'Invalid refresh token' });
+    }
+
+    if (!payload || !payload.userId) {
+      return res.status(401).json({ accessToken: '', message: 'Invalid refresh token payload' });
+    }
+
+    const user = await UserModel.findById(payload.userId).select('+refreshToken');
+
+    if (!user || user.refreshToken !== token) {
+      res.clearCookie('jid', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict' });
+      return res.status(401).json({ accessToken: '', message: 'Refresh token mismatch or user not found' });
+    }
+    const userJWT = {
+      _id: user._id.toString(),
+      userName: user.userName,
+      role: user.role
+    }
+    const newAccessToken = generateAccessToken(userJWT);
+    const newRefreshToken = generateRefreshToken(userJWT);
+
+    user.refreshToken = newRefreshToken;
+    const userAfterSaveToken = await user.save();
+    console.log(userAfterSaveToken,"userAfterSaveToken")
+
+    sendRefreshTokenCookie(res, newRefreshToken);
+
+    
+    return res.status(200).json({
       success: true,
+      accessToken: newAccessToken,
+      user: userAfterSaveToken
     });
+
 
 
 
   },
   logout: async (req: any, res: any) => {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(400).json({ message: "User ID not found in token" });
+    }
+
     try {
-      res.clearCookie("refreshtoken", { path: "api/authorization" });
-      return res.json({ msg: "Logged out!" });
+      await UserModel.updateOne({ _id: userId }, { $unset: { refreshToken: "" } });
+
+      res.clearCookie('jid', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+      });
+
+      return res.status(200).json({ message: 'Logout successful' });
     } catch (err: any) {
       return res.status(500).json({ msg: err.message });
     }
   },
 };
-const createAccessToken = (paylod: any) => {
-  return jwt.sign(paylod, process.env.ACCESS_TOKEN_SECRET as string, {
-    expiresIn: "10d",
-  });
-};
-const createRefreashToken = (paylod: any) => {
-  console.log(process.env.REFRES_TOKEN_SECRET, process.env.ACCESS_TOKEN_SECRET);
-  return jwt.sign(paylod, process.env.REFRESH_TOKEN_SECRET as string, {
-    expiresIn: "30d",
-  });
-};
+

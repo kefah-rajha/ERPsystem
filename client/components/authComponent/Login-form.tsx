@@ -36,7 +36,7 @@ const LoginFormSchema = z.object({
     message: "Name must be  More 5 characters .",
   }),
 });
-
+import { useAuth } from '@/context/AuthContext';
 function Loginform() {
   //toast for showing the result of the fetch data
   const { toast } = useToast();
@@ -44,6 +44,7 @@ function Loginform() {
   const { push } = useRouter();
 //for showing the password if he is true or disappear if he is false
   const [passwordShown, setPasswordShown] = useState(false);
+   const { login, loading } = useAuth();
 
   type LoginFormValues = z.infer<typeof LoginFormSchema>;
 
@@ -53,28 +54,8 @@ function Loginform() {
 // function to action
   async function onSubmit(data: LoginFormValues) {
     // loginFetch is function that send the requst to server
-    const LoginStatus = await loginFetch(data);
-    if (LoginStatus.success == false) {
-      toast({
-        variant: "custum",
-        title: "Uh oh! Something went wrong.❌",
-        description: (
-          <p className="mt-2  rounded-md text-foreground/75 whitespace-pre-line p-4 w-full">
-            {LoginStatus.message}
-          </p>
-        ),
-        action: <ToastAction altText="Goto schedule to undo">Yes</ToastAction>,
-      });
-    } else {
-      toast({
-        variant: "default",
-        title: "Congratulations✅.",
-        description: "login Is Done",
-      });
-      if (LoginStatus.refreash_token) {
-        push("/dashboard");
-      }
-    }
+     await login(data.userName,data.password);
+   
   }
 
   return (

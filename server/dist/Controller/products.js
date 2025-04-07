@@ -32,13 +32,97 @@ exports.products = {
     getAllProducts: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         console.log("test");
         try {
-            const { pageNumber } = req.params;
-            const resallPost = yield schemaProducts_1.ProductModel.find().sort({
-                createdAt: -1
-            });
-            console.log(resallPost);
+            const pageNumber = parseInt(req.params.pageNumber) || 1;
+            const pageSize = parseInt(req.params.pageSize) || 10;
+            const skipItems = (pageNumber - 1) * pageSize;
+            const { fieldSort, sort, fields, fieldSearch, searchInput, selectedBrands, selectedCategory, supplierName, inStock, priceRange, dateRange } = req.body;
+            // Build filter query
+            const query = {};
+            if (searchInput) {
+                if (fieldSearch) {
+                    // If specific field is provided, search only in that field
+                    query[fieldSearch] = { $regex: searchInput, $options: 'i' };
+                }
+                else {
+                    // If no field is specified, default to searching by name only
+                    query.name = { $regex: searchInput, $options: 'i' };
+                }
+            }
+            console.log(inStock == false, "inStock");
+            if (inStock == "true") {
+                // Get products with stock greater than 0
+                console.log(true, "inStock");
+                query.stock = { $gt: 0 };
+            }
+            if (inStock == "false") {
+                // Get products with stock equal to 0
+                console.log(false, "inStock");
+                query.stock = 0;
+            }
+            if (selectedBrands !== "All") {
+                // Get products with stock greater than 0
+                query.brandName = selectedBrands;
+            }
+            if (selectedCategory !== null) {
+                query.$or = [
+                    { categories: selectedCategory },
+                    { subCategories: selectedCategory }
+                ];
+            }
+            // Price range filter
+            if (priceRange.min || priceRange.max) {
+                query.price = {};
+                if (priceRange.min)
+                    query.price.$gte = parseFloat(priceRange.min);
+                if (priceRange.max)
+                    query.price.$lte = parseFloat(priceRange.max);
+            }
+            // Creation date filter
+            if (dateRange.startDate || dateRange.endDate) {
+                query.createdAt = {};
+                if (dateRange.startDate) {
+                    query.createdAt.$gte = new Date(dateRange.startDate);
+                }
+                if (dateRange.endDate) {
+                    query.createdAt.$lte = new Date(dateRange.endDate);
+                }
+            }
+            // Apply sorting
+            const sortOptions = {};
+            sortOptions[fieldSort] = sort === 'asc' ? 1 : -1;
+            console.log(query);
+            // Get products
+            const products = yield schemaProducts_1.ProductModel
+                .find(query)
+                .sort(sortOptions)
+                .skip(skipItems)
+                .limit(pageSize);
+            console.log(query);
+            const priceStats = yield schemaProducts_1.ProductModel.aggregate([
+                {
+                    $group: {
+                        _id: null,
+                        minPrice: { $min: { $toDouble: "$price" } },
+                        maxPrice: { $max: { $toDouble: "$price" } }
+                    }
+                }
+            ]);
+            const suppliers = yield schemaProducts_1.ProductModel.distinct('SupplierName');
+            const brand = yield schemaProducts_1.ProductModel.distinct('brandName');
+            console.log(suppliers);
+            // Send response
             res.status(200).json({
-                allposts: resallPost
+                success: true,
+                data: {
+                    products,
+                    appliedFilters: {
+                        priceStats,
+                        suppliers,
+                        brand,
+                        // maxPrice,
+                        // searchTerm
+                    }
+                }
             });
         }
         catch (error) {
@@ -51,7 +135,10 @@ exports.products = {
     createProduct: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const data = req.body;
-            console.log(data);
+            console.log(data, "data");
+            if (data.price) {
+                data.price = parseFloat(data.price);
+            }
             const newProduct = new schemaProducts_1.ProductModel(data);
             yield newProduct.save();
             return res.status(200).json({
@@ -98,4 +185,19 @@ exports.products = {
             });
         }
     }),
+    getNumberProducts: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const totalCount = yield schemaProducts_1.ProductModel.countDocuments();
+            return res.status(200).json({
+                data: totalCount,
+                success: true,
+            });
+        }
+        catch (error) {
+            return res.status(400).json({
+                message: error,
+                success: false,
+            });
+        }
+    })
 };

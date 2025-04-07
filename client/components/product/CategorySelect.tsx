@@ -71,7 +71,7 @@ function CategorySelect({
 
   console.log(selectSubCategory);
 
-  useEffect(() => {}, [selectCategory]);
+  useEffect(() => { }, [selectCategory]);
 
   useEffect(() => {
     let ignore = false;
@@ -226,8 +226,8 @@ function CategorySelect({
                     selectCategory == ""
                       ? true
                       : false || subCategories.length == 0
-                      ? true
-                      : false
+                        ? true
+                        : false
                   }
                 >
                   Add SubCategory

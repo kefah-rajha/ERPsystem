@@ -74,13 +74,13 @@ interface customerSearchResultsDataType {
 
 type customerSearchResultsDataTypeArray = customerSearchResultsDataType[];
 interface itemsOrderSendToApiType {
-    
+
   quantity: number;
   vat: number;
   vatAmount: number;
   totalAmount: number;
   product: string;
- 
+
 }
 
 const formSchema = z.object({
@@ -229,7 +229,7 @@ export default function SalesOrderManagement() {
   }, [totalAmount, vatRate, includeVat])
 
   useEffect(() => {
-    const searchCustomers = async () => {
+    const searchSuppliers = async () => {
       console.log(supplierSearchQuery);
       if (supplierSearchQuery) {
         setIsSearchingSupplier(true);
@@ -253,12 +253,12 @@ export default function SalesOrderManagement() {
       }
     };
 
-    const debounceTimer = setTimeout(searchCustomers, 300);
+    const debounceTimer = setTimeout(searchSuppliers, 300);
 
     return () => clearTimeout(debounceTimer);
   }, [supplierSearchQuery]);
   interface itemsOrder {
-    
+
     quantity: number;
     vat: number;
     vatAmount: number;
@@ -275,34 +275,35 @@ export default function SalesOrderManagement() {
     purchaseCode: string;
     supplierCode: string;
     Description: string;
-    stock:string;
-}
-const OrderProductsSelectToSendApi: itemsOrderSendToApiType[] =[]
-  const handleOrderProductsSelected=(OrderProductsSelected:itemsOrder[])=>{
+    stock: string;
+  }
+  const OrderProductsSelectToSendApi: itemsOrderSendToApiType[] = []
+  const handleOrderProductsSelected = (OrderProductsSelected: itemsOrder[]) => {
     const products = OrderProductsSelected?.map(product => ({
-      product:product._id,
-      quantity:product.quantity,
-      vat:product.vat,
-      vatAmount:product.vatAmount,
-      totalAmount:product.totalAmount,
-    })) 
+      product: product._id,
+      quantity: product.quantity,
+      vat: product.vat,
+      vatAmount: product.vatAmount,
+      totalAmount: product.totalAmount,
+    }))
     OrderProductsSelectToSendApi.push(...products)
     console.log(OrderProductsSelectToSendApi)
 
   }
 
-  async function onSubmit (valuesForm: FormValues) {
-    const values ={
+  async function onSubmit(valuesForm: FormValues) {
+    const values = {
       ...valuesForm,
-      netAmount:calculatedValues.netAmount,
-      vatAmount:calculatedValues.vatAmount,
-      totalAmount:finishAmount
+      netAmount: calculatedValues.netAmount,
+      vatAmount: calculatedValues.vatAmount,
+      totalAmount: finishAmount
     }
-    
-    const data={
-      values:values,
-      items:OrderProductsSelectToSendApi}
-    
+
+    const data = {
+      values: values,
+      items: OrderProductsSelectToSendApi
+    }
+
     const FetchData = await fetch("/api/createSaleOrder", {
       method: "POST",
       headers: {
@@ -315,7 +316,7 @@ const OrderProductsSelectToSendApi: itemsOrderSendToApiType[] =[]
     });
     const res = await FetchData.json();
 
-    console.log(res ,"data");
+    console.log(res, "data");
     toast({
       title: "You submitted the following values:",
       description: (
@@ -324,7 +325,7 @@ const OrderProductsSelectToSendApi: itemsOrderSendToApiType[] =[]
         </pre>
       ),
     });
-    
+
   }
   const paymentTermOptions = [
     "Cash",
@@ -349,11 +350,11 @@ const OrderProductsSelectToSendApi: itemsOrderSendToApiType[] =[]
                   onSubmit={form.handleSubmit(onSubmit)}
                   className="space-y-8"
                 >
-                   <Button type="submit">Save Sales Order</Button>
+                  <Button type="submit">Save Sales Order</Button>
                   <div className="flex gap-4">
-                    
+
                     <div className="w-3/4 space-y-4">
-                    
+
                       <Card>
                         <CardHeader>
                           <CardTitle>Order Details</CardTitle>
@@ -744,15 +745,15 @@ const OrderProductsSelectToSendApi: itemsOrderSendToApiType[] =[]
                           />
                         </CardContent>
                       </Card>
-                      <CurrencyAndVatAndAmount 
-                      form={form}
-                       totalAmount={totalAmount}
-                       netAmount={calculatedValues.netAmount}
-                       vatAmount={calculatedValues.vatAmount}
-                       finishAmount={finishAmount} />
+                      <CurrencyAndVatAndAmount
+                        form={form}
+                        totalAmount={totalAmount}
+                        netAmount={calculatedValues.netAmount}
+                        vatAmount={calculatedValues.vatAmount}
+                        finishAmount={finishAmount} />
                     </div>
                   </div>
-                 
+
                 </form>
               </Form>
             </CardContent>

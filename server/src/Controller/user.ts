@@ -18,108 +18,74 @@ dotenv.config();
 export const user = {
   getAllUsers: async (req: any, res: any) => {
     try {
-      const { pageNumber } = req.params;
+      const pageNumber = parseInt(req.params.pageNumber as string) || 1;
+      const pageSize = parseInt(req.params.pageSize as string) || 10;
+      const skipItems = (pageNumber - 1) * pageSize;
+
       const { fieldSort, sort, role, fields, fieldSearch, searchInput } = req.body;
-      console.log(fields, fieldSearch)
-      const sortAsNumber = sort == "1" ? 1 : -1
-      const regex = searchInput == "" ? new RegExp(/^[a-zA-Z0-9]+$/) : new RegExp(`^${searchInput}`, 'i')
-      console.log(regex, "regex")
-      const search = {
-        $match: {
-          [fieldSearch]: { $regex: regex }
-        }
-      }
-      const RoleSort = {
-        $match: {
-          role: role
-        }
-      }
-      const SortAlphaB = {
-        $sort: {
-          [fieldSort]: sortAsNumber
+      console.log(fieldSort, sort, role, fields, fieldSearch, searchInput)
+      if (fields =="All" && role == "All" && searchInput == "" && sort == "1" ) {
+        console.log("test ")
+        const users = await UserModel.find({}).skip(skipItems)
+          .limit(pageSize)
+          .lean()
+        console.log(users)
 
-        }
-      }
-      const EmptyFields = {
-        $match: {
-          $or: [
-            { "contact.email": "" },
-            { "contact.phone": "" },
-            { "company.name": "" },
-            { "name": "" },
-
-          ]
-        }
-      }
-      const pipeline: any = [
-        {
-          $lookup: {
-            from: "contactInfo",
-            localField: "contactId",
-            foreignField: "_id",
-            as: "contact"
-          }
-        },
-     
-        {
-          $unwind: {
-            path: "$contact",
-            preserveNullAndEmptyArrays: true
-          }
-        },
-       {
-        $match: {
-          name  : { $regex: regex }
-        }}
-
-
-      ]
-
-      if (role !== "All" && fields !== "Empty") {
-        console.log("i am working")
-        const recallPost = await UserModel.aggregate([...pipeline, RoleSort, SortAlphaB])
-        console.log("i am working",recallPost)
-        console.log(recallPost)
         return res.status(200).json({
-          data: recallPost,
           success: true,
+          data: users,
+          message: 'Users retrieved successfully'
         });
-      } else if (fields == "Empty" && role !== "All") {
-        console.log("i am working2")
-        const recallPost = await UserModel.aggregate([...pipeline, search, EmptyFields,
-          RoleSort, SortAlphaB
+      }else{
+      const query: any = {};
 
-        ])
-        return res.status(200).json({
-          data: recallPost,
-          success: true,
-        });
-
-      } else if (fields !== "Empty" && role == "All") {
-        console.log("i am working3")
-
-        const recallPost = await UserModel.aggregate([...pipeline, SortAlphaB
-
-        ])
-        console.log("i am working3",recallPost)
-        return res.status(200).json({
-          data: recallPost,
-          success: true,
-        });
-
-      } else if (fields == "Empty" && role == "All") {
-        console.log("i am working4")
-        console.log(role !== "All" && fields !== "Empty")
-
-        const recallPost = await UserModel.aggregate([...pipeline, search, EmptyFields, SortAlphaB
-
-        ])
-        return res.status(200).json({
-          data: recallPost,
-          success: true,
-        });
-
+      // Add role filter if specified and not 'all'
+      if (role && role !== 'All') {
+        query.role = role;
       }
+
+      // Add search filter if search input exists
+      if (searchInput && fieldSearch) {
+        query[fieldSearch] = {
+          $regex: new RegExp(`^${searchInput}`, 'i')
+        };
+      }
+
+      // Add empty/non-empty fields filter
+      if (fields === 'empty') {
+        query.$or = [
+          { name: { $eq: '' } },
+          { email: { $eq: '' } },
+
+        ];
+      } else if (fields !== 'empty') {
+        query.$and = [
+          { name: { $ne: '' } },
+          { email: { $ne: '' } },
+          { company: { $ne: '' } }
+        ];
+      }
+
+      // Build sort options
+      const sortOptions: Record<string, 1 | -1> = {};
+      if (fieldSort) {
+        sortOptions[fieldSort] = sort === '1' ? 1 : -1;
+      }
+console.log(query)
+      // Execute query with filters and sorting
+      const users = await UserModel
+        .find(query)
+        .sort(sortOptions)
+        .skip(skipItems)
+          .limit(pageSize)
+          .lean()
+        // console.log(users)
+      return res.status(200).json({
+        success: true,
+        data: users,
+        message: 'Users retrieved successfully'
+      });
+    }
 
 
     } catch (error: unknown) {
@@ -166,7 +132,7 @@ export const user = {
           city,
           street,
         });
-        const contactInfoUserData=await contactInfoUser.save();
+        const contactInfoUserData = await contactInfoUser.save();
         const updatedUser = await UserModel.findByIdAndUpdate(
           userId,
           { contactID: contactInfoUserData?._id },
@@ -295,9 +261,9 @@ export const user = {
           city,
           street,
         });
-       
 
-       const companyInfoUserData= await companyInfoUser.save();
+
+        const companyInfoUserData = await companyInfoUser.save();
         const updatedUser = await UserModel.findByIdAndUpdate(
           userId,
           { companyID: companyInfoUserData._id },
@@ -354,27 +320,38 @@ export const user = {
   },
   ImportUser: async (req: any, res: any) => {
     const data = req.body;
+    console.log(data)
     const mappedData = data.map(async (item: any) => {
+
+
       const userInfo = {
-        userName: item["First name"],
+        userName: item["Username"],
         password: "12345",
-        name: item["Last name"],
-        Brithday: item["Date of birth"],
+        name: item["name"],
+        // Brithday: item["Brithday"],
+        role: item["role"],
+        createdAt: item["createdAt"],
+
+
       };
       const finale = new UserModel(userInfo);
       const userDataAfterSave = await finale.save();
       const contactInfo = {
-        userId: finale._id,
+        userId: userDataAfterSave._id,
         phone: item["Phone"],
-        email: item["Email"],
-        address: item["Adress"],
+        email: item["email"],
+        address: `${item["city"]}/${item["street"]}/${item["postcode"]} `,
         website: "web.com",
-        postCode: item["Post/Zip Code"],
-        city: item["City"],
-        street: item["State / Region"],
+        postCode: item["postcode"],
+        city: item["city"],
+        street: item["street"],
       };
       const contactInfoUser = new UserDetailsModel(contactInfo);
       await contactInfoUser.save();
+    });
+    return res.status(400).json({
+      success: false,
+      message: "uh, there is thing, try later",
     });
   },
   createUsers: async (req: any, res: any) => {
@@ -472,5 +449,6 @@ export const user = {
       success: true,
     });
 
-  }
+  },
+  
 };

@@ -67,10 +67,13 @@ const createProductFormSchema = z.object({
   salesCode: z.string(),
   purchaseCode: z.string(),
   supplierCode: z.string(),
-  stock:z.string(),
+  stock: z.string(),
   trackInventory: z.enum(["false", "true"]),
   allowOutOfStock: z.enum(["false", "true"]),
   Description: z.string(),
+  vat: z.string().min(0, {
+    message: "VAT must be a positive number.",
+  }),
   // Status: z.enum(["archive", "published", "draft"]),
 });
 type productFormValues = z.infer<typeof createProductFormSchema>;
@@ -82,6 +85,8 @@ export default function CreateProducts() {
   console.log(dataProductCategories, "dataProductCategories");
   const [nameSKU, setNameSKU] = useState<string>("");
   const [dataMainCategory, setDataMainCategory] = useState<string>("");
+  console.log(dataMainCategory,"dataMainCategory")
+  
 
   const form = useForm<productFormValues>({
     resolver: zodResolver(createProductFormSchema),
@@ -106,7 +111,8 @@ export default function CreateProducts() {
     IDsAllCategories.unshift(dataMainCategory);
     console.log(IDsAllCategories, "IDsAllCategories");
 
-    const allData = { ...data, photos: inputImages };
+
+    const allData = { ...data, photos: inputImages ,categories:dataMainCategory,subCategories:IDsAllCategories };
     console.log(allData, "allData");
     const FetchData = await fetch("/api/products/createProduct", {
       method: "POST",
@@ -116,7 +122,7 @@ export default function CreateProducts() {
         "Access-Control-Allow-Methods": "*",
         "Access-Control-Allow-Origin": "*",
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(allData),
     });
     const res = await FetchData.json();
 
@@ -271,6 +277,30 @@ export default function CreateProducts() {
                                 )}
                               />
                             </div>
+                           
+
+                            <div className="grid gap-3">
+                              <Label htmlFor="name" className="px-2">
+                                VAT Percentage(%)
+                              </Label>
+                              <FormField
+                                control={form.control}
+                                name="vat"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <Input
+                                        {...field}
+                                        type="number"
+                                        placeholder="Enter the Discount"
+                                        className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+
                             <div className="grid gap-3">
                               <Label htmlFor="name" className="px-2">
                                 Brand name
@@ -366,14 +396,14 @@ export default function CreateProducts() {
                         </CardContent>
                       </Card>
                       <PurchasSalesProdcutsForm form={form} />
-                       <InventoryDetailsProduct form={form} trackInventory={true} allowOutOfStock={true} />
+                      <InventoryDetailsProduct form={form} trackInventory={true} allowOutOfStock={true} />
                       <CategorySelect
                         form={form}
                         changeDataProductCategories={
                           changeDataProductCategories
                         }
                         changeDataProductCategory={changeDataProductCategory}
-                      /> 
+                      />
                     </div>
                     <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
                       <StatusProduct form={form} />

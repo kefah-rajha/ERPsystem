@@ -35,6 +35,10 @@ const SalesOrderSchema = new mongoose_1.Schema({
         type: Date,
         default: Date.now
     },
+    shipmentDate: {
+        type: Date,
+        default: Date.now
+    },
     customer: {
         userName: {
             type: String,
@@ -86,6 +90,10 @@ const SalesOrderSchema = new mongoose_1.Schema({
     },
     includeVat: {
         type: Boolean,
+        required: true
+    },
+    salesManager: {
+        type: String,
         required: true
     },
     paymentTerm: {

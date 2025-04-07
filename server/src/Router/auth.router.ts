@@ -6,8 +6,8 @@ import { auth } from "../Controller/auth";
 router.post("/SignUp",auth.SignUpFun);
 router.post("/Login",auth.login);
 // router.post("/logout",auth.logout);
- router.get("/authorization",auth.getauth);
-// router.get("/logout",auth.logout);
+ router.post("/authorization",auth.getauth);
+ router.get("/logout",auth.logout);
 
 
 export default router

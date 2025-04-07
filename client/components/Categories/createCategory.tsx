@@ -37,7 +37,9 @@ function CreateCategory({ handleAddCategory }: CreateCategoryType) {
     console.log(category, slug)
     const data={
       category,
-      slug
+      slug,
+  mainCategory:true,
+      
     }
     const fetchData= await fetch("/api/category/createCategory",{
       method:"POST",

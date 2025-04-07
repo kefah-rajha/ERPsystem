@@ -24,6 +24,8 @@ interface SalesStaff {
 interface SalesOrder {
   orderNumber: string;
   orderDate: Date;
+  shipmentDate:Date;
+  salesManager: string;
   customer: Customer;
   supplier: SalesStaff;
   items: OrderItem[];
@@ -76,6 +78,10 @@ const SalesOrderSchema = new Schema<SalesOrder>(
       unique: true
     },
     orderDate: {
+      type: Date,
+      default: Date.now
+    },
+    shipmentDate: {
       type: Date,
       default: Date.now
     },
@@ -132,6 +138,10 @@ const SalesOrderSchema = new Schema<SalesOrder>(
     },
     includeVat :{
       type: Boolean,
+      required: true
+    },
+    salesManager: {
+      type: String,
       required: true
     },
     paymentTerm: {

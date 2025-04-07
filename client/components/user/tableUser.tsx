@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState ,useContext} from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { AllusersResponse } from "@/dataType/dataTypeUser/dataTypeUser";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { CalendarPlus, AlignRight, Users2 } from "lucide-react";
+
 import {
   Card,
   CardContent,
@@ -58,63 +59,52 @@ import Link from "next/link";
 import PaginationComponent from "@/components/user/Pagination";
 import CounterUsers from "@/components/user/counterUsers";
 import { toast } from "@/components/ui/use-toast";
-import {UserContext}from "@/context/userContext"
+import { UserContext } from "@/context/userContext"
+import { cn } from "@/lib/utils";
 
 
 function TableUser() {
-  const searchParams = useSearchParams();
   const { push, replace } = useRouter();
-  const userContext=useContext(UserContext)
-
-  const numberPageParam = Number(searchParams.get("page")) || 1;
-  const params = new URLSearchParams(searchParams);
-  const pathname = usePathname();
-  console.log(params, pathname);
-
-  params.set("page", numberPageParam.toString());
-  replace(`${pathname}?${params.toString()}`);
-  const [numberProducts, setNumberProducts] = useState<number>(0);
-  const [countPages, setCountPages] = useState<number>(1);
-  let startNumberProductInThePage = (numberPageParam - 1) * 10 + 1;
-  let endNumberProductInThePage = Math.min(
-    startNumberProductInThePage + 9,
-    numberProducts
-  );
+  const userContext = useContext(UserContext)
 
 
- 
-  const deleteProduct=async(id:string)=>{
-    const fetchDeleteData=await fetch(  `/api/deleteUser/${id}`,{
-      method:"Delete",
-    headers: {    "Content-Type": "application/json",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Allow-Methods": "*",
-    "Access-Control-Allow-Origin": "*"}
-   }  )
-   const res =await fetchDeleteData.json()
-   if (res.success == false) {
-    toast({
-      variant: "default",
-      title: "Uh oh! Something went wrong.❌",
-      description: res?.message,
-    });
 
-   }
-   if (res.success == true) {
-    const newProducts = userContext?.users?.filter(
-      (item: AllusersResponse) => item._id !== id
-    );
-    console.log(newProducts);
-    if (newProducts) {
-      userContext?.setUsers(newProducts);
+
+
+  const deleteProduct = async (id: string) => {
+    const fetchDeleteData = await fetch(`/api/deleteUser/${id}`, {
+      method: "Delete",
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Methods": "*",
+        "Access-Control-Allow-Origin": "*"
+      }
+    })
+    const res = await fetchDeleteData.json()
+    if (res.success == false) {
       toast({
         variant: "default",
-        title: "Congratulations✅.",
+        title: "Uh oh! Something went wrong.❌",
         description: res?.message,
       });
 
     }
-  }
+    if (res.success == true) {
+      const newProducts = userContext?.users?.filter(
+        (item: AllusersResponse) => item._id !== id
+      );
+      console.log(newProducts);
+      if (newProducts) {
+        userContext?.setUsers(newProducts);
+        toast({
+          variant: "default",
+          title: "Congratulations✅.",
+          description: res?.message,
+        });
+
+      }
+    }
   }
   const rowsUser = userContext?.users?.map((user: AllusersResponse) => (
     <TableRow key={user._id} className="cursor-pointer ">
@@ -160,7 +150,7 @@ function TableUser() {
                 <DialogHeader>
                   <DialogTitle>Update Users</DialogTitle>
                 </DialogHeader>
-                <UpdateUser id={user._id}/>
+                <UpdateUser id={user._id} />
               </DialogContent>
             </Dialog>
 
@@ -183,9 +173,9 @@ function TableUser() {
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction>
-                     <Button onClick={() => deleteProduct(user._id)}>
-                              Continue
-                            </Button> 
+                    <Button onClick={() => deleteProduct(user._id)}>
+                      Continue
+                    </Button>
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -198,24 +188,37 @@ function TableUser() {
 
   return (
     <div className="container ">
-      <Table className="border  mb-5 shadow-lg bg-gradient ">
-        <TableHeader className="bg-foreground/5">
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead className="hidden md:table-cell">Company Name</TableHead>
-            <TableHead className="hidden md:table-cell">Phone Number</TableHead>
-            <TableHead className="hidden md:table-cell">Role</TableHead>
+      <Card x-chunk="dashboard-06-chunk-0" className="shadow-md py-4">
+        <CardHeader>
+          <CardTitle className={cn("font-bold text-[3rem]")}>
+            Users
+          </CardTitle>
+          <CardDescription className="text-[#444746] text-xl">
+            Manage your Users and view their sales performance.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table className="border  mb-5 shadow-lg bg-gradient ">
+            <TableHeader className="bg-foreground/5">
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead className="hidden md:table-cell">Company Name</TableHead>
+                <TableHead className="hidden md:table-cell">Phone Number</TableHead>
+                <TableHead className="hidden md:table-cell">Role</TableHead>
 
-            <TableHead>
-              <span className="sr-only">Action</span>
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>{rowsUser}</TableBody>
-      </Table>
-      <PaginationComponent pageNumber={1} />
-      <CounterUsers startNumberProductInThePage={startNumberProductInThePage} />
+                <TableHead>
+                  <span className="sr-only">Action</span>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>{rowsUser}</TableBody>
+          </Table>
+          {/* <PaginationComponent pageNumber={1} />
+      <CounterUsers startNumberProductInThePage={startNumberProductInThePage} /> */}
+
+        </CardContent>
+      </Card>
     </div>
   );
 }

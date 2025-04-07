@@ -37,7 +37,7 @@ const productSchema = new mongoose_1.Schema({
     SKU: { type: String },
     brandName: { type: String },
     productTag: { type: String },
-    price: { type: String },
+    price: { type: Number },
     Discount: { type: String },
     SupplierName: { type: String },
     salesCode: { type: String },
@@ -47,5 +47,9 @@ const productSchema = new mongoose_1.Schema({
     allowOutOfStock: { type: Boolean },
     Description: { type: String },
     stock: { type: String },
+    vat: { type: String },
+    subCategories: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: 'Category' }],
+    categories: { type: mongoose_1.default.Schema.Types.ObjectId, ref: 'Category' },
+    photos: [{ type: String }]
 });
 exports.ProductModel = (0, mongoose_1.model)('Products', productSchema);

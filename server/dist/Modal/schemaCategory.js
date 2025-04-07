@@ -19,5 +19,9 @@ const categorySchema = new mongoose_1.Schema({
             type: mongoose_1.Schema.Types.ObjectId,
             ref: 'Category',
         }],
+    mainCategory: {
+        type: Boolean,
+        required: true,
+    },
 });
 exports.Category = (0, mongoose_1.model)('Category', categorySchema);

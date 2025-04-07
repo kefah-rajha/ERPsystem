@@ -38,7 +38,7 @@ export function SalesOrderTable({ dateRange }: SalesOrderTableProps) {
   const [pageSize, setPageSize] = useState(10);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const {push} =useRouter()
+  const { push } = useRouter()
   const handleDelete = async (id: string) => {
     const fetchDeleteData = await fetch(`/api/deleteSalesOrder/${id}`, {
       method: "Delete",
@@ -63,7 +63,7 @@ export function SalesOrderTable({ dateRange }: SalesOrderTableProps) {
 
   };
 
-  const handleEdit = (id: string) => { 
+  const handleEdit = (id: string) => {
     push(`/dashboard/SalesOrder/UpdateSaleOrder/${id}`)
   };
 
@@ -182,13 +182,14 @@ export function SalesOrderTable({ dateRange }: SalesOrderTableProps) {
         </TableBody>
       </Table>
       <div className="border-t py-4">
-        <PaginationControls
-          totalItems={orders?.salesOrders?.length}
+        {/* <PaginationControls
+          totalItems={ordersDataResponse?.length}
+          countPages={countPages}
           pageSize={pageSize}
           currentPage={currentPage}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
-        />
+        /> */}
       </div>
     </div>
   );

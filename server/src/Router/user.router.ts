@@ -2,7 +2,7 @@ import express, { Express, Request, Response } from "express";
 
 const router =express.Router()
 import { user } from "../Controller/user";
-router.post("/getUsers/:pageNumber",user.getAllUsers)
+router.post("/getUsers/:pageNumber/:pageSize",user.getAllUsers)
 router.post("/profile/UpdateprofileInfo/:id",user.updateUser);
 router.get("/profile/getProfileInfo/:id",user.getProfileInfoUser);
 router.post("/profile/contactInfo/:id",user.updateContactInfoUser);
@@ -14,7 +14,7 @@ router.get("/profile/contactInfo/:id",user.getContactInfoUser);
  router.post("/createUser",user.createUsers)
  router.delete("/deleteUser/:id",user.deleteUser);
  router.get("/userFilter/",user.userFilter);
-
+router.get("/users/getNumberUsers",user.getNumberUsers)
 
 
 

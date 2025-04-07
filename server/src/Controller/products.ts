@@ -1,14 +1,16 @@
 import { Types } from 'mongoose';
 import { ProductModel } from "../Modal/schemaProducts"
+import { Request, Response } from 'express';
+
 export const products = {
-  getProduct: async (req: any, res: any) => {
+  getProduct: async (req: Request, res: Response) => {
     try {
 
-      const { id } =  req.params;
-      console.log(id,"test")
+      const { id } = req.params;
+      console.log(id, "test")
 
-      const resPost = await ProductModel.findById( id )
-     
+      const resPost = await ProductModel.findById(id)
+
       res.status(200).json({
         posts: resPost,
         success: true,
@@ -22,19 +24,133 @@ export const products = {
     }
 
   },
-  getAllProducts: async (req: any, res: any) => {
+  getAllProducts: async (req: Request, res: Response) => {
     console.log("test")
 
     try {
-      const { pageNumber } = req.params;
-      const resallPost = await ProductModel.find().sort({
-        createdAt: -1
-      })
-      console.log(resallPost)
 
+      const pageNumber = parseInt(req.params.pageNumber as string) || 1;
+      const pageSize = parseInt(req.params.pageSize as string) || 10;
+      const skipItems = (pageNumber - 1) * pageSize;
+      const {
+        fieldSort,
+        sort,
+        fields,
+        fieldSearch,
+        searchInput,
+        selectedBrands,
+        selectedCategory,
+        supplierName,
+        inStock,
+        priceRange,
+        dateRange
+      } = req.body;
+
+      // Build filter query
+      const query: any = {};
+      if (searchInput) {
+        if (fieldSearch) {
+          // If specific field is provided, search only in that field
+          query[fieldSearch as string] = { $regex: searchInput, $options: 'i' };
+        } else {
+          // If no field is specified, default to searching by name only
+          query.name = { $regex: searchInput, $options: 'i' };
+        }
+      }
+      console.log(inStock == false,"inStock")
+
+      if (inStock == "true") {
+        // Get products with stock greater than 0
+        console.log(true,"inStock")
+
+        query.stock = { $gt: 0 };
+      } 
+       if(inStock == "false") {
+        // Get products with stock equal to 0
+        console.log(false,"inStock")
+
+        query.stock = 0;
+      }
+
+
+
+      if (selectedBrands !== "All") {
+        // Get products with stock greater than 0
+        query.brandName = selectedBrands;
+      } 
+      if (selectedCategory !== null) {
+        query.$or = [
+          { categories: selectedCategory },
+          { subCategories: selectedCategory }
+        ];
+      } 
+       
+
+      // Price range filter
+     
+      if (priceRange.min || priceRange.max) {
+        query.price = {};
+        if (priceRange.min) query.price.$gte = parseFloat(priceRange.min as string);
+        if (priceRange.max) query.price.$lte = parseFloat(priceRange.max as string);
+      }
+
+      // Creation date filter
+      if (dateRange.startDate || dateRange.endDate) {
+        query.createdAt = {};
+        if (dateRange.startDate) {
+          query.createdAt.$gte = new Date(dateRange.startDate as string);
+        }
+        if (dateRange.endDate) {
+          query.createdAt.$lte = new Date(dateRange.endDate as string);
+        }
+      }
+
+
+      // Apply sorting
+      const sortOptions: any = {};
+      sortOptions[fieldSort as string] = sort === 'asc' ? 1 : -1;
+      console.log(query)
+      // Get products
+      const products = await ProductModel
+        .find(query)
+        .sort(sortOptions)
+        .skip(skipItems)
+        .limit(pageSize)
+      console.log(query)
+      const priceStats = await ProductModel.aggregate([
+        {
+          $group: {
+            _id: null,
+            minPrice: { $min: { $toDouble: "$price" } },
+            maxPrice: { $max: { $toDouble: "$price" } }
+          }
+        }
+      ]);
+      const suppliers = await ProductModel.distinct('SupplierName');
+      const brand = await ProductModel.distinct('brandName');
+
+
+
+      console.log(suppliers)
+
+      // Send response
       res.status(200).json({
-        allposts: resallPost
-      })
+        success: true,
+        data: {
+          products,
+
+          appliedFilters: {
+            priceStats,
+            suppliers,
+             brand,
+            
+            // maxPrice,
+            // searchTerm
+          }
+        }
+      });
+
+
 
     } catch (error) {
       return res.status(400).json({
@@ -46,11 +162,14 @@ export const products = {
   createProduct: async (req: any, res: any) => {
     try {
       const data = req.body
-      console.log(data)
-
+      console.log(data, "data")
+      if (data.price) {
+        data.price = parseFloat(data.price);
+      }
       const newProduct = new ProductModel(
         data
       )
+
 
       await newProduct.save();
       return res.status(200).json({
@@ -83,11 +202,11 @@ export const products = {
 
 
   },
-  updateProduct :async (req: any, res: any) => {
+  updateProduct: async (req: any, res: any) => {
     try {
-console.log("update")
+      console.log("update")
       const data = req.body
-      const UpdateData= await  ProductModel.findByIdAndUpdate(data.id ,data,{new:true})
+      const UpdateData = await ProductModel.findByIdAndUpdate(data.id, data, { new: true })
       return res.status(200).json({
         data: UpdateData,
         success: true,
@@ -100,4 +219,19 @@ console.log("update")
     }
 
   },
+  getNumberProducts: async (req: any, res: any) => {
+    try {
+
+      const totalCount = await ProductModel.countDocuments();
+      return res.status(200).json({
+        data: totalCount,
+        success: true,
+      });
+    } catch (error: unknown) {
+      return res.status(400).json({
+        message: error,
+        success: false,
+      });
+    }
+  }
 }

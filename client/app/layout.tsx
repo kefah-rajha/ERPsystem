@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
+import { AuthProvider } from '@/context/AuthContext'; 
 
 import { headers } from "next/headers";
 
@@ -33,7 +34,10 @@ export default function RootLayout({
           defaultTheme="dark"
           disableTransitionOnChange
         >
+                  <AuthProvider>
+
           <>{children}</>
+          </AuthProvider>
 
           <Toaster />
         </ThemeProvider>

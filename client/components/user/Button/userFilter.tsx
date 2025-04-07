@@ -23,8 +23,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-function UserFilter() {
+type userFilterDataType ={
+  pageNumber:number;
+pageSize:number;
+}
+function UserFilter({pageNumber,pageSize}:userFilterDataType) {
   const [filter, setFilter] = useState();
   const [fieldSort, setFieldSort] = useState<string>("name");
   const [sort, setSort] = useState<string>("1");
@@ -36,31 +39,31 @@ function UserFilter() {
 
 
   searchInput;
-  useEffect(() => {
-    let ignore = false;
-    fetch(`/api/userFilter`)
-      .then((res) => {
-        return res.json();
-      })
-      .then((jsonData) => {
-        if (!ignore) {
-          console.log(jsonData, "filter");
+  // useEffect(() => {
+  //   let ignore = false;
+  //   fetch(`/api/userFilter`)
+  //     .then((res) => {
+  //       return res.json();
+  //     })
+  //     .then((jsonData) => {
+  //       if (!ignore) {
+  //         console.log(jsonData, "filter");
 
-          setFilter(jsonData.data);
-        }
-      })
-      .catch((err: unknown) => {
-        console.log(err);
-      })
-      .finally(() => {
-        if (!ignore) {
-          console.log("noLoding");
-        }
-      });
-    return () => {
-      ignore = true;
-    };
-  }, []);
+  //         setFilter(jsonData.data);
+  //       }
+  //     })
+  //     .catch((err: unknown) => {
+  //       console.log(err);
+  //     })
+  //     .finally(() => {
+  //       if (!ignore) {
+  //         console.log("noLoding");
+  //       }
+  //     });
+  //   return () => {
+  //     ignore = true;
+  //   };
+  // }, []);
   const filterAndSearchHandler = async () => {
     console.log(searchInput)
     const data = {
@@ -73,7 +76,7 @@ function UserFilter() {
     };
     console.log(data,"users")
 
-    const fetchData= await fetch("/api/getUsers/10",{
+    const fetchData= await fetch(`/api/getUsers/${pageNumber}/${pageSize}`,{
       method:"POST",
       headers: {    "Content-Type": "application/json",
       "Access-Control-Allow-Headers": "Content-Type",
@@ -95,7 +98,7 @@ function UserFilter() {
     }, 2000)
     return () => clearTimeout(getData)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[searchInput])
+  },[searchInput , pageSize,pageNumber])
 
 
   return (

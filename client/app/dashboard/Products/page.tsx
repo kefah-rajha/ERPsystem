@@ -1,6 +1,9 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import { PaginationControls } from "@/components/SalesOrder/showAllSalesOrder/pagination-controls";
+import CategoryList from '@/components/POSerp/CategoryList';
+
 import {
   File,
   Home,
@@ -18,12 +21,13 @@ import {
   AlignRight,
   Users2,
 } from "lucide-react";
-
+import ProductFilter from "@/components/product/productFilter"
 import { Badge } from "@/components/ui/badge";
-import getAllProduct from "@/lib/ProductFetch/getAllProduct";
+import { categoriesResopnseData } from "@/dataType/dataTypeCategory/dataTypeCategory";
 
 import { Button } from "@/components/ui/button";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import { Boxes } from 'lucide-react';
 
 import {
   Card,
@@ -45,6 +49,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+
 import {
   Table,
   TableBody,
@@ -66,7 +71,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { deleteProductServer } from "@/lib/ProductFetch/deleteProduct";
 import PaginationComponent from "@/components/product/Pagination";
@@ -81,65 +86,106 @@ export default function Products() {
   const { replace, push } = useRouter();
   params.set("page", numberPageParam.toString());
   replace(`${pathname}?${params.toString()}`);
-  interface ProductAttrubite {
+  interface ProductAttribute {
     _id: any;
     name: string;
     SKU: string;
     brandName: string;
+    stock: string;
     productTag: string;
-    price: string;
+    price: number;
     Discount: string;
-    SupplierName:string;
+    SupplierName: string;
     salesCode: string;
     purchaseCode: string;
     supplierCode: string;
     trackInventory: boolean;
     allowOutOfStock: boolean;
-    Description:string;
+    Description: string;
   }
   const [products, setProducts] = useState<
-    [ProductAttrubite] | undefined | ProductAttrubite[]
+    [ProductAttribute] | undefined | ProductAttribute[]
   >([]);
+  const handleSetProducts = useCallback((newProducts: ProductAttribute[]) => {
+    setProducts(newProducts);
+  }, [setProducts]);
+
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [numberProducts, setNumberProducts] = useState<number>(0);
   const [countPages, setCountPages] = useState<number>(1);
-  // const [countItems,setCountItems]=useState<number>()
-  let startNumberProductInThePage = (numberPageParam - 1) * 10 + 1;
-  let endNumberProductInThePage = Math.min(
-    startNumberProductInThePage + 9,
-    numberProducts
-  );
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [categories, setCategories] = useState<categoriesResopnseData[]>([]);
+  console.log(selectedCategory,"selectedCategory")
+  const router=useRouter()
 
+  // const [countItems,setCountItems]=useState<number>()
   useEffect(() => {
-    const getData = async (numberPageParam: number) => {
-      console.log(numberPageParam)
-      const resProducts = await getAllProduct(numberPageParam);
-      console.log(resProducts);
-      if (resProducts) {
-        setProducts(resProducts);
-      }
+    let ignore = false;
+    fetch("/api/category/getAllCategories")
+      .then((res) => {
+        return res.json();
+      })
+      .then((jsonData) => {
+        if (!ignore) {
+          console.log(jsonData, "getCategories");
+
+          setCategories(jsonData.data);
+        }
+      })
+      .catch((err: unknown) => {
+        console.log(err);
+      })
+      .finally(() => {
+        if (!ignore) {
+          console.log("noLoding");
+        }
+      });
+    return () => {
+      ignore = true;
     };
-    getData(numberPageParam);
-  }, [numberPageParam]);
+  }, []);
+
+
+
+
+
+
+
+
+
   useEffect(() => {
     const getNumberProducts = async () => {
       const resNumberProduct = await getNumberProductsServer();
       console.log(resNumberProduct, "resproduct");
-      if (resNumberProduct?.count) {
-        setNumberProducts(resNumberProduct.count);
-        const totalPages = Math.ceil(resNumberProduct.count / 10);
+      if (resNumberProduct?.data) {
+        setNumberProducts(resNumberProduct.data);
+        console.log(resNumberProduct, "resNumberProduct.count")
+        const totalPages = Math.ceil(resNumberProduct.data / pageSize);
+        console.log(totalPages, pageSize, "totalPages1111");
         setCountPages(totalPages);
-        console.log(totalPages);
+
       }
     };
     getNumberProducts();
-  }, []);
+  }, [pageSize]);
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size);
+    setCurrentPage(1); // Reset to first page when changing page size
+  };
 
   const deleteProduct = async (id: any) => {
     const res = await deleteProductServer(id);
     console.log(res.ID);
     if (res.ID) {
       const newProducts = products?.filter(
-        (item: ProductAttrubite) => item._id !== res?.ID
+        (item: ProductAttribute) => item._id !== res?.ID
       );
       console.log(newProducts);
       if (newProducts) {
@@ -147,30 +193,39 @@ export default function Products() {
       }
     }
   };
-  const rowsProducts = products?.map((product: ProductAttrubite) => (
+
+
+  const rowsProducts = products?.map((product: ProductAttribute) => (
     <TableRow key={product._id} className="cursor-pointer">
       <TableCell className="hidden sm:table-cell">
-        <div className="h-[56px] w-[56px]  relative flex items-start justify-center">
-          <div className="bg-transparent absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[54px] h-[54px]  rounded-full border-2 border-background"></div>
-          {/* <Image
-            alt="Product image"
-            className="aspect-square rounded-full object-cover border border-foreground  "
-            height="56"
-            src={product.photos[0]}
-            width="56"
-          /> */}
+        <div className="h-[56px] w-[56px] relative flex items-start justify-center">
+          <div className="bg-transparent absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[54px] h-[54px] rounded-full border-2 border-background"></div>
+          {/* Image placeholder maintained from original */}
         </div>
       </TableCell>
       <TableCell className="font-medium">
         <strong>{product.name.toUpperCase()}</strong>
+        <div className="text-xs text-muted-foreground">SKU: {product.SKU}</div>
       </TableCell>
       <TableCell>
-        <Badge variant="outline">{product.price}</Badge>
+        <Badge variant="outline">${product.price}</Badge>
+        {product.Discount && (
+          <div className="text-xs text-muted-foreground mt-1">Discount: {product.Discount}%</div>
+        )}
       </TableCell>
-      <TableCell className="hidden md:table-cell">{product.price}</TableCell>
-      <TableCell className="hidden md:table-cell">25</TableCell>
       <TableCell className="hidden md:table-cell">
-        2023-07-12 10:42 AM
+        <div className="flex flex-col">
+          <span className="font-bold">{product.stock}</span>
+          {product.trackInventory && <Badge variant="secondary" className="mt-1 text-xs">Tracked</Badge>}
+        </div>
+      </TableCell>
+      <TableCell className="hidden md:table-cell">
+        <div className="text-sm">
+          {product.brandName}
+          {product.SupplierName && (
+            <div className="text-xs text-muted-foreground">Supplier: {product.SupplierName}</div>
+          )}
+        </div>
       </TableCell>
       <TableCell>
         <DropdownMenu>
@@ -183,7 +238,7 @@ export default function Products() {
           <button
             className="ml-2 hover:text-foreground hover:bg-foreground/10 p-2 rounded-sm text-orange-300"
             onClick={() => {
-              console.log("i am clicking")
+              console.log("i am clicking");
               push(`/dashboard/Products/showProduct/${product._id}`);
             }}
           >
@@ -191,12 +246,10 @@ export default function Products() {
           </button>
           <DropdownMenuContent align="end">
             <Link href={`/dashboard/Products/${product._id}`}>
-              {" "}
               <Button className="m-0 p-0 outline-0 w-full bg-transparent text-foreground hover:bg-foreground/20">
                 Edit
               </Button>
             </Link>
-
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button className="m-0 p-0 outline-0 w-full bg-transparent text-foreground hover:bg-foreground/20">
@@ -206,7 +259,7 @@ export default function Products() {
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>
-                    Are you absolutely sure ,Delete {product.name}?
+                    Are you absolutely sure, Delete {product.name}?
                   </AlertDialogTitle>
                   <AlertDialogDescription>
                     This action cannot be undone. This will permanently delete
@@ -216,7 +269,6 @@ export default function Products() {
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction>
-                    {" "}
                     <Button onClick={() => deleteProduct(product._id)}>
                       Continue
                     </Button>
@@ -230,61 +282,42 @@ export default function Products() {
     </TableRow>
   ));
 
-  return (
-    <div className="flex min-h-screen w-full flex-col bg-background relative">
 
-      <div >
-        
+  return (
+    <div className="flex  w-full flex-col container heighWithOutBar overflow-auto relative">
+
+      <div>
       </div>
       <div className="flex flex-col sm:gap-4 sm:py-4 container ">
         <main className="grid flex-1 items-start gap-4    sm:py-0 md:gap-8">
           <Tabs defaultValue="all">
             <div className="flex items-center  pt-4">
               <div className="ml-auto flex items-center gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 gap-1">
-                      <ListFilter className="h-3.5 w-3.5" />
-                      <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                        Filter
-                      </span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuCheckboxItem checked>
-                      Active
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem>Draft</DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem>
-                      Archived
-                    </DropdownMenuCheckboxItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <Button size="sm" variant="outline" className="h-8 gap-1">
-                  <File className="h-3.5 w-3.5" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Export
-                  </span>
-                </Button>
-                <Button
-                  size="default"
-                  className="h-8 gap-1  bg-background border border-background hover:border-white  transition-colors  cursor-pointer"
-                >
-                  <PlusCircle className="h-5 w-3.5 text-white" />
-                  <span
-                    className={cn(
-                      "sr-only sm:not-sr-only sm:whitespace-nowrap  Justglow text-foreground"
-                    )}
-                  >
-                    Add Product
-                  </span>
-                </Button>
+
+
+
+                <ProductFilter pageNumber={currentPage} pageSize={pageSize} setProducts={handleSetProducts} selectedCategory={selectedCategory}
+                />
+
+
+                <Button className='h-10 rounded-sm   text-foreground card-gradient  hover:text-gray-400 '
+                onClick={() => router.push('/dashboard/Products/createProduct')}>
+                  <Boxes className='h-4 w-4 mr-2 text-green-300 ' />
+                  Create Product</Button>
               </div>
             </div>
+            <Card className="mt-2 pt-4">
+              <CardContent>
+                <CategoryList
+                  categories={categories}
+                  selectedCategory={selectedCategory}
+                  onSelectCategory={setSelectedCategory}
+                />
+              </CardContent>
+
+            </Card>
             <TabsContent value="all">
-              <Card x-chunk="dashboard-06-chunk-0" className="shadow-md">
+              <Card x-chunk="dashboard-06-chunk-0" className="shadow-md py-4">
                 <CardHeader>
                   <CardTitle className={cn("font-bold text-[3rem]")}>
                     Products
@@ -301,15 +334,15 @@ export default function Products() {
                           <span className="sr-only">Image</span>
                         </TableHead>
                         <TableHead>Name</TableHead>
-                        <TableHead>Status</TableHead>
+                        <TableHead>Price</TableHead>
                         <TableHead className="hidden md:table-cell">
-                          Price
+                          Stock
                         </TableHead>
                         <TableHead className="hidden md:table-cell">
-                          Total Sales
+                          Brand
                         </TableHead>
                         <TableHead className="hidden md:table-cell">
-                          Created at
+                          Action
                         </TableHead>
                         <TableHead>
                           <span className="sr-only">Actions</span>
@@ -319,20 +352,27 @@ export default function Products() {
                     <TableBody>{rowsProducts}</TableBody>
                   </Table>
                 </CardContent>
-                <PaginationComponent pageNumber={countPages} />
 
-                <CardFooter>
-                  <div className="text-xs text-muted-foreground">
-                    Showing <strong>{startNumberProductInThePage}</strong>-
-                    <strong>{endNumberProductInThePage}</strong> of{" "}
-                    <strong>{numberProducts}</strong> products
-                  </div>
-                </CardFooter>
+
               </Card>
             </TabsContent>
           </Tabs>
         </main>
       </div>
+      <Card className="sticky bottom-0  ">
+        <CardContent className="pt-6 pb-6 px-6">
+
+          <PaginationControls
+            numberProducts={numberProducts}
+            countPages={countPages}
+            pageSize={pageSize}
+            currentPage={currentPage}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+          />
+
+        </CardContent>
+      </Card>
     </div>
   );
 }

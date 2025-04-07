@@ -14,9 +14,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.auth = void 0;
 const schemaUser_1 = require("../Modal/schemaUser");
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const dotenv_1 = __importDefault(require("dotenv"));
+const jwt_1 = require("../utils/jwt");
 dotenv_1.default.config();
+const sendRefreshTokenCookie = (res, refreshToken) => {
+    const maxAge = 7 * 24 * 60 * 60 * 1000;
+    res.cookie('jid', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: maxAge
+    });
+};
 exports.auth = {
     SignUpFun: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
@@ -31,31 +40,31 @@ exports.auth = {
                 });
             }
             else {
-                const finaluser = new schemaUser_1.UserModel({
+                const finalUser = new schemaUser_1.UserModel({
                     userName: newusername,
                     password,
                     name: "",
                     Brithday: ""
                 });
-                console.log(finaluser, "finaluser");
-                const userInfo = yield finaluser.save();
+                console.log(finalUser, "finalUser");
+                const userInfo = yield finalUser.save();
                 if (!userInfo) {
                     return res.status(400).json({
                         success: false,
                         message: "uh, there is thing, try later",
                     });
                 }
-                const create_token = createAccessToken({ id: finaluser._id });
-                const refreash_token = createRefreashToken({ id: finaluser._id });
-                res.cookie("refreash_token", refreash_token, {
-                    httpOnly: true,
-                    secure: true,
-                    SameSite: "none",
-                    path: "api/authorization",
-                    maxAge: 30 * 7 * 24 * 60 * 60 * 1000,
-                });
+                const userJWT = {
+                    _id: userInfo._id.toString(),
+                    userName: userInfo.userName,
+                    role: userInfo.role
+                };
+                const accessToken = (0, jwt_1.generateAccessToken)(userJWT);
+                const refreshToken = (0, jwt_1.generateRefreshToken)(userJWT);
+                yield schemaUser_1.UserModel.updateOne({ _id: userInfo._id }, { $set: { refreshToken: refreshToken } });
+                sendRefreshTokenCookie(res, refreshToken);
                 return res.status(200).json({
-                    refreash_token,
+                    refreshToken,
                     success: true,
                 });
             }
@@ -87,17 +96,18 @@ exports.auth = {
                         message: "the password isnt True"
                     });
                 }
-                const create_token = createAccessToken({ id: user_name === null || user_name === void 0 ? void 0 : user_name._id });
-                const refreash_token = createRefreashToken({ id: user_name === null || user_name === void 0 ? void 0 : user_name._id });
-                res.cookie("refreash_token", refreash_token, {
-                    httpOnly: true,
-                    secure: true,
-                    path: "api/authorization",
-                    maxAge: 30 * 24 * 60 * 60 * 1000, // 30days
-                });
+                const userJWT = {
+                    _id: user_name._id.toString(),
+                    userName: user_name.userName,
+                    role: user_name.role
+                };
+                const accessToken = (0, jwt_1.generateAccessToken)(userJWT);
+                const refreshToken = (0, jwt_1.generateRefreshToken)(userJWT);
+                yield schemaUser_1.UserModel.updateOne({ _id: user_name._id }, { $set: { refreshToken: refreshToken } });
+                sendRefreshTokenCookie(res, refreshToken);
                 return res
                     .status(200)
-                    .json({ success: true, user: user_name, refreash_token });
+                    .json({ success: true, user: user_name, refreshToken });
             }
         }
         catch (error) {
@@ -109,41 +119,55 @@ exports.auth = {
     }),
     // i am working on this
     getauth: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        const token = req.cookies.refreash_token;
-        const userIdByToken = jsonwebtoken_1.default.verify(token, process.env.REFRESH_TOKEN_SECRET);
-        const userID = userIdByToken.id;
-        const userToken = yield schemaUser_1.UserModel.findById(userID);
-        console.log(userToken);
-        // const newAccessToken = createAccessToken({ id: userID});
-        //   await res.cookie("refreash_token", newAccessToken, {
-        //     httpOnly: true,
-        //     secure: true,
-        //     path: "api/authorization",
-        //     maxAge: 30 * 24 * 60 * 60 * 1000, // 30days
-        //   });
-        return res.status(402).json({
-            data: userToken,
-            success: true,
-        });
+        const token = req.cookies.jid;
+        if (!token) {
+            return res.status(401).json({ accessToken: '', message: 'No refresh token cookie' });
+        }
+        let payload = null;
+        try {
+            payload = (0, jwt_1.verifyRefreshToken)(token);
+        }
+        catch (err) {
+            console.error("Refresh Token Verification Error:", err);
+            return res.status(401).json({ accessToken: '', message: 'Invalid refresh token' });
+        }
+        if (!payload || !payload.userId) {
+            return res.status(401).json({ accessToken: '', message: 'Invalid refresh token payload' });
+        }
+        const user = yield schemaUser_1.UserModel.findById(payload.userId).select('+refreshToken');
+        if (!user || user.refreshToken !== token) {
+            res.clearCookie('jid', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict' });
+            return res.status(401).json({ accessToken: '', message: 'Refresh token mismatch or user not found' });
+        }
+        const userJWT = {
+            _id: user._id.toString(),
+            userName: user.userName,
+            role: user.role
+        };
+        const newAccessToken = (0, jwt_1.generateAccessToken)(userJWT);
+        const newRefreshToken = (0, jwt_1.generateRefreshToken)(userJWT);
+        user.refreshToken = newRefreshToken;
+        yield user.save();
+        sendRefreshTokenCookie(res, newRefreshToken);
+        return res.json({ accessToken: newAccessToken });
     }),
     logout: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.userId;
+        if (!userId) {
+            return res.status(400).json({ message: "User ID not found in token" });
+        }
         try {
-            res.clearCookie("refreshtoken", { path: "api/authorization" });
-            return res.json({ msg: "Logged out!" });
+            yield schemaUser_1.UserModel.updateOne({ _id: userId }, { $unset: { refreshToken: "" } });
+            res.clearCookie('jid', {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict'
+            });
+            return res.status(200).json({ message: 'Logout successful' });
         }
         catch (err) {
             return res.status(500).json({ msg: err.message });
         }
     }),
-};
-const createAccessToken = (paylod) => {
-    return jsonwebtoken_1.default.sign(paylod, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "10d",
-    });
-};
-const createRefreashToken = (paylod) => {
-    console.log(process.env.REFRES_TOKEN_SECRET, process.env.ACCESS_TOKEN_SECRET);
-    return jsonwebtoken_1.default.sign(paylod, process.env.REFRESH_TOKEN_SECRET, {
-        expiresIn: "30d",
-    });
 };

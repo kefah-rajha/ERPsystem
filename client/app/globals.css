@@ -29,6 +29,14 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
@@ -56,6 +64,14 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
@@ -66,8 +82,8 @@
   }
 
   .text-input {
-    @apply autofill-text; /* set text colour (white) */
-    @apply autofill:shadow-[inset_0_0_0px_1000px_#000]; /* set 'background' colour (black)*/
+    @apply autofill-text;
+    @apply autofill:shadow-[inset_0_0_0px_1000px_#000]; 
     @apply autofill:text-2xl; /* set font size */
   }
 }
@@ -102,19 +118,28 @@
   }
   .inputCustom:-internal-autofill-selected {
     background-color: transparent !important;
-    -webkit-text-fill-color: currentColor !important; /* لإصلاح مشكلة النص في بعض المتصفحات */
+    -webkit-text-fill-color: currentColor !important;
   }
   .buttom-gradient{
     background: linear-gradient(106deg, rgba(189,155,118,1) 36%, rgba(87,71,54,1) 100%);
 
   }
   .heighWithOutBar{
+    
     height: calc(100vh - 56px);
   }
   .barShadow{
     box-shadow:  0px 5px 20px rgba(0,0,0,.25);
 
   }
+  .custom-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* IE and Edge */
+.custom-scrollbar {
+    -ms-overflow-style: none;
+}
   .Justglow{
     color: #ffffff;
     text-shadow: 0 0 5px #ffffff,
@@ -123,8 +148,8 @@
                 0 0 200px #f9f9f9;
 }
 input:not(:empty) {
-  outline: none; /* لإزالة حدود التركيز */
-  background-color: transparent; /* لإلغاء لون الخلفية */
+  outline: none; 
+  background-color: transparent;
 }
 
 }

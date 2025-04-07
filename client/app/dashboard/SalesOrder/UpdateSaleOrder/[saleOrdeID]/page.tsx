@@ -26,6 +26,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
+import {SalesOrderType} from "@/dataType/dataTypeSalesOrder/dataTypeSalesOrder"
 import {
     Popover,
     PopoverContent,
@@ -58,7 +59,7 @@ import {
 import ProductSelected from "@/components/SalesOrder/ProductSelected";
 import CurrencyAndVatAndAmount from "@/components/SalesOrder/CurrencyAndVatAndAmount";
 import { toast } from "@/components/ui/use-toast";
-import {SalesOrderProductsSelectedContext} from "@/context/saleOrderSelectedProducts"
+import { SalesOrderProductsSelectedContext } from "@/context/saleOrderSelectedProducts"
 
 interface ContactInfoCustomerSearchResultsDataType {
     _id: string;
@@ -146,7 +147,10 @@ export default function SalesOrderManagement() {
         setConfirmSelectedProduct(productSelected);
     };
     const [totalAmount, setTotalAmount] = useState<number>(0)
-    const [itemsProduct,setItemsProduct]=useState<itemsOrder[]>([])
+    const [itemsProduct, setItemsProduct] = useState<itemsOrder[]>([])
+    const [saleOrderFetch, setSaleOrderFetch] = useState<SalesOrderType  >({} as SalesOrderType)
+    console.log(saleOrderFetch?.orderDate,"saleOrderFetch")
+
     const getTotalAmount = (amount: number) => {
         setTotalAmount(amount)
     }
@@ -156,6 +160,20 @@ export default function SalesOrderManagement() {
     // let shipmentAddressValue =customer
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
+        values: {
+            customer: saleOrderFetch?.customer?.userName ,
+            shipmentAddress: saleOrderFetch?.customer?.shipmentAddress ,
+            supplier: saleOrderFetch?.supplier?.name ,
+            salesManager: saleOrderFetch?.salesManager ,
+            customerEmail: saleOrderFetch?.customer?.customerEmail ,
+            phone: saleOrderFetch?.customer?.phone,
+            paymentTerm: saleOrderFetch?.paymentTerm ,
+            shipmentDate: saleOrderFetch?.shipmentDate && new Date(saleOrderFetch?.shipmentDate) ,
+            orderDate:  saleOrderFetch?.orderDate && new Date(saleOrderFetch?.orderDate) ,
+            currency: saleOrderFetch?.currency ,
+            vatRate: saleOrderFetch?.vatRate?.toString() ,
+            includeVat: saleOrderFetch?.includeVat 
+          }
     });
     useEffect(() => {
         let ignore = false;
@@ -167,21 +185,8 @@ export default function SalesOrderManagement() {
             .then((jsonData) => {
                 if (!ignore) {
                     console.log(jsonData.posts, "sale order in SHowing");
-                  
-                    form.setValue("customer", jsonData.posts.customer.userName);
-                    form.setValue("shipmentAddress", jsonData.posts.customer.shipmentAddress);
-                    form.setValue("supplier", jsonData.posts.supplier.name);
-                    form.setValue("salesManager", jsonData.posts.salesManager);
-                    form.setValue("customerEmail", jsonData.posts.customer.customerEmail);
-                    form.setValue("phone", jsonData.posts.customer.phone);
-                    form.setValue("paymentTerm", jsonData.posts.paymentTerm);
-                  
-                    form.setValue("shipmentDate", jsonData.posts.shipmentDate);
-                    form.setValue("orderDate", new Date(jsonData.posts.orderDate));
-                    form.setValue("currency", jsonData.posts.currency);
-                    form.setValue("vatRate", jsonData.posts.vatRate);
-                    form.setValue("includeVat", jsonData.posts.includeVat);
-                    setItemsProduct(jsonData.posts.items.map((item :any)=> ({
+                    setSaleOrderFetch(jsonData.posts)
+                    setItemsProduct(jsonData.posts.items.map((item: any) => ({
                         Description: item.product.Description,
                         Discount: item.product.Discount,
                         SKU: item.product.SKU,
@@ -202,8 +207,8 @@ export default function SalesOrderManagement() {
                         totalAmount: item.totalAmount,
                         vat: item.vat,
                         vatAmount: item.vatAmount
-                      })) )
-                
+                    })))
+
                     //   setProduct(jsonData.posts);
                 }
             })
@@ -382,6 +387,7 @@ export default function SalesOrderManagement() {
             values: values,
             items: OrderProductsSelectToSendApi
         }
+        console.log(data)
 
         const FetchData = await fetch(`/api/updateSaleOrder/${id}`, {
             method: "POST",
@@ -462,14 +468,14 @@ export default function SalesOrderManagement() {
                                                                                     "text-muted-foreground"
                                                                                 )}
                                                                             >
-                                                                                {field.value 
-                                                                                    ? field.value :customerSearchResults.length >0 ?
-                                                                                     customerSearchResults.find(
-                                                                                        (customer) =>
-                                                                                            customer.userName ===
-                                                                                            field.value
-                                                                                    )?.userName
-                                                                                    : "Select customer"}
+                                                                                {field.value
+                                                                                    ? field.value : customerSearchResults.length > 0 ?
+                                                                                        customerSearchResults.find(
+                                                                                            (customer) =>
+                                                                                                customer.userName ===
+                                                                                                field.value
+                                                                                        )?.userName
+                                                                                        : "Select customer"}
                                                                                 <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                                                             </Button>
                                                                         </FormControl>
@@ -570,14 +576,14 @@ export default function SalesOrderManagement() {
                                                                                     "text-muted-foreground"
                                                                                 )}
                                                                             >
-                                                                                {field.value 
-                                                                                    ? field.value  :supplierSearchResults.length >0 ?
-                                                                                    supplierSearchResults.find(
-                                                                                        (supplier) =>
-                                                                                            supplier.firstName ===
-                                                                                            field.value
-                                                                                    )?.firstName
-                                                                                    : "Select customer"}
+                                                                                {field.value
+                                                                                    ? field.value : supplierSearchResults.length > 0 ?
+                                                                                        supplierSearchResults.find(
+                                                                                            (supplier) =>
+                                                                                                supplier.firstName ===
+                                                                                                field.value
+                                                                                        )?.firstName
+                                                                                        : "Select customer"}
                                                                                 <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                                                             </Button>
                                                                         </FormControl>
@@ -702,7 +708,7 @@ export default function SalesOrderManagement() {
                                                                 <FormLabel>Payment Term</FormLabel>
                                                                 <Select
                                                                     onValueChange={field.onChange}
-                                                                   value={field.value}
+                                                                    value={field.value}
 
 
                                                                 >
@@ -712,7 +718,7 @@ export default function SalesOrderManagement() {
                                                                         </SelectTrigger>
                                                                     </FormControl>
                                                                     <SelectContent>
-                                                                    
+
                                                                         {paymentTermOptions.map((option) => (
                                                                             <SelectItem key={option} value={option}>
                                                                                 {option}

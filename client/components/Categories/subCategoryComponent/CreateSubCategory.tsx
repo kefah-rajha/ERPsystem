@@ -18,12 +18,12 @@ import { useParams } from 'next/navigation'
 
 
 interface CreateSubCategory {
-    handleAddSubCategory: (newCategory: any) => void;
-    CategoryID:string
+  handleAddSubCategory: (newCategory: any) => void;
+  CategoryID: string
 }
-function CreateSubCategory({ handleAddSubCategory ,CategoryID }: CreateSubCategory) {
+function CreateSubCategory({ handleAddSubCategory, CategoryID }: CreateSubCategory) {
   const [open, setOpen] = React.useState(false);
-  const path =useParams()
+  const path = useParams()
 
 
   const [{ subcategory, slug }, setFormState] = useState({
@@ -31,44 +31,46 @@ function CreateSubCategory({ handleAddSubCategory ,CategoryID }: CreateSubCatego
     slug: "",
   });
   console.log(subcategory, slug)
-  const createFormValueChangeHandler = (field:string) => {
-    return (event:any) => {
+  const createFormValueChangeHandler = (field: string) => {
+    return (event: any) => {
       setFormState((formState) => ({
         ...formState,
         [field]: event.target.value,
       }));
     };
   };
-  const sendDataToServer=async()=>{
-    console.log(CategoryID,"CategoryID")
-    const data={
-        subcategory,
-      slug
+  const sendDataToServer = async () => {
+    console.log(CategoryID, "CategoryID")
+    const data = {
+      subcategory,
+      slug,
+      mainCategory: false,
     }
-    const fetchData= await fetch(`/api/Subcategory/createSubCategory/${CategoryID}`,{
-      method:"POST",
-      headers: {    "Content-Type": "application/json",
-      "Access-Control-Allow-Headers": "Content-Type",
-      "Access-Control-Allow-Methods": "*",
-      "Access-Control-Allow-Origin": "*",
-     },
-     body:JSON.stringify(data)
-    
+    const fetchData = await fetch(`/api/Subcategory/createSubCategory/${CategoryID}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Methods": "*",
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify(data)
+
     })
     const res = await fetchData.json()
-  if(res.success== true){
-    handleAddSubCategory(res.data)
-    setOpen(false)
+    if (res.success == true) {
+      handleAddSubCategory(res.data)
+      setOpen(false)
 
-  }  
-  if(res.success== false){
-    toast({
-      variant: "default",
-      title: "Uh oh! Something went wrong.❌",
-      description: res.message,
-    });
+    }
+    if (res.success == false) {
+      toast({
+        variant: "default",
+        title: "Uh oh! Something went wrong.❌",
+        description: res.message,
+      });
 
-  }  
+    }
   }
 
   return (

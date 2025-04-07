@@ -4,7 +4,7 @@ import { userProfileInfo } from "@/dataType/dataTypeProfile/dataTypeProfile"
 
 export const  createprofileUser=async (data:userProfileInfo,url:string)=>{
     console.log(data,url)
-    const fechdat= await fetch(url,{
+    const fetchData= await fetch(url,{
         method:"POST",
         headers: {    "Content-Type": "application/json",
         "Access-Control-Allow-Headers": "Content-Type",
@@ -14,7 +14,7 @@ export const  createprofileUser=async (data:userProfileInfo,url:string)=>{
        body:JSON.stringify(data)
       
       })
-      const res= await fechdat.json()
+      const res= await fetchData.json()
       console.log(res)
       return res
 

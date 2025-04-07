@@ -16,4 +16,5 @@ router.get("/Subcategory/getSubCategories/:id", category_1.category.getSubCatego
 router.post("/Subcategory/UpdateSubCategory/:id", category_1.category.updateSubCategory);
 router.delete("/subCategory/deleteSubCategory/:parentID/:id", category_1.category.deleteSubCategory);
 router.get("/category/getSelectCategories", category_1.category.getCategories);
+router.get("/category/getAllCategories", category_1.category.getAllCategories);
 exports.default = router;

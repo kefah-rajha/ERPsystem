@@ -4,7 +4,7 @@ exports.UserCompanyModel = void 0;
 const mongoose_1 = require("mongoose");
 const UserCompanySchema = new mongoose_1.Schema({
     userId: { type: String },
-    nameComapny: { type: String },
+    nameCompany: { type: String },
     email: { type: String },
     address: { type: String },
     phone: { type: String, unique: false },

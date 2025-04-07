@@ -43,6 +43,7 @@ export interface ProductSalesOrder {
     _id:string;
     orderNumber: string;
     orderDate: Date;
+    shipmentDate:Date;
     customer: CustomerSalesOrder;
     supplier: SalesStaff;
     items: OrderItemType[];
@@ -54,6 +55,7 @@ export interface ProductSalesOrder {
     vatRate: number,
     includeVat: false,
     currency: string,
+    salesManager:string,
     paymentTerm:"Cash"|
     "Card" |
     "Bank Transfers" |

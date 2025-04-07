@@ -11,26 +11,29 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 
 interface PaginationControlsProps {
-  totalItems: number;
+  numberProducts: number ;
   pageSize: number;
+  countPages:number;
   currentPage: number;
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
 }
 
 export function PaginationControls({
-  totalItems,
+  numberProducts,
+  countPages,
   pageSize,
   currentPage,
   onPageChange,
   onPageSizeChange,
 }: PaginationControlsProps) {
-  const totalPages = Math.ceil(totalItems / pageSize);
+  const totalPages = countPages;
   const startItem = (currentPage - 1) * pageSize + 1;
-  const endItem = Math.min(currentPage * pageSize, totalItems);
+  const endItem = Math.min(currentPage * pageSize, numberProducts);
+  console.log(numberProducts,"currentPage")
 
   return (
-    <div className="flex items-center justify-between px-2">
+    <div className="flex items-center justify-between ">
       <div className="flex items-center space-x-6">
         <div className="flex items-center space-x-2">
           <p className="text-sm font-medium">Rows per page</p>
@@ -38,7 +41,7 @@ export function PaginationControls({
             value={pageSize.toString()}
             onValueChange={(value) => onPageSizeChange(Number(value))}
           >
-            <SelectTrigger className="h-8 w-[70px]">
+            <SelectTrigger className="h-8 w-[70px] card-gradient text-orange-200">
               <SelectValue placeholder={pageSize.toString()} />
             </SelectTrigger>
             <SelectContent side="top">
@@ -51,14 +54,14 @@ export function PaginationControls({
           </Select>
         </div>
         <div className="text-sm text-muted-foreground">
-          Showing {startItem} to {endItem} of {totalItems} entries
+          Showing {startItem} to {endItem} of {numberProducts} entries
         </div>
       </div>
       <div className="flex items-center space-x-2">
         <Button
           variant="outline"
           size="icon"
-          className="h-8 w-8"
+          className="h-8 w-8 card-gradient text-orange-200 cursor-pointer"
           onClick={() => onPageChange(1)}
           disabled={currentPage === 1}
         >
@@ -67,7 +70,7 @@ export function PaginationControls({
         <Button
           variant="outline"
           size="icon"
-          className="h-8 w-8"
+          className="h-8 w-8 card-gradient text-orange-200"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
         >
@@ -79,7 +82,7 @@ export function PaginationControls({
         <Button
           variant="outline"
           size="icon"
-          className="h-8 w-8"
+          className="h-8 w-8 card-gradient text-orange-200"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
         >
@@ -88,7 +91,7 @@ export function PaginationControls({
         <Button
           variant="outline"
           size="icon"
-          className="h-8 w-8"
+          className="h-8 w-8 card-gradient text-orange-200"
           onClick={() => onPageChange(totalPages)}
           disabled={currentPage === totalPages}
         >

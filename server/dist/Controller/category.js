@@ -12,14 +12,32 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.category = void 0;
 const schemaCategory_1 = require("../Modal/schemaCategory");
 exports.category = {
+    getAllCategories: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const allCategories = yield schemaCategory_1.Category.find({}).populate("children");
+            console.log(allCategories);
+            return res.status(400).json({
+                success: false,
+                data: allCategories
+            });
+        }
+        catch (error) {
+            console.error("Error fetching categories:", error);
+            return res.status(400).json({
+                success: false,
+                message: `Error fetching categories:${error}`
+            });
+        }
+    }),
     createCategory: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        const { category, slug } = req.body;
+        const { category, slug, mainCategory } = req.body;
         console.log(category, slug, "name slug");
         const finalCategory = new schemaCategory_1.Category({
             name: category,
             slug,
             parent: null,
-            children: []
+            children: [],
+            mainCategory
         });
         const saveCategory = yield finalCategory.save();
         if (!saveCategory) {
@@ -137,13 +155,14 @@ exports.category = {
     }),
     createSubCategory: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const { id } = req.params;
-        const { subcategory, slug } = req.body;
+        const { subcategory, slug, mainCategory } = req.body;
         console.log(id, "name slug");
         const finalCategory = new schemaCategory_1.Category({
             name: subcategory,
             slug,
             parent: id,
-            children: []
+            children: [],
+            mainCategory
         });
         const saveCategory = yield finalCategory.save();
         if (!saveCategory) {

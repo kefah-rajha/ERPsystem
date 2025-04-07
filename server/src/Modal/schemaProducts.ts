@@ -4,20 +4,24 @@ import mongoose, { Schema, model, connect } from 'mongoose';
 // models/User.ts
 
 interface Product {
-    name: string;
+  name: string;
   SKU: string;
   brandName: string;
   productTag: string;
-  price: string;
+  price: number;
   Discount: string;
-  stock:string,
-  SupplierName:string;
+  stock: string,
+  SupplierName: string;
   salesCode: string;
   purchaseCode: string;
   supplierCode: string;
   trackInventory: boolean;
   allowOutOfStock: boolean;
-  Description:string;
+  Description: string;
+  vat: string;
+  categories: Schema.Types.ObjectId;
+  subCategories: string[];
+  photos:string []
 }
 const attributes = new mongoose.Schema({
   properties: {
@@ -28,20 +32,24 @@ const attributes = new mongoose.Schema({
   },
 });
 const productSchema = new Schema<Product>({
-    name:{ type: String},
-  SKU:{ type: String},
-  brandName:{ type: String},
-  productTag:{ type: String},
-  price: { type: String},
-  Discount: { type: String},
-  SupplierName:{ type: String},
-  salesCode: { type: String},
-  purchaseCode: { type: String},
-  supplierCode: { type: String},
-  trackInventory: { type: Boolean},
-  allowOutOfStock: { type: Boolean},
-  Description:{ type: String},
-  stock:{ type: String},
+  name: { type: String },
+  SKU: { type: String },
+  brandName: { type: String },
+  productTag: { type: String },
+  price: { type: Number },
+  Discount: { type: String },
+  SupplierName: { type: String },
+  salesCode: { type: String },
+  purchaseCode: { type: String },
+  supplierCode: { type: String },
+  trackInventory: { type: Boolean },
+  allowOutOfStock: { type: Boolean },
+  Description: { type: String },
+  stock: { type: String },
+  vat: { type: String },
+  subCategories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
+  categories: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
+  photos:[{type: String}]
 
 
 });

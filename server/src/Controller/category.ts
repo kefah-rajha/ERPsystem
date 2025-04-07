@@ -1,13 +1,32 @@
 import { Category } from "../Modal/schemaCategory"
 export const category = {
+
+     getAllCategories:async(req: any, res: any) =>{
+        try {
+          const allCategories = await Category.find({}).populate("children");
+          console.log(allCategories)
+          return res.status(400).json({
+            success: false,
+            data: allCategories
+        })
+        } catch (error) {
+          console.error("Error fetching categories:", error);
+          return res.status(400).json({
+            success: false,
+            message: `Error fetching categories:${error}`
+        })
+        }
+      },
+
     createCategory: async (req: any, res: any) => {
-        const { category, slug } = req.body
+        const { category, slug ,mainCategory} = req.body
         console.log(category, slug, "name slug")
         const finalCategory = new Category({
             name: category,
             slug,
             parent: null,
-            children: []
+            children: [],
+            mainCategory
         });
         const saveCategory = await finalCategory.save()
         if (!saveCategory) {
@@ -138,13 +157,14 @@ export const category = {
 
     createSubCategory: async (req: any, res: any) => {
         const { id } = req.params
-        const { subcategory, slug } = req.body
+        const { subcategory, slug ,mainCategory} = req.body
         console.log(id, "name slug")
         const finalCategory = new Category({
             name: subcategory,
             slug,
             parent: id,
-            children: []
+            children: [],
+            mainCategory
         });
         const saveCategory = await finalCategory.save()
         if (!saveCategory) {

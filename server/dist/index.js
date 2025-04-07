@@ -12,6 +12,7 @@ const category_router_1 = __importDefault(require("./Router/category.router"));
 const products_router_1 = __importDefault(require("./Router/products.router"));
 const supplier_router_1 = __importDefault(require("./Router/supplier.router"));
 const salesOrder_router_1 = __importDefault(require("./Router/salesOrder.router"));
+const warehouse_router_1 = __importDefault(require("./Router/warehouse.router"));
 const mongoose_1 = require("mongoose");
 const body_parser_1 = __importDefault(require("body-parser"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
@@ -42,6 +43,7 @@ app.use("/api", category_router_1.default);
 app.use("/api", products_router_1.default);
 app.use("/api", supplier_router_1.default);
 app.use("/api", salesOrder_router_1.default);
+app.use("/api", warehouse_router_1.default);
 app.listen(port, () => {
     console.log(`[server]: Server is running at http://localhost:${port}`);
 });

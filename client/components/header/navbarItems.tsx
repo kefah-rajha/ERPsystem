@@ -11,8 +11,22 @@ import {
 import { ChevronDown ,BellIcon,Scan} from 'lucide-react';
 import { Button } from '../ui/button';
 import Link from "next/link"
+import { useAuth } from '@/context/AuthContext';
 
-function NavbarItems() {
+interface NavbarItemsProps {
+  _id:string;
+  userName:string
+  password: string;
+  name:string;
+  Brithday:Date;
+  createdAt: Date,
+  role:string,
+  refreshToken?: string;
+}
+
+function NavbarItems({user}:any) {
+  const {logout}=useAuth()
+  
   return (
     <div className='flex justify-end items-center gap-4'>
       <div>    <Scan className="h-6 w-6 cursor-pointer hover:text-orange-400"/>
@@ -30,7 +44,7 @@ function NavbarItems() {
       </div>
       <div>
       <DropdownMenu > 
-  <DropdownMenuTrigger className='flex items-center gap-1'><p className='font-bold Justglow'>Admin</p> <ChevronDown className='w-4 h-4 Justglow'/>
+  <DropdownMenuTrigger className='flex items-center gap-1'><p className='font-bold Justglow'>{user.userName}</p> <ChevronDown className='w-4 h-4 Justglow'/>
 
   </DropdownMenuTrigger>
   <DropdownMenuContent className='bg-[#2F2F2F] mt-2'>
@@ -38,7 +52,7 @@ function NavbarItems() {
           <Link href="/dashboard/profile">Profile</Link>
           </DropdownMenuItem>
     <DropdownMenuSeparator />
-    <DropdownMenuItem>Log Out</DropdownMenuItem>
+    <DropdownMenuItem onClick={()=>logout()}>Log Out</DropdownMenuItem>
   </DropdownMenuContent>
 </DropdownMenu>
       </div>

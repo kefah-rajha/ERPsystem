@@ -21,96 +21,67 @@ dotenv_1.default.config();
 exports.user = {
     getAllUsers: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const { pageNumber } = req.params;
+            const pageNumber = parseInt(req.params.pageNumber) || 1;
+            const pageSize = parseInt(req.params.pageSize) || 10;
+            const skipItems = (pageNumber - 1) * pageSize;
             const { fieldSort, sort, role, fields, fieldSearch, searchInput } = req.body;
-            console.log(fields, fieldSearch);
-            const sortAsNumber = sort == "1" ? 1 : -1;
-            const regex = searchInput == "" ? new RegExp(/^[a-zA-Z0-9]+$/) : new RegExp(`^${searchInput}`, 'i');
-            console.log(regex, "regex");
-            const search = {
-                $match: {
-                    [fieldSearch]: { $regex: regex }
-                }
-            };
-            const RoleSort = {
-                $match: {
-                    role: role
-                }
-            };
-            const SortAlphaB = {
-                $sort: {
-                    [fieldSort]: sortAsNumber
-                }
-            };
-            const EmptyFields = {
-                $match: {
-                    $or: [
-                        { "contact.email": "" },
-                        { "contact.phone": "" },
-                        { "company.name": "" },
-                        { "name": "" },
-                    ]
-                }
-            };
-            const pipeline = [
-                {
-                    $lookup: {
-                        from: "contactInfo",
-                        localField: "contactId",
-                        foreignField: "_id",
-                        as: "contact"
-                    }
-                },
-                {
-                    $unwind: {
-                        path: "$contact",
-                        preserveNullAndEmptyArrays: true
-                    }
-                },
-                {
-                    $match: {
-                        name: { $regex: regex }
-                    }
-                }
-            ];
-            if (role !== "All" && fields !== "Empty") {
-                console.log("i am working");
-                const recallPost = yield schemaUser_1.UserModel.aggregate([...pipeline, RoleSort, SortAlphaB]);
-                console.log("i am working", recallPost);
-                console.log(recallPost);
+            console.log(fieldSort, sort, role, fields, fieldSearch, searchInput);
+            if (fields == "All" && role == "All" && searchInput == "" && sort == "1") {
+                console.log("test ");
+                const users = yield schemaUser_1.UserModel.find({}).skip(skipItems)
+                    .limit(pageSize)
+                    .lean();
+                console.log(users);
                 return res.status(200).json({
-                    data: recallPost,
                     success: true,
+                    data: users,
+                    message: 'Users retrieved successfully'
                 });
             }
-            else if (fields == "Empty" && role !== "All") {
-                console.log("i am working2");
-                const recallPost = yield schemaUser_1.UserModel.aggregate([...pipeline, search, EmptyFields,
-                    RoleSort, SortAlphaB
-                ]);
+            else {
+                const query = {};
+                // Add role filter if specified and not 'all'
+                if (role && role !== 'All') {
+                    query.role = role;
+                }
+                // Add search filter if search input exists
+                if (searchInput && fieldSearch) {
+                    query[fieldSearch] = {
+                        $regex: new RegExp(`^${searchInput}`, 'i')
+                    };
+                }
+                // Add empty/non-empty fields filter
+                if (fields === 'empty') {
+                    query.$or = [
+                        { name: { $eq: '' } },
+                        { email: { $eq: '' } },
+                    ];
+                }
+                else if (fields !== 'empty') {
+                    query.$and = [
+                        { name: { $ne: '' } },
+                        { email: { $ne: '' } },
+                        { company: { $ne: '' } }
+                    ];
+                }
+                // Build sort options
+                const sortOptions = {};
+                if (fieldSort) {
+                    sortOptions[fieldSort] = sort === '1' ? 1 : -1;
+                }
+                console.log(query);
+                // Execute query with filters and sorting
+                const users = yield schemaUser_1.UserModel
+                    .find(query)
+                    .sort(sortOptions)
+                    .skip(skipItems)
+                    .limit(pageSize)
+                    .lean();
+                // console.log(users)
                 return res.status(200).json({
-                    data: recallPost,
                     success: true,
-                });
-            }
-            else if (fields !== "Empty" && role == "All") {
-                console.log("i am working3");
-                const recallPost = yield schemaUser_1.UserModel.aggregate([...pipeline, SortAlphaB
-                ]);
-                console.log("i am working3", recallPost);
-                return res.status(200).json({
-                    data: recallPost,
-                    success: true,
-                });
-            }
-            else if (fields == "Empty" && role == "All") {
-                console.log("i am working4");
-                console.log(role !== "All" && fields !== "Empty");
-                const recallPost = yield schemaUser_1.UserModel.aggregate([...pipeline, search, EmptyFields, SortAlphaB
-                ]);
-                return res.status(200).json({
-                    data: recallPost,
-                    success: true,
+                    data: users,
+                    message: 'Users retrieved successfully'
                 });
             }
         }
@@ -318,28 +289,35 @@ exports.user = {
     }),
     ImportUser: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const data = req.body;
+        console.log(data);
         const mappedData = data.map((item) => __awaiter(void 0, void 0, void 0, function* () {
             const userInfo = {
-                userName: item["First name"],
+                userName: item["Username"],
                 password: "12345",
-                name: item["Last name"],
-                Brithday: item["Date of birth"],
+                name: item["name"],
+                // Brithday: item["Brithday"],
+                role: item["role"],
+                createdAt: item["createdAt"],
             };
             const finale = new schemaUser_1.UserModel(userInfo);
             const userDataAfterSave = yield finale.save();
             const contactInfo = {
-                userId: finale._id,
+                userId: userDataAfterSave._id,
                 phone: item["Phone"],
-                email: item["Email"],
-                address: item["Adress"],
+                email: item["email"],
+                address: `${item["city"]}/${item["street"]}/${item["postcode"]} `,
                 website: "web.com",
-                postCode: item["Post/Zip Code"],
-                city: item["City"],
-                street: item["State / Region"],
+                postCode: item["postcode"],
+                city: item["city"],
+                street: item["street"],
             };
             const contactInfoUser = new schemaUserDetails_1.UserDetailsModel(contactInfo);
             yield contactInfoUser.save();
         }));
+        return res.status(400).json({
+            success: false,
+            message: "uh, there is thing, try later",
+        });
     }),
     createUsers: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
@@ -427,5 +405,5 @@ exports.user = {
             data: filterItem,
             success: true,
         });
-    })
+    }),
 };

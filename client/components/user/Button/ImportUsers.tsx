@@ -14,12 +14,14 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
 import * as XLSX from "xlsx";
-import { BookPlus, UserPlus } from "lucide-react";
+import { BookPlus, Loader2, UserPlus } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 function ImportUsers() {
-  const [filexlxs, setFilexlxs] = useState<any[]>();
+  const [filexlxs, setFilexlxs] = useState<any[]| null>(null);
   const [nameFile, setNameFile] = useState<string | undefined>();
-
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     setNameFile(file?.name);
@@ -27,8 +29,12 @@ function ImportUsers() {
     reader.onload = (event) => {
       const workbook = XLSX.read(event?.target?.result, { type: "binary" });
       const sheetName = workbook.SheetNames[0];
+
       const sheet = workbook.Sheets[sheetName];
-      const sheetData = XLSX.utils.sheet_to_json(sheet);
+      const sheetData = XLSX.utils.sheet_to_json(sheet, {
+  raw: false,    
+  dateNF: 'dd/mm/yyyy'   
+});
       console.log(sheetData, "sheet");
       setFilexlxs(sheetData);
     };
@@ -38,6 +44,7 @@ function ImportUsers() {
   }
   const handleSubmit = async (event: any) => {
     event.preventDefault();
+    setIsLoading(true);
 
     try {
       const response = await fetch("/api/importUsers", {
@@ -56,6 +63,9 @@ function ImportUsers() {
       }
 
       const data = await response.json();
+      if(data){
+        setIsLoading(false);
+      }
       console.log(data);
     } catch (error) {
       console.error(error);
@@ -95,8 +105,15 @@ function ImportUsers() {
           </div>
         </div>
         <DialogFooter>
-          <Button className="h-8" onClick={(e) => handleSubmit(e)}>
-            Upload
+          <Button className="h-8" disabled={isLoading } onClick={(e) => handleSubmit(e)}>
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Uploading...
+            </>
+          ) : (
+            'Upload File'
+          )}
           </Button>
         </DialogFooter>
       </DialogContent>

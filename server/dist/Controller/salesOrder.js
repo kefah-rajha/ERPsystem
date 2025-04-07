@@ -46,12 +46,14 @@ const salesOrder = {
             const SearchQueries = [
                 {
                     $or: [
-                        { $expr: {
+                        {
+                            $expr: {
                                 $regexMatch: {
                                     input: { $concat: ['$firstName', ' ', '$lastName'] },
                                     regex: new RegExp(regex, 'i')
                                 }
-                            } }
+                            }
+                        }
                     ]
                 }
             ];
@@ -114,10 +116,12 @@ const salesOrder = {
                     name: data === null || data === void 0 ? void 0 : data.values.supplier
                 },
                 items: data.items,
+                salesManager: data === null || data === void 0 ? void 0 : data.values.salesManager,
+                shipmentDate: new Date(data === null || data === void 0 ? void 0 : data.values.shipmentDate),
                 netTotal: data === null || data === void 0 ? void 0 : data.values.netAmount,
                 totalVat: data === null || data === void 0 ? void 0 : data.values.vatAmount,
                 totalAmount: data === null || data === void 0 ? void 0 : data.values.totalAmount,
-                vatRate: data === null || data === void 0 ? void 0 : data.values.vatRate,
+                vatRate: new Date(data === null || data === void 0 ? void 0 : data.values.vatRate),
                 includeVat: data === null || data === void 0 ? void 0 : data.values.includeVat,
                 currency: data === null || data === void 0 ? void 0 : data.values.currency,
                 paymentTerm: data === null || data === void 0 ? void 0 : data.values.paymentTerm
@@ -218,27 +222,33 @@ const salesOrder = {
     UpdateSaleOrder: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const { id } = req.params;
-            console.log(id, "test");
-            const resSaleOrder = yield schemaSalesOrder_1.SalesOrderModel.findById(id).populate("items.product");
-            res.status(200).json({
-                posts: resSaleOrder,
-                success: true,
-            });
-        }
-        catch (error) {
-            return res.status(400).json({
-                message: error,
-                success: false,
-            });
-        }
-    }),
-    updateSalesOrder: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-        try {
-            const { id } = req.params;
             const data = req.body;
-            const UpdateData = yield schemaSalesOrder_1.SalesOrderModel.findByIdAndUpdate(id, data, { new: true });
-            return res.status(200).json({
-                data: UpdateData,
+            const dataSaleOrder = {
+                orderNumber: `SO-${Date.now()}`,
+                customer: {
+                    userName: data === null || data === void 0 ? void 0 : data.values.customer,
+                    shipmentAddress: data === null || data === void 0 ? void 0 : data.values.shipmentAddress,
+                    phone: data === null || data === void 0 ? void 0 : data.values.phone,
+                    customerEmail: data === null || data === void 0 ? void 0 : data.values.customerEmail
+                },
+                supplier: {
+                    name: data === null || data === void 0 ? void 0 : data.values.supplier
+                },
+                items: data.items,
+                salesManager: data === null || data === void 0 ? void 0 : data.values.salesManager,
+                shipmentDate: new Date(data === null || data === void 0 ? void 0 : data.values.shipmentDate),
+                netTotal: data === null || data === void 0 ? void 0 : data.values.netAmount,
+                totalVat: data === null || data === void 0 ? void 0 : data.values.vatAmount,
+                totalAmount: data === null || data === void 0 ? void 0 : data.values.totalAmount,
+                vatRate: new Date(data === null || data === void 0 ? void 0 : data.values.vatRate),
+                includeVat: data === null || data === void 0 ? void 0 : data.values.includeVat,
+                currency: data === null || data === void 0 ? void 0 : data.values.currency,
+                paymentTerm: data === null || data === void 0 ? void 0 : data.values.paymentTerm
+            };
+            const UpdateData = yield schemaSalesOrder_1.SalesOrderModel.findByIdAndUpdate(id, dataSaleOrder, { new: true });
+            console.log(UpdateData, "update");
+            res.status(200).json({
+                posts: UpdateData,
                 success: true,
             });
         }

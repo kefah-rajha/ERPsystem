@@ -30,10 +30,10 @@ export function OrderItems({ items }: OrderItemsProps) {
                 key={index}
                 className="flex justify-between items-center text-sm"
               >
-                <span>{item.product.name}</span>
+                <span>{item?.product?.name}</span>
                 <div className="flex gap-4">
                   <span>x{item.quantity}</span>
-                  <span className="font-medium">${(+item.product.price).toFixed(2)}</span>
+                  <span className="font-medium">${(+item?.product?.price).toFixed(2)} </span>
                 </div>
               </div>
             ))}
@@ -44,7 +44,7 @@ export function OrderItems({ items }: OrderItemsProps) {
               <span>
                 $
                 {items
-                  .reduce((sum, item) => sum + +item.product.price * item.quantity, 0)
+                  ?.reduce((sum, item) => sum + +item?.product?.price * item.quantity, 0)
                   .toFixed(2)}
               </span>
             </div>

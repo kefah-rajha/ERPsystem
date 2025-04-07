@@ -1,6 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Cardsignup from "./Cardsignup";
+import { useAuth } from '@/context/AuthContext';
+
 import {
   Form,
   FormControl,
@@ -35,6 +37,7 @@ const SignUpFormSchema = z.object({
   password: z.string().min(5, {
     message: "Name must be  More 5 characters .",
   }),
+  role :z.string().default("Customer")
 });
 
 function Signupform() {
@@ -44,6 +47,7 @@ function Signupform() {
    const { replace } = useRouter();
  //for showing the password if he is true or disappear if he is false
    const [passwordShown, setPasswordShown] = useState(false);
+   const { register, loading } = useAuth();
 
   type SignUpFormValues = z.infer<typeof SignUpFormSchema>;
 
@@ -53,34 +57,13 @@ function Signupform() {
 
   async function onSubmit(data: SignUpFormValues) {
     try{
-    const SignupStatus = await signupFetch(data);
+      console.log(data,"data")
+      data.role="Customer"
+
+    await register(data);
 
     
-    console.log(SignupStatus ,"ss")
-  
-    if (SignupStatus?.success == false) {
-      toast({
-        variant: "custum",
-        title: "Uh oh! Something went wrong.❌",
-        description: (
-          <p className="mt-2  rounded-md text-foreground/75 whitespace-pre-line p-4 w-full">
-            {SignupStatus.message}
-          </p>
-        ),
-        action: <ToastAction altText="Goto schedule to undo">Yes</ToastAction>,
-      });
-    } else {
-      console.log(SignupStatus);
-
-      toast({
-        variant: "default",
-        title: "Congratulations✅.",
-        description: "Sign Up Is Done",
-      });
-      if (SignupStatus?.refreash_token) {
-        replace("/dashboard");
-      }
-    }}catch(err:unknown){
+  }catch(err:unknown){
       console.log(err)
     }
   }
