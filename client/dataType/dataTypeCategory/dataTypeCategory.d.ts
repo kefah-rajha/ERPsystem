@@ -1,4 +1,4 @@
-export interface categoriesResopnseData{
+export interface categoriesResponseData{
 name:string,
 parent: string |null,
 children:[],

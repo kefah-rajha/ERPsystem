@@ -1,5 +1,5 @@
 "use  client";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -12,7 +12,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { SlidersHorizontal } from "lucide-react";
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarIcon ,RotateCcw} from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 
@@ -96,6 +96,22 @@ function UserFilter({ pageNumber, pageSize, setProducts ,selectedCategory}: user
         endDate: ''
     });
     const [selectedBrands, setSelectedBrands] = useState<string>("All")
+    const defaultPriceRange = { min: 0, max: 1000 };
+    const defaultDateRange = { startDate: "", endDate: "" };
+    const handleResetFilters = useCallback(() => {
+        setFieldSort("name");
+        setSort("1");
+        setFields("All");
+        setFieldSearch("");
+        setSearchInput("");
+        setInStock('');
+        setPriceRange(defaultPriceRange);
+        setSelectedBrands("All");
+        setDateRange(defaultDateRange);
+
+        
+
+    }, []); 
     // Constants with type annotations
     const MAX_PRICE: number = 5000;
     const DEFAULT_STEP: number = 10;
@@ -118,31 +134,7 @@ function UserFilter({ pageNumber, pageSize, setProducts ,selectedCategory}: user
         }));
     };
     searchInput;
-    // useEffect(() => {
-    //   let ignore = false;
-    //   fetch(`/api/userFilter`)
-    //     .then((res) => {
-    //       return res.json();
-    //     })
-    //     .then((jsonData) => {
-    //       if (!ignore) {
-    //         console.log(jsonData, "filter");
-
-    //         setFilter(jsonData.data);
-    //       }
-    //     })
-    //     .catch((err: unknown) => {
-    //       console.log(err);
-    //     })
-    //     .finally(() => {
-    //       if (!ignore) {
-    //         console.log("noLoding");
-    //       }
-    //     });
-    //   return () => {
-    //     ignore = true;
-    //   };
-    // }, []);
+   
     const filterAndSearchHandler = async () => {
         console.log(searchInput)
         type dataType = {
@@ -242,10 +234,19 @@ function UserFilter({ pageNumber, pageSize, setProducts ,selectedCategory}: user
                     </Button>
                 </DialogTrigger>
                 <DialogContent className="w-2/4  bg-gradient">
-                    <DialogHeader>
+                    <DialogHeader className="flex justify-start ">
                         <DialogTitle className="flex gap-2 border-b-2 border-gray-500 pb-4">
                             <SlidersHorizontal className="h-4 w-4 mr-2 text-orange-600  " />
                             Filter
+                            <Button
+                variant="default" //
+                
+                onClick={handleResetFilters}
+                className=" sm:w-auto w-4 h-4" 
+            >
+                <RotateCcw className="mr-2 h-4 w-4" /> 
+               Reset Filter
+            </Button>
                         </DialogTitle>
                     </DialogHeader>
 

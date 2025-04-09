@@ -5,10 +5,10 @@ import CategoryCard from './CategoryCard';
 import NestedCategories from './categories/NestedCategories';
 import { Button } from './ui/button';
 import { getCategoryLevel, getSubcategories } from '@/lib/category-utils';
-import { categoriesResopnseData } from "@/dataType/dataTypeCategory/dataTypeCategory";
+import { categoriesResponseData } from "@/dataType/dataTypeCategory/dataTypeCategory";
 
 interface CategoryListProps {
-  categories: categoriesResopnseData[];
+  categories: categoriesResponseData[];
   selectedCategory: string | null;
   onSelectCategory: (categoryId: string | null) => void;
 }
@@ -79,12 +79,12 @@ export default function CategoryList({
 
             <div
               ref={carouselRef}
-              className="flex custom-scrollbar overflow-x-auto gap-4 px-4 pb-4 snap-x snap-mandatory scrollbar-hide"
+              className="flex custom-scrollbar overflow-x-auto gap-4 px-6 ml-6 pb-4 snap-x snap-mandatory scrollbar-hide"
             >
               {mainCategories.map((category) => (
                 <div
                   key={category._id}
-                  className="flex-none w-1/4 snap-start "
+                  className="flex-none w-1/4  snap-start "
                 >
                   <CategoryCard
                     category={category}

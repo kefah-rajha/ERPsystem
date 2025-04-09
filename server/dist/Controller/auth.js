@@ -105,9 +105,10 @@ exports.auth = {
                 const refreshToken = (0, jwt_1.generateRefreshToken)(userJWT);
                 yield schemaUser_1.UserModel.updateOne({ _id: user_name._id }, { $set: { refreshToken: refreshToken } });
                 sendRefreshTokenCookie(res, refreshToken);
-                return res
-                    .status(200)
-                    .json({ success: true, user: user_name, refreshToken });
+                return res.status(200).json({
+                    refreshToken,
+                    success: true,
+                });
             }
         }
         catch (error) {
@@ -147,9 +148,14 @@ exports.auth = {
         const newAccessToken = (0, jwt_1.generateAccessToken)(userJWT);
         const newRefreshToken = (0, jwt_1.generateRefreshToken)(userJWT);
         user.refreshToken = newRefreshToken;
-        yield user.save();
+        const userAfterSaveToken = yield user.save();
+        console.log(userAfterSaveToken, "userAfterSaveToken");
         sendRefreshTokenCookie(res, newRefreshToken);
-        return res.json({ accessToken: newAccessToken });
+        return res.status(200).json({
+            success: true,
+            accessToken: newAccessToken,
+            user: userAfterSaveToken
+        });
     }),
     logout: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         var _a;

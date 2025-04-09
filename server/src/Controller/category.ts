@@ -3,9 +3,11 @@ export const category = {
 
      getAllCategories:async(req: any, res: any) =>{
         try {
+            console.log("allCategories")
+
           const allCategories = await Category.find({}).populate("children");
           console.log(allCategories)
-          return res.status(400).json({
+          return res.status(200).json({
             success: false,
             data: allCategories
         })

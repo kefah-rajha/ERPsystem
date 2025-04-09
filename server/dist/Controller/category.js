@@ -14,9 +14,10 @@ const schemaCategory_1 = require("../Modal/schemaCategory");
 exports.category = {
     getAllCategories: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
+            console.log("allCategories");
             const allCategories = yield schemaCategory_1.Category.find({}).populate("children");
             console.log(allCategories);
-            return res.status(400).json({
+            return res.status(200).json({
                 success: false,
                 data: allCategories
             });
