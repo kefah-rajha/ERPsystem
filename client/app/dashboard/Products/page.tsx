@@ -77,23 +77,19 @@ import { cn } from "@/lib/utils";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { deleteProductServer } from "@/lib/ProductFetch/deleteProduct";
-import PaginationComponent from "@/components/product/Pagination";
 import getNumberProductsServer from "@/lib/ProductFetch/getNumberProducts";
+import CollapsibleCard from "@/components/SalesOrder/showAllSalesOrder/CollapsibleCard";
 
 export default function Products() {
   // Extract URL query parameters for pagination
   const searchParams = useSearchParams();
-  const numberPageParam = Number(searchParams.get("page")) || 1; // Get current page from URL or default to 1
   const params = new URLSearchParams(searchParams);
   const pathname = usePathname();
-  console.log(params, pathname);
 
   // Next.js router for navigation
   const { replace, push } = useRouter();
   
-  // Update URL with current page parameter
-  params.set("page", numberPageParam.toString());
-  replace(`${pathname}?${params.toString()}`);
+
   
   // Define TypeScript interface for product data structure
   interface ProductAttribute {
@@ -133,9 +129,12 @@ export default function Products() {
   const [pageSize, setPageSize] = useState(10); // Number of items per page
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null); // Selected category filter
   const [categories, setCategories] = useState<categoriesResponseData[]>([]); // Available categories
-  
+  const [isExpanded, setIsExpanded] = useState(false);
+
   console.log(selectedCategory,"selectedCategory")
   const router=useRouter()
+
+
 
   // Fetch all product categories on component mount
   useEffect(() => {
@@ -203,9 +202,8 @@ export default function Products() {
   // Handler for page change in pagination
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    // Update URL with new page number
-    params.set("page", page.toString());
-    replace(`${pathname}?${params.toString()}`);
+    
+   
     // Show loading toast for better UX
     toast.loading('Loading products...', { id: 'pageChange' });
     
@@ -219,10 +217,7 @@ export default function Products() {
   const handlePageSizeChange = (size: number) => {
     setPageSize(size);
     setCurrentPage(1); // Reset to first page when changing page size
-    // Update URL
-    params.set("page", "1");
-    params.set("pageSize", size.toString());
-    replace(`${pathname}?${params.toString()}`);
+    
     
     toast.success(`Showing ${size} items per page`);
   };
@@ -323,7 +318,6 @@ export default function Products() {
             className="ml-2 hover:text-foreground hover:bg-foreground/10 p-2 rounded-sm text-orange-300"
             onClick={() => {
               console.log("i am clicking");
-              toast.loading('Loading product details...', { id: 'viewProduct' });
               push(`/dashboard/Products/showProduct/${product._id}`);
             }}
           >
@@ -557,8 +551,16 @@ export default function Products() {
       </div>
       
       {/* Pagination controls in a sticky card at the bottom */}
-      <Card className="sticky bottom-0">
-        <CardContent className="pt-6 pb-6 px-6">
+      <Card className={cn(!isExpanded ?"sticky bottom-0 w-fit" :"sticky bottom-0 w-full")} >
+      <CardContent className="pt-6 pb-6 px-6">
+        <CollapsibleCard 
+          numberProducts={numberProducts}
+          currentPage={currentPage}
+          countPages={countPages}
+          isExpanded={isExpanded}
+          setIsExpanded={setIsExpanded}
+
+        >
           <PaginationControls
             numberProducts={numberProducts}
             countPages={countPages}
@@ -568,8 +570,9 @@ export default function Products() {
             onPageSizeChange={handlePageSizeChange}
             // disabled={loading}
           />
-        </CardContent>
-      </Card>
+        </CollapsibleCard>
+      </CardContent>
+    </Card>
     </div>
   );
 }
