@@ -19,6 +19,7 @@ interface Product {
   allowOutOfStock: boolean;
   Description: string;
   vat: string;
+  Status: string;
   categories: Schema.Types.ObjectId;
   subCategories: string[];
   photos:string [];
@@ -50,6 +51,11 @@ const productSchema = new Schema<Product>({
   vat: { type: String },
   subCategories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
   categories: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
+  Status: {
+    type: String,
+    enum: ["archive", "published", "draft"],
+    default: 'published'
+  },
   photos: {
     type: [String],
     default: [

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   Select,
   SelectContent,
@@ -11,36 +11,38 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+
 type InventoryDetailsProduct = {
   form: any;
-  trackInventory:boolean,
-  allowOutOfStock:boolean
+  
 };
-function InventoryDetailsProduct({ form,trackInventory, allowOutOfStock}: InventoryDetailsProduct) {
+
+function InventoryDetailsProduct({ form,  }: InventoryDetailsProduct) {
+  // Set default values when component mounts
+  useEffect(() => {
+    // Initialize form with default values if they're not already set
+    const currentTrackInventory = form.getValues("trackInventory");
+    const currentAllowOutOfStock = form.getValues("allowOutOfStock");
+    
+    if (currentTrackInventory === undefined) {
+      form.setValue("trackInventory", "true");
+    }
+    
+    if (currentAllowOutOfStock === undefined) {
+      form.setValue("allowOutOfStock", "true");
+    }
+  }, [form]);
+
   return (
     <Card x-chunk="dashboard-07-chunk-0">
       <CardHeader>
@@ -52,23 +54,26 @@ function InventoryDetailsProduct({ form,trackInventory, allowOutOfStock}: Invent
       <CardContent>
         <div className="grid gap-6">
           <div className="grid gap-3">
-            <Label htmlFor="name" className="px-2">
+            <Label htmlFor="trackInventory" className="px-2">
               Track Inventory
             </Label>
             <FormField
               control={form.control}
-              
               name="trackInventory"
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Select onValueChange={field.onChange} defaultValue={String(trackInventory)}>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value || "true"}
+                      value={field.value}
+                    >
                       <SelectTrigger
-                        id="status"
-                        aria-label="Select status"
-                        className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
+                        id="trackInventory"
+                        aria-label="Select track inventory status"
+                        className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
                       >
-                        <SelectValue placeholder=" Select Track Inventory" />
+                        <SelectValue placeholder="Select Track Inventory" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="false">false</SelectItem>
@@ -82,7 +87,7 @@ function InventoryDetailsProduct({ form,trackInventory, allowOutOfStock}: Invent
             />
           </div>
           <div className="grid gap-3">
-            <Label htmlFor="name" className="px-2">
+            <Label htmlFor="allowOutOfStock" className="px-2">
               Allow out of stock
             </Label>
             <FormField
@@ -91,11 +96,15 @@ function InventoryDetailsProduct({ form,trackInventory, allowOutOfStock}: Invent
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Select onValueChange={field.onChange} defaultValue={String(allowOutOfStock)}>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value || "true"}
+                      value={field.value}
+                    >
                       <SelectTrigger
-                        id="status"
-                        aria-label="Select status"
-                        className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
+                        id="allowOutOfStock"
+                        aria-label="Select allow out of stock status"
+                        className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
                       >
                         <SelectValue placeholder="Select Allow Out Of Stock" />
                       </SelectTrigger>

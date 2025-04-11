@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronLeft, PlusCircle, Upload } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import CategorySelect from "@/components/product/CategorySelect";
+import toast, { Toaster } from 'react-hot-toast'; // Import react-hot-toast
 
 import { Badge } from "@/components/ui/badge";
 
@@ -50,22 +51,15 @@ import { useForm } from "react-hook-form";
 import { usePathname } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { toast } from "@/components/ui/use-toast";
 import PurchasSalesProdcutsForm from "@/components/product/purchasSalesProdcutsForm";
 import InventoryDetailsProduct from "@/components/product/inventoryDetailsProduct";
 import StatusProduct from "@/components/product/statusProduct";
 import { useRouter } from "next/navigation";
 import { Description } from "@radix-ui/react-toast";
 import PhotosProduct from "@/components/product/PhotosProduct";
+
 const createProductFormSchema = z.object({
-  name: z
-    .string()
-    .min(2, {
-      message: "Name must be at least 2 characters.",
-    })
-    .max(30, {
-      message: "Name must not be longer than 30 characters.",
-    }),
+  name: z.string(),
   SKU: z.string(),
   brandName: z.string().optional(),
   productTag: z.string().optional(),
@@ -75,26 +69,30 @@ const createProductFormSchema = z.object({
   salesCode: z.string(),
   purchaseCode: z.string(),
   supplierCode: z.string(),
-  trackInventory:  z.string().optional(),
-  allowOutOfStock:  z.string().optional().default("false"),
-  Description: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
+  stock: z.string(),
+  trackInventory:z.boolean(),
+  allowOutOfStock: z.boolean(),
+  Description: z.string(),
+  vat: z.string().min(0, {
+    message: "VAT must be a positive number.",
   }),
-  // Status: z.enum(["archive", "published", "draft"]),
+  Status: z.string(),
 });
+
 type productFormValues = z.infer<typeof createProductFormSchema>;
-// eslint-disable-next-line react-hooks/rules-of-hooks
-export default function Editproducts() {
+
+export default function EditProducts() {
   type ImageData = string | ArrayBuffer | [];
   const [inputImages, setInputImages] = useState<ImageData[]>([]);
   const [dataProductCategories, setDataProductCategories] = useState([]);
-  console.log(dataProductCategories, "dataProductCategories");
   const [nameSKU, setNameSKU] = useState<string>("");
   const [dataMainCategory, setDataMainCategory] = useState<string>("");
-  const {push}=useRouter()
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const router = useRouter();
   const pathname = usePathname();
   const id = pathname?.split("/").pop();
-  console.log(id, "id");
+  
   const [product, setProduct] = useState({
     name: "",
     SKU: "",
@@ -106,126 +104,202 @@ export default function Editproducts() {
     salesCode: "",
     purchaseCode: "",
     supplierCode: "",
-    trackInventory: true,
     allowOutOfStock: false,
+    trackInventory: true,
     Description: "",
+    stock: "",
+    vat: "",
+    Status: "published"
   });
-  console.log(typeof String(product.trackInventory),"ssssssssssssssssssssssssss")
 
+  const form = useForm<productFormValues>({
+    resolver: zodResolver(createProductFormSchema),
+    values: product
+  });
+
+  // Fetch product data
   useEffect(() => {
     let ignore = false;
-    console.log(id, "id in getProduct");
+    setIsLoading(true);
+    
     fetch(`/api/products/getProduct/${id}`)
       .then((res) => {
         return res.json();
       })
       .then((jsonData) => {
         if (!ignore) {
-          console.log(jsonData.posts, "product in SHowing");
-
-          setProduct(jsonData.posts);
+          console.log(jsonData.product
+            , "product data loaded");
+          setProduct(jsonData.product);
+          
+          // Set form values after product data is loaded
+          form.reset({
+            ...jsonData.posts,
+            trackInventory: "true",
+            allowOutOfStock: String(jsonData.product.allowOutOfStock || "false"),
+            stock: String(jsonData.product.stock || "0"),
+            vat: String(jsonData.product.vat || "0"),
+            Status: jsonData.product.Status || "published"
+          });
+          
+          // If there are categories, set them
+          if (jsonData.product.categories) {
+            setDataMainCategory(jsonData.product.categories);
+          }
+          
+          // If there are subcategories, set them
+          if (jsonData.product.subCategories && jsonData.product.subCategories.length > 0) {
+            setDataProductCategories(jsonData.product.subCategories);
+          }
+          
+          // If there are images, set them
+          if (jsonData.product.photos && jsonData.product.photos.length > 0) {
+            setInputImages(jsonData.product.photos);
+          }
         }
       })
-      .catch((err: unknown) => {
-        console.log(err);
+      .catch((err) => {
+        console.error("Error fetching product:", err);
+        toast.error("Failed to load product data");
       })
       .finally(() => {
         if (!ignore) {
-          console.log("noLoding");
+          setIsLoading(false);
         }
       });
+      
     return () => {
       ignore = true;
     };
   }, [id]);
 
-  const form = useForm<productFormValues>({
-    resolver: zodResolver(createProductFormSchema),
-    values: {
-      name: product?.name,
-      SKU: product?.SKU,
-      brandName: product?.brandName,
-      productTag: product?.productTag,
-      price: product?.price,
-      Discount: product?.Discount,
-      SupplierName: product?.supplierCode,
-      salesCode: product?.salesCode,
-      purchaseCode: product?.purchaseCode,
-      supplierCode: product?.supplierCode,
-      trackInventory: String(product.trackInventory),
-      allowOutOfStock: String(product.allowOutOfStock),
-      Description: product?.Description,
-    },
-  });
-
-  useEffect(() => {
-    if (form.watch().name !== undefined) {
-      setNameSKU(form.watch().name);
-      form.setValue("SKU", `${form.watch().name}-${new Date().getDate()}-`);
-    }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.watch().name]);
-
   async function onSubmit(data: productFormValues) {
-    console.log(data, "data...");
-    console.log(
-      dataMainCategory,
-      dataProductCategories,
-      "dataProductCategories"
-    );
-    const IDsAllCategories: any[] = [];
-    if (dataProductCategories.length > 0) {
-      dataProductCategories.map((subCategory: any) => {
-        IDsAllCategories.push(subCategory.id);
+    setIsSubmitting(true);
+    
+    // Create a loading toast that we can dismiss later
+    const loadingToastId = toast.loading('Updating product...');
+
+    try {
+      const IDsAllCategories: any[] = [];
+      if (dataProductCategories.length > 0) {
+        dataProductCategories.map((subCategory: any) => {
+          IDsAllCategories.push(subCategory.id);
+        });
+      }
+      
+      if (dataMainCategory) {
+        IDsAllCategories.unshift(dataMainCategory);
+      }
+
+      const allData = {
+        ...data,
+        photos: inputImages,
+        categories: dataMainCategory,
+        subCategories: IDsAllCategories
+      };
+
+      const FetchData = await fetch(`/api/products/updateProduct/${id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Headers": "Content-Type",
+          "Access-Control-Allow-Methods": "*",
+          "Access-Control-Allow-Origin": "*",
+        },
+        body: JSON.stringify(allData),
       });
-    }
-    IDsAllCategories.unshift(dataMainCategory);
-    console.log(IDsAllCategories, "IDsAllCategories");
 
-    const allData = { ...data, photos: inputImages };
-    console.log(allData, "alldata");
-    const FetchData = await fetch(`/api/products/updateProduct/${id}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Headers": "Content-Type",
-        "Access-Control-Allow-Methods": "*",
-        "Access-Control-Allow-Origin": "*",
-      },
-      body: JSON.stringify(data),
-    });
-    const res = await FetchData.json();
+      const res = await FetchData.json();
 
-    console.log(res);
-    if(res.success == true){
-      push("/dashboard/Products")
+      if (!FetchData.ok) {
+        throw new Error(res.message || "Failed to update product");
+      }
+
+      // Dismiss the loading toast and show success toast
+      toast.dismiss(loadingToastId);
+      toast.success('Product updated successfully!', {
+        duration: 5000,
+        position: 'top-right',
+        style: {
+          background: '#10B981',
+          color: '#fff',
+        },
+        iconTheme: {
+          primary: '#fff',
+          secondary: '#10B981',
+        },
+      });
+
+      // Navigate back to products page after successful update
+      router.push("/dashboard/Products");
+    } catch (error) {
+      console.error("Error updating product:", error);
+
+      // Dismiss the loading toast and show error toast
+      toast.dismiss(loadingToastId);
+      toast.error(error instanceof Error ? error.message : "Failed to update product. Please try again.", {
+        duration: 5000,
+        position: 'top-right',
+        style: {
+          background: '#EF4444',
+          color: '#fff',
+        },
+        iconTheme: {
+          primary: '#fff',
+          secondary: '#EF4444',
+        },
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-    toast({
-      title: "You submitted the following values:",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    });
   }
+
   const changeDataProductCategories = (data: any) => {
     setDataProductCategories(data);
   };
+
   const changeDataProductCategory = (data: string) => {
     setDataMainCategory(data);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-pulse text-xl">Loading product data...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="heighWithOutBar overflow-auto bg-gradient">
+      {/* Add Toaster component for displaying toasts */}
+      <Toaster
+        position="top-right"
+        reverseOrder={false}
+        gutter={8}
+        toastOptions={{
+          className: 'card-gradient',
+          duration: 5000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+        }}
+      />
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="mt-10">
-          <div className="flex  w-full flex-col bg-background container">
+          <div className="flex w-full flex-col bg-background container">
             <div className="flex flex-col sm:gap-4 sm:py-4 p-0 w-full">
-              <main className="grid    w-full  sm:py-0 md:gap-8">
+              <main className="grid w-full sm:py-0 md:gap-8">
                 <div className="mx-auto grid max-w-full w-full flex-1 auto-rows-max gap-4">
                   <div className="flex items-center gap-4">
-                    <Button variant="outline" size="icon" className="h-7 w-7">
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      className="h-7 w-7"
+                      onClick={() => router.push("/dashboard/Products")}
+                    >
                       <ChevronLeft className="h-4 w-4" />
                       <span className="sr-only">Back</span>
                     </Button>
@@ -236,24 +310,28 @@ export default function Editproducts() {
                       In stock
                     </Badge>
                     <div className="hidden items-center gap-2 md:ml-auto md:flex">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => router.push("/dashboard/Products")}
+                      >
                         Discard
                       </Button>
-                      <Button size="sm" type="submit">
-                        Update Product
+                      <Button size="sm" type="submit" disabled={isSubmitting}>
+                        {isSubmitting ? "Updating..." : "Update Product"}
                       </Button>
                     </div>
                   </div>
                   <p className="text-[#444746] text-2xl">
-                    Create New Product For Save In Database
+                    Update Product Information
                   </p>
                   <div className="grid gap-4 md:grid-cols-[1fr_250px] lg:grid-cols-3 lg:gap-8">
                     <div className="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
-                      <Card x-chunk="dashboard-07-chunk-0">
+                      <Card>
                         <CardHeader>
                           <CardTitle>Product Details</CardTitle>
                           <CardDescription>
-                            Lipsum dolor sit amet, consectetur adipiscing elit
+                            Update your product information
                           </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -271,17 +349,18 @@ export default function Editproducts() {
                                       <Input
                                         {...field}
                                         type="text"
-                                        placeholder="Enter your prompt here"
-                                        className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
+                                        placeholder="Enter product name"
+                                        className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
                                       />
                                     </FormControl>
+                                    <FormMessage />
                                   </FormItem>
                                 )}
                               />
                             </div>
 
                             <div className="grid gap-3">
-                              <Label htmlFor="name" className="px-2">
+                              <Label htmlFor="SKU" className="px-2">
                                 SKU
                               </Label>
                               <FormField
@@ -293,16 +372,41 @@ export default function Editproducts() {
                                       <Input
                                         {...field}
                                         type="text"
-                                        placeholder="Enter your prompt here"
-                                        className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
+                                        placeholder="Enter SKU"
+                                        className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
                                       />
                                     </FormControl>
+                                    <FormMessage />
                                   </FormItem>
                                 )}
                               />
                             </div>
+                            
                             <div className="grid gap-3">
-                              <Label htmlFor="name" className="px-2">
+                              <Label htmlFor="stock" className="px-2">
+                                Stock
+                              </Label>
+                              <FormField
+                                control={form.control}
+                                name="stock"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <Input
+                                        {...field}
+                                        type="number"
+                                        placeholder="Enter stock quantity"
+                                        className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            
+                            <div className="grid gap-3">
+                              <Label htmlFor="price" className="px-2">
                                 Price
                               </Label>
                               <FormField
@@ -314,19 +418,41 @@ export default function Editproducts() {
                                       <Input
                                         {...field}
                                         type="number"
-                                        placeholder="Enter the price"
-                                        className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
+                                        placeholder="Enter price"
+                                        className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
                                       />
                                     </FormControl>
-                                    <FormDescription />
                                     <FormMessage />
                                   </FormItem>
                                 )}
                               />
                             </div>
-                           
+
                             <div className="grid gap-3">
-                              <Label htmlFor="name" className="px-2">
+                              <Label htmlFor="vat" className="px-2">
+                                TAX Percentage(%)
+                              </Label>
+                              <FormField
+                                control={form.control}
+                                name="vat"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <Input
+                                        {...field}
+                                        type="number"
+                                        placeholder="Enter VAT percentage"
+                                        className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+
+                            <div className="grid gap-3">
+                              <Label htmlFor="brandName" className="px-2">
                                 Brand name
                               </Label>
                               <FormField
@@ -338,18 +464,18 @@ export default function Editproducts() {
                                       <Input
                                         {...field}
                                         type="text"
-                                        placeholder="Enter the Brand name"
-                                        className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
+                                        placeholder="Enter brand name"
+                                        className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
                                       />
                                     </FormControl>
-                                    <FormDescription />
                                     <FormMessage />
                                   </FormItem>
                                 )}
                               />
                             </div>
+                            
                             <div className="grid gap-3">
-                              <Label htmlFor="name" className="px-2">
+                              <Label htmlFor="productTag" className="px-2">
                                 Product Tag
                               </Label>
                               <FormField
@@ -361,18 +487,18 @@ export default function Editproducts() {
                                       <Input
                                         {...field}
                                         type="text"
-                                        placeholder="Enter the Product tag"
-                                        className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
+                                        placeholder="Enter product tag"
+                                        className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
                                       />
                                     </FormControl>
-                                    <FormDescription />
                                     <FormMessage />
                                   </FormItem>
                                 )}
                               />
                             </div>
+                            
                             <div className="grid gap-3">
-                              <Label htmlFor="name" className="px-2">
+                              <Label htmlFor="Discount" className="px-2">
                                 Discount Percentage(%)
                               </Label>
                               <FormField
@@ -384,17 +510,18 @@ export default function Editproducts() {
                                       <Input
                                         {...field}
                                         type="number"
-                                        placeholder="Enter the Discount"
-                                        className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
+                                        placeholder="Enter discount"
+                                        className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
                                       />
                                     </FormControl>
+                                    <FormMessage />
                                   </FormItem>
                                 )}
                               />
                             </div>
 
-                            <div className="grid gap-3 ">
-                              <Label htmlFor="description" className="px-2">
+                            <div className="grid gap-3">
+                              <Label htmlFor="Description" className="px-2">
                                 Description
                               </Label>
                               <FormField
@@ -405,11 +532,12 @@ export default function Editproducts() {
                                     <FormControl>
                                       <Textarea
                                         {...field}
-                                        placeholder="Enter  Description here"
-                                        className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
+                                        placeholder="Enter description"
+                                        className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
                                         rows={4}
                                       />
                                     </FormControl>
+                                    <FormMessage />
                                   </FormItem>
                                 )}
                               />
@@ -418,14 +546,7 @@ export default function Editproducts() {
                         </CardContent>
                       </Card>
                       <PurchasSalesProdcutsForm form={form} />
-                      <InventoryDetailsProduct form={form} trackInventory={product.trackInventory} allowOutOfStock={product.allowOutOfStock} />
-                      <CategorySelect
-                        form={form}
-                        changeDataProductCategories={
-                          changeDataProductCategories
-                        }
-                        changeDataProductCategory={changeDataProductCategory}
-                      />
+                      <InventoryDetailsProduct form={form} />
                     </div>
                     <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
                       <StatusProduct form={form} />
@@ -438,6 +559,12 @@ export default function Editproducts() {
           </div>
         </form>
       </Form>
+      <div className="container mb-4">
+        <CategorySelect
+          changeDataProductCategories={changeDataProductCategories}
+          changeDataProductCategory={changeDataProductCategory}
+        />
+      </div>
     </div>
   );
 }

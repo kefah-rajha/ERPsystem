@@ -50,6 +50,18 @@ const productSchema = new mongoose_1.Schema({
     vat: { type: String },
     subCategories: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: 'Category' }],
     categories: { type: mongoose_1.default.Schema.Types.ObjectId, ref: 'Category' },
-    photos: [{ type: String }]
+    photos: {
+        type: [String],
+        default: [
+            'https://png.pngtree.com/png-vector/20210602/ourlarge/pngtree-3d-beauty-cosmetics-product-design-png-image_3350323.jpg',
+            'https://png.pngtree.com/png-vector/20210602/ourlarge/pngtree-3d-beauty-cosmetics-product-design-png-image_3350323.jpg',
+            'https://png.pngtree.com/png-vector/20210602/ourlarge/pngtree-3d-beauty-cosmetics-product-design-png-image_3350323.jpg',
+            'https://png.pngtree.com/png-vector/20210602/ourlarge/pngtree-3d-beauty-cosmetics-product-design-png-image_3350323.jpg',
+        ],
+    },
+    mainPhoto: {
+        type: String,
+        default: 'https://mediaphic.com/wp-content/uploads/2021/02/%D9%86%D9%85%D9%88%D8%B0%D8%AC-%D8%B5%D9%88%D8%B1%D8%A9-%D9%85%D9%86%D8%AA%D8%AC-2.jpg',
+    },
 });
 exports.ProductModel = (0, mongoose_1.model)('Products', productSchema);

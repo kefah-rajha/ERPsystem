@@ -36,60 +36,69 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { categoriesResopnseData } from "@/dataType/dataTypeCategory/dataTypeCategory";
-type statusProductType={
-    form:any
+import { categoriesResponseData } from "@/dataType/dataTypeCategory/dataTypeCategory";
+type statusProductType = {
+  form: any
 
 }
 
-function StatusProduct({form}:statusProductType) {
+function StatusProduct({ form }: statusProductType) {
+  // Set default value when component mounts
+  useEffect(() => {
+    // Only set default if the value is not already set
+    if (!form.getValues("Status")) {
+      form.setValue("Status", "published");
+    }
+  }, [form]);
+
   return (
     <Card x-chunk="dashboard-07-chunk-3">
-                             <CardHeader>
-                               <CardTitle>Product Status</CardTitle>
-                         </CardHeader>
-                             <CardContent>
-                               <div className="grid gap-6">
-                                 <div className="grid gap-3">
-                                 
-                                  <FormField
-                                    control={form.control}
-                                    name="Status"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormControl>
-                                          <Select onValueChange={field.onChange}>
-                                            <SelectTrigger
-                                              id="status"
-                                              aria-label="Select status"
-                                              className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
-                                            >
-                                              <SelectValue
-                                                placeholder="Select status"
-                                                className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
-                                              />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              <SelectItem value="draft">
-                                                Draft
-                                              </SelectItem>
-                                              <SelectItem value="published">
-                                                Active
-                                              </SelectItem>
-                                              <SelectItem value="archived">
-                                                Archived
-                                              </SelectItem>
-                                            </SelectContent>
-                                          </Select>
-                                        </FormControl>
-                                      </FormItem>
-                                    )}
-                                  />
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
+      <CardHeader>
+        <CardTitle>Product Status</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-6">
+          <div className="grid gap-3">
+            <FormField
+              control={form.control}
+              name="Status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value || "published"}
+                    >
+                      <SelectTrigger
+                        id="status"
+                        aria-label="Select status"
+                        className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
+                      >
+                        <SelectValue
+                          placeholder="Select status"
+                          className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="draft">
+                          Draft
+                        </SelectItem>
+                        <SelectItem value="published">
+                          Active
+                        </SelectItem>
+                        <SelectItem value="archived">
+                          Archived
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
-
 export default StatusProduct

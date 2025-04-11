@@ -7,6 +7,7 @@ export const products = {
     try {
       // Extract product ID from request parameters
       const { id } = req.params;
+      console.log(id)
   
       // Validate ID format
       if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -21,8 +22,9 @@ export const products = {
         .populate('categories') // Populate main category
         .populate('subCategories') // Populate subcategories
         .lean(); // Convert to plain JavaScript object
-        console.log(product,"product")
-  
+       console.log(typeof product?.allowOutOfStock.toString())
+       console.log(typeof product?.trackInventory.toString())
+
       // Check if product exists
       if (!product) {
         return res.status(404).json({

@@ -109,7 +109,7 @@ function PurchasSalesProdcutsForm({form}:purchasSalesProdcutsFormType) {
                 <FormControl>
                   <Input
                     {...field}
-                    type="number"
+                    type="text"
                     placeholder="Enter Sales code"
                     className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
                   />

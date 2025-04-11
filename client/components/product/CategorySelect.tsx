@@ -36,7 +36,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { categoriesResopnseData } from "@/dataType/dataTypeCategory/dataTypeCategory";
+import { categoriesResponseData } from "@/dataType/dataTypeCategory/dataTypeCategory";
 
 import { cn } from "@/lib/utils";
 type productCategoriesType = {
@@ -44,18 +44,17 @@ type productCategoriesType = {
   name: string;
 };
 type CategorySelectType = {
-  form: any;
   changeDataProductCategories: (data: productCategoriesType[]) => void;
   changeDataProductCategory: (data: string) => void;
 };
 
 function CategorySelect({
-  form,
+  
   changeDataProductCategories,
   changeDataProductCategory,
 }: CategorySelectType) {
-  const [categories, setCategories] = useState<categoriesResopnseData[]>([]);
-  const [subCategories, setSubCategories] = useState<categoriesResopnseData[]>(
+  const [categories, setCategories] = useState<categoriesResponseData[]>([]);
+  const [subCategories, setSubCategories] = useState<categoriesResponseData[]>(
     []
   );
   const [selectCategory, setSelectCategory] = useState("");
@@ -147,43 +146,35 @@ function CategorySelect({
     changeDataProductCategory(selectCategory);
   }, [changeDataProductCategory, selectCategory]);
   return (
-    <Card x-chunk="dashboard-07-chunk-2">
+    <Card x-chunk="dashboard-07-chunk-2" >
       <CardHeader>
         <CardTitle>Product Category</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid gap-6  items-center">
           <div className="grid gap-3">
-            <FormField
-              control={form.control}
-              name="Category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Select
-                      onValueChange={setSelectCategory}
-                      value={selectCategory}
-                    >
-                      <SelectTrigger
-                        id="Category"
-                        disabled={productCategories.length !== 0}
-                        aria-label="Select Category"
-                        className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
-                      >
-                        <SelectValue placeholder="Select Category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category: categoriesResopnseData) => (
-                          <SelectItem value={category._id} key={category._id}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+          <div>
+  <label htmlFor="Category">Category</label>
+  <Select
+    onValueChange={setSelectCategory}
+    value={selectCategory}
+  >
+    <SelectTrigger
+      id="Category"
+      disabled={productCategories.length !== 0}
+      className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
+    >
+      <SelectValue placeholder="Select Category" />
+    </SelectTrigger>
+    <SelectContent>
+      {categories.map((category: categoriesResponseData) => (
+        <SelectItem value={category._id} key={category._id}>
+          {category.name}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+</div>
           </div>
           <div className="h-full flex items-center flex-wrap">
             {productCategories.map((productCategory, index) => (
@@ -239,7 +230,7 @@ function CategorySelect({
                   <DialogDescription>Select SubCategory</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
-                  {subCategories.map((subCategory: categoriesResopnseData) => (
+                  {subCategories.map((subCategory: categoriesResponseData) => (
                     <div
                       key={subCategory._id}
                       className={cn(

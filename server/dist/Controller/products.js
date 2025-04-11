@@ -8,23 +8,53 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.products = void 0;
 const schemaProducts_1 = require("../Modal/schemaProducts");
+const mongoose_1 = __importDefault(require("mongoose"));
 exports.products = {
     getProduct: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
+            // Extract product ID from request parameters
             const { id } = req.params;
-            console.log(id, "test");
-            const resPost = yield schemaProducts_1.ProductModel.findById(id);
+            // Validate ID format
+            if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
+                return res.status(400).json({
+                    message: 'Invalid product ID format',
+                    success: false,
+                });
+            }
+            // Find product and populate categories and subcategories
+            const product = yield schemaProducts_1.ProductModel.findById(id)
+                .populate('categories') // Populate main category
+                .populate('subCategories') // Populate subcategories
+                .lean(); // Convert to plain JavaScript object
+            console.log(product, "product");
+            // Check if product exists
+            if (!product) {
+                return res.status(404).json({
+                    message: 'Product not found',
+                    success: false,
+                });
+            }
+            // Send successful response
             res.status(200).json({
-                posts: resPost,
+                product: product,
                 success: true,
+                message: 'Product retrieved successfully',
             });
         }
         catch (error) {
-            return res.status(400).json({
-                message: error,
+            // Enhanced error handling
+            console.error('Error in getProduct:', error);
+            // Type the error for better handling
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+            return res.status(500).json({
+                message: 'Server error while retrieving product',
+                error: errorMessage,
                 success: false,
             });
         }

@@ -29,7 +29,7 @@ import { categoriesResponseData } from "@/dataType/dataTypeCategory/dataTypeCate
 
 import { Button } from "@/components/ui/button";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
-import { Boxes ,Layers} from 'lucide-react';
+import { Boxes, Layers } from 'lucide-react';
 
 // Import UI component definitions
 import {
@@ -88,9 +88,9 @@ export default function Products() {
 
   // Next.js router for navigation
   const { replace, push } = useRouter();
-  
 
-  
+
+
   // Define TypeScript interface for product data structure
   interface ProductAttribute {
     _id: any;
@@ -109,12 +109,12 @@ export default function Products() {
     allowOutOfStock: boolean;
     Description: string;
   }
-  
+
   // State management for products list
   const [products, setProducts] = useState<
     [ProductAttribute] | undefined | ProductAttribute[]
   >([]);
-  
+
   // Memoized callback for setting products to prevent unnecessary re-renders
   const handleSetProducts = useCallback((newProducts: ProductAttribute[]) => {
     setProducts(newProducts);
@@ -131,8 +131,8 @@ export default function Products() {
   const [categories, setCategories] = useState<categoriesResponseData[]>([]); // Available categories
   const [isExpanded, setIsExpanded] = useState(false);
 
-  console.log(selectedCategory,"selectedCategory")
-  const router=useRouter()
+  console.log(selectedCategory, "selectedCategory")
+  const router = useRouter()
 
 
 
@@ -140,7 +140,7 @@ export default function Products() {
   useEffect(() => {
     let ignore = false; // Flag to prevent state updates if component unmounts
     setLoading(true);
-    
+
     fetch("/api/category/getAllCategories")
       .then((res) => {
         if (!res.ok) {
@@ -162,7 +162,7 @@ export default function Products() {
         toast.error(`Failed to load categories: ${err instanceof Error ? err.message : 'Unknown error'}`);
         setLoading(false);
       });
-    
+
     // Cleanup function to prevent memory leaks
     return () => {
       ignore = true;
@@ -176,11 +176,11 @@ export default function Products() {
         setLoading(true);
         const resNumberProduct = await getNumberProductsServer();
         console.log(resNumberProduct, "resproduct");
-        
+
         if (resNumberProduct?.data) {
           setNumberProducts(resNumberProduct.data); // Set total product count
           console.log(resNumberProduct, "resNumberProduct.count")
-          
+
           // Calculate total pages based on product count and page size
           const totalPages = Math.ceil(resNumberProduct.data / pageSize);
           console.log(totalPages, pageSize, "totalPages1111");
@@ -195,18 +195,18 @@ export default function Products() {
         setLoading(false);
       }
     };
-    
+
     getNumberProducts();
   }, [pageSize]); // Re-run when page size changes
-  
+
   // Handler for page change in pagination
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    
-   
+
+
     // Show loading toast for better UX
     toast.loading('Loading products...', { id: 'pageChange' });
-    
+
     // This will be cancelled by the useEffect in ProductFilter component
     setTimeout(() => {
       toast.dismiss('pageChange');
@@ -217,8 +217,8 @@ export default function Products() {
   const handlePageSizeChange = (size: number) => {
     setPageSize(size);
     setCurrentPage(1); // Reset to first page when changing page size
-    
-    
+
+
     toast.success(`Showing ${size} items per page`);
   };
 
@@ -227,23 +227,23 @@ export default function Products() {
     try {
       // Show loading toast
       toast.loading('Deleting product...', { id: 'deleteProduct' });
-      
+
       const res = await deleteProductServer(id);
       console.log(res.ID);
-      
+
       if (res.ID) {
         // Filter out the deleted product from the products list
         const newProducts = products?.filter(
           (item: ProductAttribute) => item._id !== res?.ID
         );
         console.log(newProducts);
-        
+
         if (newProducts) {
           setProducts(newProducts); // Update state with filtered products
-          
+
           // Show success toast
           toast.success('Product deleted successfully', { id: 'deleteProduct' });
-          
+
           // If we've deleted the last item on a page, go to previous page
           if (newProducts.length === 0 && currentPage > 1) {
             handlePageChange(currentPage - 1);
@@ -269,13 +269,13 @@ export default function Products() {
           {/* Image placeholder maintained from original */}
         </div>
       </TableCell>
-      
+
       {/* Product name and SKU */}
       <TableCell className="font-medium">
         <strong>{product.name.toUpperCase()}</strong>
         <div className="text-xs text-muted-foreground">SKU: {product.SKU}</div>
       </TableCell>
-      
+
       {/* Price and discount information */}
       <TableCell>
         <Badge variant="outline">${product.price}</Badge>
@@ -283,7 +283,7 @@ export default function Products() {
           <div className="text-xs text-muted-foreground mt-1">Discount: {product.Discount}%</div>
         )}
       </TableCell>
-      
+
       {/* Stock information (hidden on mobile) */}
       <TableCell className="hidden md:table-cell">
         <div className="flex flex-col">
@@ -291,7 +291,7 @@ export default function Products() {
           {product.trackInventory && <Badge variant="secondary" className="mt-1 text-xs">Tracked</Badge>}
         </div>
       </TableCell>
-      
+
       {/* Brand and supplier info (hidden on mobile) */}
       <TableCell className="hidden md:table-cell">
         <div className="text-sm">
@@ -301,7 +301,7 @@ export default function Products() {
           )}
         </div>
       </TableCell>
-      
+
       {/* Action buttons for each product */}
       <TableCell>
         <DropdownMenu>
@@ -312,7 +312,7 @@ export default function Products() {
               <span className="sr-only">Toggle menu</span>
             </Button>
           </DropdownMenuTrigger>
-          
+
           {/* Quick view button */}
           <button
             className="ml-2 hover:text-foreground hover:bg-foreground/10 p-2 rounded-sm text-orange-300"
@@ -323,17 +323,17 @@ export default function Products() {
           >
             <CalendarPlus />
           </button>
-          
+
           {/* Dropdown menu with actions */}
           <DropdownMenuContent align="end">
             {/* Edit product link */}
             <Link href={`/dashboard/Products/${product._id}`}
-                  onClick={() => toast.loading('Loading edit form...', { id: 'editProduct' })}>
+              onClick={() => toast.loading('Loading edit form...', { id: 'editProduct' })}>
               <Button className="m-0 p-0 outline-0 w-full bg-transparent text-foreground hover:bg-foreground/20">
                 Edit
               </Button>
             </Link>
-            
+
             {/* Delete product with confirmation dialog */}
             <AlertDialog>
               <AlertDialogTrigger asChild>
@@ -387,9 +387,9 @@ export default function Products() {
           <Package2 className="h-8 w-8 text-muted-foreground mb-2" />
           <div className="text-sm text-muted-foreground">No products found</div>
           {selectedCategory && (
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className="mt-2"
               onClick={() => setSelectedCategory(null)}
             >
@@ -417,10 +417,10 @@ export default function Products() {
             color: '#fff',      // Default text color
           },
 
-        
+
         }}
       />
-      
+
       <div>
         {/* Error message banner if there's an error */}
         {error && (
@@ -428,8 +428,8 @@ export default function Products() {
             <strong className="font-bold">Error! </strong>
             <span className="block sm:inline">{error}</span>
             <span className="absolute top-0 bottom-0 right-0 px-4 py-3 h-full flex items-center">
-              <Button 
-                variant="default" 
+              <Button
+                variant="default"
                 size="sm"
                 onClick={() => setError(null)}
               >
@@ -439,7 +439,7 @@ export default function Products() {
           </div>
         )}
       </div>
-      
+
       <div className="flex flex-col sm:gap-4 sm:py-4 container ">
         <main className="grid flex-1 items-start gap-4 sm:py-0 md:gap-8">
           {/* Tabs container with "all" as default selected tab */}
@@ -447,25 +447,25 @@ export default function Products() {
             <div className="flex items-center pt-4">
               <div className="ml-auto flex items-center gap-2">
                 {/* Product filter component that manages product filtering */}
-              
-                <ProductFilter 
-                  pageNumber={currentPage} 
-                  pageSize={pageSize} 
-                  setProducts={handleSetProducts} 
+
+                <ProductFilter
+                  pageNumber={currentPage}
+                  pageSize={pageSize}
+                  setProducts={handleSetProducts}
                   selectedCategory={selectedCategory}
-                  
+
                 />
-                  <Button
-                        variant="outline"
-                        className=" h-10 card-gradient  hover:text-gray-400"
-                        onClick={()=> push("/dashboard/Products/Categories")}
-                    >
-                        <Layers className="h-4 w-4 mr-2 text-green-300 " />
-                       Create Categories
-                    </Button>
+                <Button
+                  variant="outline"
+                  className=" h-10 card-gradient  hover:text-gray-400"
+                  onClick={() => push("/dashboard/Products/Categories")}
+                >
+                  <Layers className="h-4 w-4 mr-2 text-green-300 " />
+                  Create Categories
+                </Button>
 
                 {/* Create product button with icon */}
-                <Button 
+                <Button
                   className='h-10 rounded-sm text-foreground card-gradient hover:text-gray-400'
                   onClick={() => {
                     toast.loading('Loading create form...', { id: 'createProduct' });
@@ -477,7 +477,7 @@ export default function Products() {
                 </Button>
               </div>
             </div>
-            
+
             {/* Category filter section */}
             <Card className="mt-2 pt-4">
               <CardContent>
@@ -495,7 +495,7 @@ export default function Products() {
                 />
               </CardContent>
             </Card>
-            
+
             {/* Main content tab */}
             <TabsContent value="all">
               <Card x-chunk="dashboard-06-chunk-0" className="shadow-md py-4">
@@ -507,7 +507,7 @@ export default function Products() {
                     Manage your products and view their sales performance.
                   </CardDescription>
                 </CardHeader>
-                
+
                 {/* Products table */}
                 <CardContent>
                   <Table className="border">
@@ -549,30 +549,30 @@ export default function Products() {
           </Tabs>
         </main>
       </div>
-      
-      {/* Pagination controls in a sticky card at the bottom */}
-      <Card className={cn(!isExpanded ?"sticky bottom-0 w-fit" :"sticky bottom-0 w-full")} >
-      <CardContent className="pt-6 pb-6 px-6">
-        <CollapsibleCard 
-          numberProducts={numberProducts}
-          currentPage={currentPage}
-          countPages={countPages}
-          isExpanded={isExpanded}
-          setIsExpanded={setIsExpanded}
 
-        >
-          <PaginationControls
+      {/* Pagination controls in a sticky card at the bottom */}
+      <Card className={cn(!isExpanded ? "sticky bottom-0 w-fit" : "sticky bottom-0 w-full")} >
+        <CardContent className="pt-6 pb-6 px-6">
+          <CollapsibleCard
             numberProducts={numberProducts}
-            countPages={countPages}
-            pageSize={pageSize}
             currentPage={currentPage}
-            onPageChange={handlePageChange}
-            onPageSizeChange={handlePageSizeChange}
+            countPages={countPages}
+            isExpanded={isExpanded}
+            setIsExpanded={setIsExpanded}
+
+          >
+            <PaginationControls
+              numberProducts={numberProducts}
+              countPages={countPages}
+              pageSize={pageSize}
+              currentPage={currentPage}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
             // disabled={loading}
-          />
-        </CollapsibleCard>
-      </CardContent>
-    </Card>
+            />
+          </CollapsibleCard>
+        </CardContent>
+      </Card>
     </div>
   );
 }
