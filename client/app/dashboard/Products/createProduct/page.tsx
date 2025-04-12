@@ -61,20 +61,27 @@ const createProductFormSchema = z.object({
   SKU: z.string(),
   brandName: z.string().optional(),
   productTag: z.string().optional(),
-  price: z.string({ required_error: "error here" }).min(1, { message: "test" }),
-  Discount: z.string().default("0"),
+  price: z.string().refine((val) => !isNaN(parseInt(val)) && parseInt(val) >= 0, {
+    message: "price cannot be less than 0.",
+  }),
+  Discount: z.string().refine((val) => !isNaN(parseInt(val)) && parseInt(val) >= 0, {
+    message: "Discount cannot be less than 0.",
+  }),
   SupplierName: z.string(),
   salesCode: z.string(),
   purchaseCode: z.string(),
   supplierCode: z.string(),
-  stock: z.string(),
+  stock: z.string().refine((val) => !isNaN(parseInt(val)) && parseInt(val) >= 0, {
+    message: "Stock cannot be less than 0.",
+  }),
+
   trackInventory: z.enum(["false", "true"]),
   allowOutOfStock: z.enum(["false", "true"]),
   Description: z.string(),
-  vat: z.string().min(0, {
-    message: "VAT must be a positive number.",
+  vat: z.string().refine((val) => !isNaN(parseInt(val)) && parseInt(val) >= 0, {
+    message: "TAX cannot be less than 0.",
   }),
-   Status: z.enum(["archive", "published", "draft"]),
+  Status: z.enum(["archive", "published", "draft"]),
 });
 type productFormValues = z.infer<typeof createProductFormSchema>;
 // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -87,12 +94,65 @@ export default function CreateProducts() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const router = useRouter()
 
-
+console.log(inputImages,"inputImagesMainComponent")
   const form = useForm<productFormValues>({
     resolver: zodResolver(createProductFormSchema),
   });
 
-  
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+    setValue,
+    control,
+  } = form;
+  console.log(errors, "errors")
+
+
+  const formDefaultValues: any = {
+    name: '',
+    SKU: '',
+    brandName: '', // Optional strings can default to empty
+    productTag: '',  // Optional strings can default to empty
+    price: '',       // Empty string for numerical inputs initially
+    Discount: '0',   // Use the Zod default value
+    SupplierName: '',
+    salesCode: '',
+    purchaseCode: '',
+    supplierCode: '',
+    stock: '',       // Empty string for numerical inputs initially
+    trackInventory: 'false', // Sensible default for boolean-like enum
+    allowOutOfStock: 'false', // Sensible default for boolean-like enum
+    Description: '',
+    vat: '',         // Empty string for numerical inputs initially
+    Status: 'published', 
+  };
+  const clearForm = () => {
+    // Reset the form using the SAME default values object
+    form.reset(
+      formDefaultValues,
+      {
+        // Keep these options to fully reset the form's state
+        keepValues: false,
+        keepDirtyValues: false,
+        keepErrors: false,
+        keepIsSubmitted: false,
+        keepTouched: false,
+        keepIsValid: false,
+        keepSubmitCount: false,
+      }
+    );
+    // console.log('Form cleared');
+  };
+
+
+
+
+
+
+
+
 
   async function onSubmit(data: productFormValues) {
     setIsSubmitting(true);
@@ -113,7 +173,7 @@ export default function CreateProducts() {
         ...data,
         photos: inputImages,
         categories: dataMainCategory,
-        subCategories: IDsAllCategories
+        subCategories: IDsAllCategories.filter(ct=>ct !==dataMainCategory)
       };
 
       const FetchData = await fetch("/api/products/createProduct", {
@@ -149,7 +209,7 @@ export default function CreateProducts() {
       });
 
       // Reset form after successful submission
-      form.reset();
+
       setInputImages([]);
       setDataProductCategories([]);
       setDataMainCategory("");
@@ -177,10 +237,12 @@ export default function CreateProducts() {
   }
 
   const changeDataProductCategories = (data: any) => {
+    console.log(data,"changeDataProductCategories")
     setDataProductCategories(data);
   };
 
   const changeDataProductCategory = (data: string) => {
+    console.log(data,"changeDataProductCategory")
     setDataMainCategory(data);
   };
 
@@ -210,29 +272,42 @@ export default function CreateProducts() {
             <div className="flex flex-col sm:gap-4 sm:py-4 p-0 w-full">
               <main className="grid    w-full  sm:py-0 md:gap-8">
                 <div className="mx-auto grid max-w-full w-full flex-1 auto-rows-max gap-4">
-                  <div className="flex items-center gap-4">
-                    <Button variant="outline" size="icon" className="h-7 w-7"
-                      onClick={() => router.push("/dashboard/Products")}
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                      <span className="sr-only">Back</span>
-                    </Button>
-                    <h1 className="flex-1 shrink-0 whitespace-nowrap text-[3rem] font-semibold tracking-tight sm:grow-0">
-                      Create Product
-                    </h1>
-                    <Badge variant="outline" className="ml-auto sm:ml-0">
-                      In stock
-                    </Badge>
-                    <div className="hidden items-center gap-2 md:ml-auto md:flex">
-
-                      <Button size="sm" type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? "Saving..." : "Save Product"}
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center  gap-4">
+                      <Button variant="outline" size="icon" className="h-7 w-7"
+                        onClick={() => router.push("/dashboard/Products")}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        <span className="sr-only">Back</span>
                       </Button>
+                      <h1 className="flex-1 shrink-0 whitespace-nowrap text-[3rem] font-semibold tracking-tight sm:grow-0">
+                        Create Product
+                      </h1>
+                      <Badge variant="outline" className="ml-auto sm:ml-0">
+                        In stock
+                      </Badge>
                     </div>
+                    <div>
+                      <div>
+                        <div >
+                          <Button size="sm" type="button" className="bg-red-400 text-white hover:bg-red-600 mr-2" disabled={isSubmitting}
+                            onClick={clearForm} >
+
+                            Reset Inputs
+                          </Button>
+
+                          <Button size="sm" type="submit" disabled={isSubmitting}>
+                            {isSubmitting ? "Saving..." : "Save Product"}
+                          </Button>
+
+                        </div>
+
+                      </div>
+
+                    </div>
+
                   </div>
-                  <p className="text-[#444746] text-2xl">
-                    Create New Product For Save In Database
-                  </p>
+                  <p className="text-lg text-white/20 ml-2"> Create And Build New Product</p>
                   <div className="grid gap-4 md:grid-cols-[1fr_250px] lg:grid-cols-3 lg:gap-8">
                     <div className="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
                       <Card x-chunk="dashboard-07-chunk-0">
@@ -461,7 +536,7 @@ export default function CreateProducts() {
                     </div>
                     <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
                       <StatusProduct form={form} />
-                      <PhotosProduct />
+                      <PhotosProduct AllImage={setInputImages} />
                     </div>
                   </div>
                 </div>

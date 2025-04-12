@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
+import { Badge } from "@/components/ui/badge"; 
 import {
   Boxes,
   Pencil,
@@ -70,6 +71,11 @@ interface Product {
 /**
  * Main component to display product details
  */
+const formatPrice = (price :any) => {
+  // Example implementation - adjust to your needs (currency symbol, locale)
+  // Using EUR for Netherlands example, based on current location info
+  return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(price || 0);
+};
 export default function ShowProduct() {
   // State for product data, loading status, and errors
   const [product, setProduct] = useState<Product>({} as Product);
@@ -138,6 +144,44 @@ console.log(product,"product")
 
     return price - (price * discountValue / 100);
   };
+
+  type BadgeVariant = "default" | "destructive" | "outline" | "secondary" | null | undefined;
+
+
+
+    // --- Calculations ---
+  const originalPrice = +product?.price || 0;
+  const discountPercent = +product?.Discount || 0;
+  
+  const vatPercent = +product?.vat || 0;
+
+  // Calculate the price after applying the discount
+  const priceAfterDiscount = discountPercent > 0
+    ? originalPrice * (1 - discountPercent / 100)
+    : originalPrice;
+
+  // Calculate the final total price by adding VAT to the discounted price
+  const totalPriceIncludingVAT = priceAfterDiscount * (1 + vatPercent / 100);
+
+  // Determine stock status and styling
+  const stockCount = parseInt(product?.stock);
+  const isInStock = stockCount > 0;
+  const stockText = isInStock ? `${stockCount} in stock` : "Out of stock";
+  let stockBadgeVariant:BadgeVariant  = 'secondary'; // Default variant
+  let stockBadgeClass = ''; // Additional Tailwind classes
+
+  if (!isInStock) {
+    stockBadgeVariant  = 'destructive'; // Red for out of stock
+  } else if (stockCount < 10) {
+    // Yellow for low stock - using outline variant + custom Tailwind colors
+    stockBadgeVariant = 'outline';
+    stockBadgeClass = 'bg-yellow-100 text-yellow-800 border-yellow-300'; // Example yellow styling
+  } else {
+    // Green for high stock - using outline variant + custom Tailwind colors
+    stockBadgeVariant = 'outline';
+    stockBadgeClass = 'bg-green-100 text-green-800 border-green-300'; // Example green styling
+  }
+
 
   // Show loading state
   if (loading) {
@@ -245,49 +289,73 @@ console.log(product,"product")
 
             {/* Product pricing card */}
             <div className="mt-4 space-y-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-2xl font-bold flex items-center">
+            <Card className="w-full max-w-sm"> {/* Example sizing */}
+      <CardHeader>
+      <CardTitle className="text-2xl font-bold flex items-center">
                     <Tag className="w-5 h-5 mr-2" />
                     Pricing
                   </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-4">
-                    {product?.Discount ? (
-                      <>
-                        <div className="text-3xl font-bold">
-                          {formatPrice(calculateDiscountedPrice(product?.price, product?.Discount))}
-                        </div>
-                        <div className="text-xl text-muted-foreground line-through">
-                          {formatPrice(product?.price)}
-                        </div>
-                        <div className="text-sm px-2 py-1 bg-green-100 text-green-800 rounded-full font-medium">
-                          {product?.Discount}% OFF
-                        </div>
-                      </>
-                    ) : (
-                      <div className="text-3xl font-bold">
-                        {formatPrice(product?.price)}
-                      </div>
-                    )}
-                  </div>
+      </CardHeader>
 
-                  {/* Stock information */}
-                  <div className="mt-4 flex items-center">
-                    <div className={cn(
-                      "px-2 py-1 rounded-full text-xs font-medium flex items-center",
-                      parseInt(product?.stock) > 10
-                        ? "bg-green-100 text-green-800"
-                        : parseInt(product?.stock) > 0
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-red-100 text-red-800"
-                    )}>
-                      <span>{parseInt(product?.stock) > 0 ? `${product?.stock} in stock` : "Out of stock"}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+      <CardContent className="grid gap-4"> {/* Use grid layout for spacing */}
+
+        {/* --- Pricing Section --- */}
+        <div className="pricing-details flex flex-wrap items-baseline gap-x-2">
+          <span className="text-sm font-medium text-muted-foreground">Price:</span>
+          {discountPercent > 0 ? (
+            <>
+              {/* Final price after discount (before VAT) */}
+              <span className="text-lg font-semibold">
+                {formatPrice(priceAfterDiscount)}
+              </span>
+              {/* Original price (struck through) */}
+              <span className="text-sm text-muted-foreground line-through">
+                {formatPrice(originalPrice)}
+              </span>
+              {/* Discount Badge */}
+              <Badge variant="destructive" className="text-xs">
+                {discountPercent}% OFF
+              </Badge>
+            </>
+          ) : (
+            <>
+              {/* Regular Price */}
+              <span className="text-lg font-semibold">
+                {formatPrice(originalPrice)}
+              </span>
+            </>
+          )}
+        </div>
+
+        {/* --- Total Price Section --- */}
+        <div className="total-price-details flex items-baseline gap-x-2 border-t pt-2 mt-2"> {/* Added separator */}
+           <span className="text-base font-semibold">Total (incl. VAT): </span>
+           <span className="text-xl font-bold text-primary"> {/* Use primary color for emphasis */}
+             {formatPrice(totalPriceIncludingVAT)}
+           </span>
+           {/* Optional: Show VAT rate if it's applied */}
+           {vatPercent > 0 && (
+              <span className="text-xs text-muted-foreground"> (incl. {vatPercent}% VAT)</span>
+           )}
+        </div>
+
+        {/* --- Stock Information Section --- */}
+        <div className="stock-info">
+          {stockBadgeVariant !== null &&stockBadgeVariant !== undefined &&
+           <Badge variant={stockBadgeVariant} className={stockBadgeClass}>
+           {stockText}
+        </Badge>
+          }
+          
+        </div>
+
+      </CardContent>
+
+      {/* Optional Footer for actions */}
+      {/* <CardFooter>
+        <Button className="w-full">Add to Cart</Button>
+      </CardFooter> */}
+    </Card>
 
               {/* Quick details card */}
               <Card>
@@ -303,7 +371,7 @@ console.log(product,"product")
                     <div>{product?.brandName}</div>
 
                     <div className="text-muted-foreground font-medium">VAT:</div>
-                    <div>{product?.vat || "N/A"}</div>
+                    <div>{product?.vat || "N/A"}%</div>
 
                     <div className="text-muted-foreground font-medium">Supplier:</div>
                     <div>{product?.SupplierName}</div>
@@ -334,15 +402,16 @@ console.log(product,"product")
               </div>
 
               {/* Tabbed content */}
-              <Tabs defaultValue="description">
+              <Tabs defaultValue="details">
                 <TabsList className="grid grid-cols-4">
-                  <TabsTrigger value="description" className="flex items-center gap-1">
-                    <Info className="h-4 w-4" />
-                    <span>Description</span>
-                  </TabsTrigger>
+                 
                   <TabsTrigger value="details" className="flex items-center gap-1">
                     <Clipboard className="h-4 w-4" />
                     <span>Details</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="description" className="flex items-center gap-1">
+                    <Info className="h-4 w-4" />
+                    <span>Description</span>
                   </TabsTrigger>
                   <TabsTrigger value="inventory" className="flex items-center gap-1">
                     <Package className="h-4 w-4" />
@@ -353,32 +422,8 @@ console.log(product,"product")
                     <span>Supplier</span>
                   </TabsTrigger>
                 </TabsList>
-
-                {/* Description Tab */}
-                <TabsContent value="description" className="space-y-4">
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="w-full">
-                        <h3 className="text-xl font-semibold mb-4 flex items-center">
-                          <Info className="h-5 w-5 mr-2" />
-                          Product Description
-                        </h3>
-                        <div className="relative w-full overflow-hidden">
-                          {product?.Description ? (
-                            <p className="whitespace-normal break-words overflow-wrap-anywhere text-sm md:text-base pr-4" style={{ maxWidth: '100%', overflowX: 'hidden', wordBreak: 'break-word' }}>
-                              {product?.Description}
-                            </p>
-                          ) : (
-                            <p className="text-muted-foreground italic">No description available</p>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                {/* Details Tab */}
-                <TabsContent value="details" className="space-y-4">
+                     {/* Details Tab */}
+                     <TabsContent value="details" className="space-y-4">
                   <Card>
                     <CardContent className="pt-6">
                       <h3 className="text-xl font-semibold mb-4 flex items-center">
@@ -401,7 +446,7 @@ console.log(product,"product")
                           </TableRow>
                           <TableRow>
                             <TableCell className="font-medium">VAT</TableCell>
-                            <TableCell>{product?.vat || "N/A"}</TableCell>
+                            <TableCell>{product?.vat || "N/A"}%</TableCell>
                           </TableRow>
                           <TableRow>
                             <TableCell className="font-medium">Categories</TableCell>
@@ -427,6 +472,31 @@ console.log(product,"product")
                   </Card>
                 </TabsContent>
 
+
+                {/* Description Tab */}
+                <TabsContent value="description" className="space-y-4">
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="w-full">
+                        <h3 className="text-xl font-semibold mb-4 flex items-center">
+                          <Info className="h-5 w-5 mr-2" />
+                          Product Description
+                        </h3>
+                        <div className="relative w-full overflow-hidden">
+                          {product?.Description ? (
+                            <p className="whitespace-normal break-words overflow-wrap-anywhere text-sm md:text-base pr-4" style={{ maxWidth: '100%', overflowX: 'hidden', wordBreak: 'break-word' }}>
+                              {product?.Description}
+                            </p>
+                          ) : (
+                            <p className="text-muted-foreground italic">No description available</p>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+           
                 {/* Inventory Tab */}
                 <TabsContent value="inventory" className="space-y-4">
                   <Card>

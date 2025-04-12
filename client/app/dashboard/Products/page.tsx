@@ -107,6 +107,7 @@ export default function Products() {
     supplierCode: string;
     trackInventory: boolean;
     allowOutOfStock: boolean;
+    photos:string[];
     Description: string;
   }
 
@@ -266,8 +267,14 @@ export default function Products() {
       <TableCell className="hidden sm:table-cell">
         <div className="h-[56px] w-[56px] relative flex items-start justify-center">
           <div className="bg-transparent absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[54px] h-[54px] rounded-full border-2 border-background"></div>
-          {/* Image placeholder maintained from original */}
-        </div>
+          {product.photos[0] && (
+      <Image 
+        src={product.photos[0]} 
+        alt={`${product.name || 'Product'} image`}
+        fill
+        className="object-cover rounded-full"
+      />
+    )}        </div>
       </TableCell>
 
       {/* Product name and SKU */}

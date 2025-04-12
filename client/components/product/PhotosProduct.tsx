@@ -37,14 +37,24 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+type ImageData = string | ArrayBuffer | [];
 
-function PhotosProduct() {
+interface PhotosProductType {
+  AllImage:(inputImages:ImageData[])=>void
+}
+function PhotosProduct({AllImage}:PhotosProductType) {
   type ImageData = string | ArrayBuffer | [];
 
   const [inputImages, setInputImages] = useState<ImageData[]>([]);
   const mainPhoto = useRef<HTMLImageElement>(null);
   const [multiPhoto, setMultiPhotho] = useState<any[]>([]);
-  console.log(inputImages)
+  console.log(inputImages ,"inputImages",multiPhoto)
+  useEffect(()=>{
+    const AllImageInComponentPhoto=[...multiPhoto,...inputImages]
+    
+    AllImage(AllImageInComponentPhoto)
+
+  },[AllImage, inputImages, multiPhoto])
   const inputFiles = (e:any) => {
     const files = [...e.target.files];
 

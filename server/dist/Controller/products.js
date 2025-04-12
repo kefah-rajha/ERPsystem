@@ -20,6 +20,7 @@ exports.products = {
         try {
             // Extract product ID from request parameters
             const { id } = req.params;
+            console.log(id);
             // Validate ID format
             if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
                 return res.status(400).json({
@@ -32,7 +33,8 @@ exports.products = {
                 .populate('categories') // Populate main category
                 .populate('subCategories') // Populate subcategories
                 .lean(); // Convert to plain JavaScript object
-            console.log(product, "product");
+            console.log(typeof (product === null || product === void 0 ? void 0 : product.allowOutOfStock.toString()));
+            console.log(typeof (product === null || product === void 0 ? void 0 : product.trackInventory.toString()));
             // Check if product exists
             if (!product) {
                 return res.status(404).json({

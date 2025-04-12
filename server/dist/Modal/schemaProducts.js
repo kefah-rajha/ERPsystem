@@ -50,6 +50,11 @@ const productSchema = new mongoose_1.Schema({
     vat: { type: String },
     subCategories: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: 'Category' }],
     categories: { type: mongoose_1.default.Schema.Types.ObjectId, ref: 'Category' },
+    Status: {
+        type: String,
+        enum: ["archive", "published", "draft"],
+        default: 'published'
+    },
     photos: {
         type: [String],
         default: [

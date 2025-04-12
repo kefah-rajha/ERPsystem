@@ -148,6 +148,3 @@ export const uploadMultiplePhotos = async (req: Request, res: Response) => {
   }
 };
 
-// Example of how to use these handlers in Express routes
-// app.post('/api/upload/main-photo', uploadMainPhoto);
-// app.post('/api/upload/photos', uploadMultiplePhotos);

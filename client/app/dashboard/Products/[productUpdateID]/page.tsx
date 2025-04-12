@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, PlusCircle, Upload } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import CategorySelect from "@/components/product/CategorySelect";
+import CategorySelectUpdate from "@/components/product/CategorySelectUpdate";
 import toast, { Toaster } from 'react-hot-toast'; // Import react-hot-toast
 
 import { Badge } from "@/components/ui/badge";
@@ -63,20 +63,27 @@ const createProductFormSchema = z.object({
   SKU: z.string(),
   brandName: z.string().optional(),
   productTag: z.string().optional(),
-  price: z.string({ required_error: "error here" }).min(1, { message: "test" }),
-  Discount: z.string().default("0"),
+  price: z.string().refine((val) => !isNaN(parseInt(val)) && parseInt(val) >= 0, {
+    message: "price cannot be less than 0.",
+  }),
+  Discount: z.string().refine((val) => !isNaN(parseInt(val)) && parseInt(val) >= 0, {
+    message: "Discount cannot be less than 0.",
+  }),
   SupplierName: z.string(),
   salesCode: z.string(),
   purchaseCode: z.string(),
   supplierCode: z.string(),
-  stock: z.string(),
-  trackInventory:z.boolean(),
-  allowOutOfStock: z.boolean(),
-  Description: z.string(),
-  vat: z.string().min(0, {
-    message: "VAT must be a positive number.",
+  stock: z.string().refine((val) => !isNaN(parseInt(val)) && parseInt(val) >= 0, {
+    message: "Stock cannot be less than 0.",
   }),
-  Status: z.string(),
+
+  trackInventory: z.enum(["false", "true"]),
+  allowOutOfStock: z.enum(["false", "true"]),
+  Description: z.string(),
+  vat: z.string().refine((val) => !isNaN(parseInt(val)) && parseInt(val) >= 0, {
+    message: "TAX cannot be less than 0.",
+  }),
+  Status: z.enum(["archive", "published", "draft"]),
 });
 
 type productFormValues = z.infer<typeof createProductFormSchema>;
@@ -114,7 +121,7 @@ export default function EditProducts() {
 
   const form = useForm<productFormValues>({
     resolver: zodResolver(createProductFormSchema),
-    values: product
+    
   });
 
   // Fetch product data
@@ -130,30 +137,57 @@ export default function EditProducts() {
         if (!ignore) {
           console.log(jsonData.product
             , "product data loaded");
-          setProduct(jsonData.product);
+          const productData = jsonData.product;
+        
+          // Update product state
+          setProduct(productData);
           
-          // Set form values after product data is loaded
+          // Reset form with properly formatted values
           form.reset({
-            ...jsonData.posts,
-            trackInventory: "true",
-            allowOutOfStock: String(jsonData.product.allowOutOfStock || "false"),
-            stock: String(jsonData.product.stock || "0"),
-            vat: String(jsonData.product.vat || "0"),
-            Status: jsonData.product.Status || "published"
+            name: productData.name || "",
+            SKU: productData.SKU || "",
+            brandName: productData.brandName || "",
+            productTag: productData.productTag || "",
+            price: String(productData.price || ""),
+            Discount: String(productData.Discount || ""),
+            SupplierName: productData.SupplierName || "",
+            salesCode: productData.salesCode || "",
+            purchaseCode: productData.purchaseCode || "",
+            supplierCode: productData.supplierCode || "",
+            allowOutOfStock: productData.allowOutOfStock === true ? "true" : "false",
+            trackInventory: productData.trackInventory === false ? "false" : "true",
+            Description: productData.Description || "",
+            stock: String(productData.stock || "0"),
+            vat: String(productData.vat || "0"),
+            Status: productData.Status || "published"
           });
+          console.log(jsonData.product.categories,"jsonData.product.categories")
           
           // If there are categories, set them
           if (jsonData.product.categories) {
-            setDataMainCategory(jsonData.product.categories);
+            const mainCategory ={
+              id:jsonData.product.categories._id,
+              name:jsonData.product.categories.name
+            }
+
+            setDataMainCategory(mainCategory.id);
           }
           
           // If there are subcategories, set them
           if (jsonData.product.subCategories && jsonData.product.subCategories.length > 0) {
-            setDataProductCategories(jsonData.product.subCategories);
+            const subCategoriesResponseUpdate:any[] =[]
+
+            jsonData.product.subCategories.map((subCategory: any) => {
+              subCategoriesResponseUpdate.push({id:subCategory._id,name:subCategory.name});
+              
+            })
+            setDataProductCategories(subCategoriesResponseUpdate as any);
+
           }
           
           // If there are images, set them
           if (jsonData.product.photos && jsonData.product.photos.length > 0) {
+
             setInputImages(jsonData.product.photos);
           }
         }
@@ -230,8 +264,7 @@ export default function EditProducts() {
         },
       });
 
-      // Navigate back to products page after successful update
-      router.push("/dashboard/Products");
+    
     } catch (error) {
       console.error("Error updating product:", error);
 
@@ -550,7 +583,7 @@ export default function EditProducts() {
                     </div>
                     <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
                       <StatusProduct form={form} />
-                      <PhotosProduct />
+                      <PhotosProduct AllImage={setInputImages} />
                     </div>
                   </div>
                 </div>
@@ -560,9 +593,11 @@ export default function EditProducts() {
         </form>
       </Form>
       <div className="container mb-4">
-        <CategorySelect
+        <CategorySelectUpdate
+        dataMainCategory={dataMainCategory}
           changeDataProductCategories={changeDataProductCategories}
           changeDataProductCategory={changeDataProductCategory}
+          dataProductCategories={dataProductCategories}
         />
       </div>
     </div>

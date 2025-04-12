@@ -44,31 +44,34 @@ type productCategoriesType = {
   name: string;
 };
 type CategorySelectType = {
+    dataMainCategory:string;
   changeDataProductCategories: (data: productCategoriesType[]) => void;
   changeDataProductCategory: (data: string) => void;
+  dataProductCategories: productCategoriesType[];
 };
 
-function CategorySelect({
-  
+function CategorySelectUpdate({
+    dataMainCategory,
   changeDataProductCategories,
   changeDataProductCategory,
+  dataProductCategories
 }: CategorySelectType) {
   const [categories, setCategories] = useState<categoriesResponseData[]>([]);
   const [subCategories, setSubCategories] = useState<categoriesResponseData[]>(
     []
   );
-  const [selectCategory, setSelectCategory] = useState("");
+  const [selectCategory, setSelectCategory] = useState(dataMainCategory);
   const [selectSubCategory, setSelectSubCategory] = useState({
     id: "",
     name: "",
   });
-
+console.log(  dataProductCategories ,"dataProductCategories")
   const [productCategories, setProductCategories] = useState<
     productCategoriesType[]
-  >([]);
+  >(dataProductCategories);
   const [open, setOpen] = useState(false);
 
-  console.log(selectSubCategory);
+  console.log(dataProductCategories, "dataProductCategories");
 
   useEffect(() => { }, [selectCategory]);
 
@@ -274,4 +277,4 @@ function CategorySelect({
   );
 }
 
-export default CategorySelect;
+export default CategorySelectUpdate;
