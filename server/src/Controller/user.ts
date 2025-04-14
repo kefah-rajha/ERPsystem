@@ -22,9 +22,9 @@ export const user = {
       const pageSize = parseInt(req.params.pageSize as string) || 10;
       const skipItems = (pageNumber - 1) * pageSize;
 
-      const { fieldSort, sort, role, fields, fieldSearch, searchInput } = req.body;
+      const { fieldSort, sort, role, fields, fieldSearch, searchInput, dateRange } = req.body;
       console.log(fieldSort, sort, role, fields, fieldSearch, searchInput)
-      if (fields =="All" && role == "All" && searchInput == "" && sort == "1" ) {
+      if (fields == "All" && role == "All" && searchInput == "" && sort == "1" && dateRange.startDate == "" && dateRange.endDate == "") {
         console.log("test ")
         const users = await UserModel.find({}).skip(skipItems)
           .limit(pageSize)
@@ -36,56 +36,82 @@ export const user = {
           data: users,
           message: 'Users retrieved successfully'
         });
-      }else{
-      const query: any = {};
+      } else {
+        const query: any = {};
+        if (dateRange) {
+          // Create a date filter if either startDate or endDate is provided
+          if (dateRange.startDate || dateRange.endDate) {
+            // Initialize createdAt object if it doesn't exist
+            query.createdAt = query.createdAt || {};
 
-      // Add role filter if specified and not 'all'
-      if (role && role !== 'All') {
-        query.role = role;
-      }
+            // If startDate is provided, use it; otherwise use a very old date
+            if (dateRange.startDate) {
+              query.createdAt.$gte = new Date(dateRange.startDate);
+            } else {
+              // You can set this to a reasonable "beginning of time" for your application
+              query.createdAt.$gte = new Date('1970-01-01');
+            }
 
-      // Add search filter if search input exists
-      if (searchInput && fieldSearch) {
-        query[fieldSearch] = {
-          $regex: new RegExp(`^${searchInput}`, 'i')
-        };
-      }
+            // If endDate is provided, use it; otherwise use current date
+            if (dateRange.endDate) {
+              query.createdAt.$lte = new Date(dateRange.endDate);
+            } else {
+              query.createdAt.$lte = new Date(); // Current date and time
+            }
+          }
+        }
+        // Add role filter if specified and not 'all'
+        if (role && role !== 'All') {
+          query.role = role;
+        }
 
-      // Add empty/non-empty fields filter
-      if (fields === 'empty') {
-        query.$or = [
-          { name: { $eq: '' } },
-          { email: { $eq: '' } },
+        // Add search filter if search input exists
+        console.log(searchInput, fieldSearch)
+        if (searchInput) {
+          if (fieldSearch) {
+            // If specific field is provided, search only in that field
+            query[fieldSearch as string] = { $regex: searchInput, $options: 'i' };
+          } else {
+            // If no field is specified, default to searching by name only
+            query.name = { $regex: searchInput, $options: 'i' };
+          }
+        }
+        // Add empty/non-empty fields filter
+        if (fields === 'empty') {
+          query.$or = [
+            { name: { $eq: '' } },
+            { email: { $eq: '' } },
 
-        ];
-      } else if (fields !== 'empty') {
-        query.$and = [
-          { name: { $ne: '' } },
-          { email: { $ne: '' } },
-          { company: { $ne: '' } }
-        ];
-      }
+          ];
+        } else if (fields !== 'empty') {
+          query.$and = [
+            { name: { $ne: '' } },
+            { email: { $ne: '' } },
+            { company: { $ne: '' } }
+          ];
+        }
 
-      // Build sort options
-      const sortOptions: Record<string, 1 | -1> = {};
-      if (fieldSort) {
-        sortOptions[fieldSort] = sort === '1' ? 1 : -1;
-      }
-console.log(query)
-      // Execute query with filters and sorting
-      const users = await UserModel
-        .find(query)
-        .sort(sortOptions)
-        .skip(skipItems)
+        // Build sort options
+        const sortOptions: Record<string, 1 | -1> = {};
+        if (fieldSort) {
+          sortOptions[fieldSort] = sort === '1' ? 1 : -1;
+        }
+        console.log(query)
+        // Execute query with filters and sorting
+        const users = await UserModel
+          .find(query)
+          .sort(sortOptions)
+          .skip(skipItems)
           .limit(pageSize)
+          .populate("")
           .lean()
         // console.log(users)
-      return res.status(200).json({
-        success: true,
-        data: users,
-        message: 'Users retrieved successfully'
-      });
-    }
+        return res.status(200).json({
+          success: true,
+          data: users,
+          message: 'Users retrieved successfully'
+        });
+      }
 
 
     } catch (error: unknown) {
@@ -182,6 +208,10 @@ console.log(query)
         success: false,
       });
     } else {
+      
+      
+
+    
       return res.status(200).json({
         data: getDataUSer,
         success: true,
@@ -450,5 +480,5 @@ console.log(query)
     });
 
   },
-  
+
 };

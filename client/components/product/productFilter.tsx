@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use  client";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";

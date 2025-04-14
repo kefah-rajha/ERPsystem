@@ -25,19 +25,20 @@ import UpdateProfileInfo from "@/components/user/updateUserComponent/UpdateProfi
 import UpdateContanctInfo from "@/components/user/updateUserComponent/updateContanctInfo";
 import UpdatecompanyInfo from "@/components/user/updateUserComponent/updateCompanyInfo"
 
-interface UpdateUserDataType {
-    id:string
-}
-function UpdateUser({id}:UpdateUserDataType) {
-  const [step, setStep] = React.useState<number>(1);
-  console.log(id,"id")
 
+function UpdateUser() {
+  const [step, setStep] = React.useState<number>(1);
+ const router = useRouter();
+  const pathname = usePathname();
+  const id = pathname?.split("/").pop();
   const stepsHandle = (stepButton: number) => {
     setStep(stepButton);
   };
 
   return (
     <div className="container bg-gradient heighWithOutBar pt-2 overflow-auto pb-10 ">
+              <h1 className="text-4xl font-bold my-5">Update User</h1>
+
       <div className="flex items-center rounded-sm justify-between w-full h-16 bg-[#2F2F2F]  container">
         <div className="flex items-center gap-4">
           <div className="text-3xl font-extrabold text-[#C2C2C2]">
@@ -142,14 +143,14 @@ function UpdateUser({id}:UpdateUserDataType) {
         animate={{ opacity: step === 1 ? 1 : 0, y: 0 }}
         transition={{ duration: 1 }}
       >
-        {step == 1 && <UpdateProfileInfo id={id} stepsHandle={stepsHandle} />}
+        {step == 1 && id && <UpdateProfileInfo id={id} stepsHandle={stepsHandle} />}
       </motion.div>
        <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: step === 2 ? 1 : 0, y: 0 }}
         transition={{ duration: 1 }}
       >
-        {step == 2 && <UpdateContanctInfo id={id} stepsHandle={stepsHandle} />}
+        {step == 2 && id && <UpdateContanctInfo id={id} stepsHandle={stepsHandle} />}
       </motion.div>
      
         <motion.div
@@ -157,17 +158,10 @@ function UpdateUser({id}:UpdateUserDataType) {
           animate={{ opacity: step === 3 ? 1 : 0, y: 0 }}
           transition={{ duration: 1 }}
         >
-          {step == 3 && <UpdatecompanyInfo id={id} stepsHandle={stepsHandle} />}
+          {step == 3 && id &&<UpdatecompanyInfo id={id} stepsHandle={stepsHandle} />}
         </motion.div>
       
-      {/*
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: step === 4 ? 1 : 0, y: 0 }}
-        transition={{ duration: 1 }}
-      >
-        {step === 4 && <InfoDone />}
-      </motion.div> */}
+    
     </div>
   );
 }

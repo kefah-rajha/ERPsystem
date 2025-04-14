@@ -8,9 +8,12 @@ interface ShowProfileInfo {
 }
 
 function ShowProfileInfo({data}:ShowProfileInfo) {
+  console.log(data,"ShowProfileInfo")
   const rowPropreties = Object.entries(data)
   .filter(
     ([key]) =>
+      key !== "companyID" &&
+    key !== "contactID" &&
       key !== "password" &&
       key !== "photos" &&
       key !== "_id" &&

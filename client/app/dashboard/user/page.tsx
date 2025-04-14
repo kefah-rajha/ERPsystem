@@ -1,12 +1,15 @@
 "use client"
 
 import TableUser from "@/components/user/tableUser"
-import CreateUserButton from "@/components/user/Button/CreateUserButton"
 import ImportUsers from "@/components/user/Button/ImportUsers"
 import UserFilter from "@/components/user/Button/userFilter"
 import { UserProvider } from "@/context/userContext"
 import { PaginationControls } from "@/components/SalesOrder/showAllSalesOrder/pagination-controls";
 import { useEffect, useState } from "react"
+import { Button } from '@/components/ui/button'
+import { Router, UserPlus } from 'lucide-react';
+import { useSearchParams, usePathname, useRouter } from "next/navigation";
+
 import {
   Card,
   CardContent,
@@ -15,7 +18,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
+import CollapsibleCard from "@/components/SalesOrder/showAllSalesOrder/CollapsibleCard";
+import { cn } from "@/lib/utils"
 
 
 
@@ -24,7 +28,8 @@ function Page() {
   const [countPages, setCountPages] = useState<number>(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-
+  const [isExpanded, setIsExpanded] = useState(false);
+const router =useRouter()
 
   useEffect(() => {
     const getNumberProducts = async () => {
@@ -63,30 +68,41 @@ function Page() {
     setCurrentPage(1); // Reset to first page when changing page size
   };
   return (
-    <div className='  heighWithOutBar overflow-auto pt-4 container'>
+    <div className='  heighWithOutBar overflow-auto pt-4 bg-gradient container'>
       <UserProvider>
         <div className='h-14 flex items-center overflow-auto container justify-end gap-2'>
           <UserFilter pageNumber={currentPage} pageSize={pageSize} />
-          <CreateUserButton />
+          <Button className='h-10 rounded-sm   text-foreground card-gradient  hover:text-gray-400 '
+          onClick={()=>router.push("/dashboard/user/createUser")}
+          >
+            <UserPlus className='h-4 w-4 mr-2 text-green-300 ' />
+            Create User</Button>
           <ImportUsers />
         </div>
         <TableUser />
 
-        <Card className="sticky bottom-0  ">
+        <Card className={cn(!isExpanded ? "sticky bottom-0 w-fit" : "sticky bottom-0 w-full")} >
           <CardContent className="pt-6 pb-6 px-6">
-
-            <PaginationControls
+            <CollapsibleCard
               numberProducts={numberProducts}
-              countPages={countPages}
-              pageSize={pageSize}
               currentPage={currentPage}
-              onPageChange={handlePageChange}
-              onPageSizeChange={handlePageSizeChange}
-            />
+              countPages={countPages}
+              isExpanded={isExpanded}
+              setIsExpanded={setIsExpanded}
 
+            >
+              <PaginationControls
+                numberProducts={numberProducts}
+                countPages={countPages}
+                pageSize={pageSize}
+                currentPage={currentPage}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+              // disabled={loading}
+              />
+            </CollapsibleCard>
           </CardContent>
         </Card>
-
       </UserProvider>
     </div>
   )

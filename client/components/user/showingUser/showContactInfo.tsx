@@ -48,7 +48,7 @@ function ShowContactInfo() {
       const rowPropreties = Object.entries(contatcInfo)
   .filter(
     ([key]) =>
-    
+      key !== "userId" &&
       key !== "_id" &&
       key !== "__v"
   )

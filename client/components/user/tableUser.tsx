@@ -3,6 +3,7 @@ import React, { useEffect, useState, useContext } from "react";
 import { AllusersResponse } from "@/dataType/dataTypeUser/dataTypeUser";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+
 import {
   Dialog,
   DialogContent,
@@ -12,7 +13,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import UpdateUser from "@/components/user/updateUser";
 
 import {
   AlertDialog,
@@ -25,7 +25,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { CalendarPlus, AlignRight, Users2 } from "lucide-react";
+import { CalendarPlus, AlignRight, Users2, Eye, Edit, Trash } from "lucide-react";
 
 import {
   Card,
@@ -56,167 +56,221 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import PaginationComponent from "@/components/user/Pagination";
-import CounterUsers from "@/components/user/counterUsers";
 import { toast } from "@/components/ui/use-toast";
-import { UserContext } from "@/context/userContext"
+import { UserContext } from "@/context/userContext";
 import { cn } from "@/lib/utils";
 
+// Enhanced user data type that includes all three schemas
+interface EnhancedUser extends AllusersResponse {
+  contactInfo?: {
+    email?: string;
+    phone?: string;
+    address?: string;
+    city?: string;
+    postCode?: string;
+  };
+  companyInfo?: {
+    nameCompany?: string;
+    email?: string;
+    phone?: string;
+  };
+}
 
 function TableUser() {
   const { push, replace } = useRouter();
-  const userContext = useContext(UserContext)
+  const userContext = useContext(UserContext);
+  const [loading, setLoading] = useState(false);
 
+  // Format date for display
+  const formatDate = (dateString?: string | Date) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString();
+  };
 
-
-
-
-  const deleteProduct = async (id: string) => {
-    const fetchDeleteData = await fetch(`/api/deleteUser/${id}`, {
-      method: "Delete",
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Headers": "Content-Type",
-        "Access-Control-Allow-Methods": "*",
-        "Access-Control-Allow-Origin": "*"
-      }
-    })
-    const res = await fetchDeleteData.json()
-    if (res.success == false) {
-      toast({
-        variant: "default",
-        title: "Uh oh! Something went wrong.❌",
-        description: res?.message,
+  const deleteUser = async (id: string) => {
+    setLoading(true);
+    try {
+      const fetchDeleteData = await fetch(`/api/deleteUser/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Headers": "Content-Type",
+          "Access-Control-Allow-Methods": "*",
+          "Access-Control-Allow-Origin": "*"
+        }
       });
-
-    }
-    if (res.success == true) {
-      const newProducts = userContext?.users?.filter(
-        (item: AllusersResponse) => item._id !== id
-      );
-      console.log(newProducts);
-      if (newProducts) {
-        userContext?.setUsers(newProducts);
+      
+      const res = await fetchDeleteData.json();
+      
+      if (res.success === false) {
         toast({
-          variant: "default",
-          title: "Congratulations✅.",
-          description: res?.message,
+          variant: "destructive",
+          title: "Error",
+          description: res?.message || "Failed to delete user",
         });
-
+      } else {
+        const newUsers = userContext?.users?.filter(
+          (item: AllusersResponse) => item._id !== id
+        );
+        
+        if (newUsers) {
+          userContext?.setUsers(newUsers);
+          toast({
+            variant: "default",
+            title: "Success",
+            description: res?.message || "User deleted successfully",
+          });
+        }
       }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "An unexpected error occurred",
+      });
+    } finally {
+      setLoading(false);
     }
-  }
-  const rowsUser = userContext?.users?.map((user: AllusersResponse) => (
-    <TableRow key={user._id} className="cursor-pointer ">
-      <TableCell className=" w-[16.6%] border border-r-2 border-b-2  border-gray-800">
-        <strong>{user.name.toLowerCase()}</strong>
-      </TableCell>
-      <TableCell className=" w-[20%] border-r-2 border-b-2 border-gray-800 ">
-        {user.name.toLowerCase()}gmail.com
-      </TableCell>
-      <TableCell className="hidden md:table-cell w-[16.6%] border-r-2 border-b-2 border-gray-800">
-        {user.userName.toLowerCase()}
-      </TableCell>
-      <TableCell className="hidden md:table-cell w-[16.6%] border-r-2 border-b-2 border-gray-800">
-        +9635956558
-      </TableCell>
-      <TableCell className="hidden md:table-cell w-[12.4%] border-r-2 border-b-2 border-gray-800">
-        <Badge className="bg-foreground/5 text-foreground/60 border-r-4">{user?.role}</Badge>
-      </TableCell>
-      <TableCell className=" w-[16.6%] border-r-1 border-b-2 border-gray-800">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button aria-haspopup="true" size="icon" variant="ghost">
-              <AlignRight className="text-foreground/50" />
-              <span className="sr-only">Toggle menu</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <button
-            className="ml-2 hover:text-foreground hover:bg-foreground/10 p-2 rounded-sm text-orange-300"
-            onClick={() => {
-              push(`/dashboard/user/${user._id}`);
-            }}
-          >
-            <CalendarPlus />
-          </button>
-          <DropdownMenuContent align="end">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="m-0 p-0 outline-0 w-full bg-transparent text-foreground hover:bg-foreground/20">
-                  Edit
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="w-[90%] h-[95vh] bg-gradient">
-                <DialogHeader>
-                  <DialogTitle>Update Users</DialogTitle>
-                </DialogHeader>
-                <UpdateUser id={user._id} />
-              </DialogContent>
-            </Dialog>
+  };
 
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button className="m-0 p-0 outline-0 w-full bg-transparent text-foreground hover:bg-foreground/20">
-                  Delete
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>
-                    Are you absolutely sure ,Delete {user.name}?
-                  </AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete
-                    your product and remove your data from your servers.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction>
-                    <Button onClick={() => deleteProduct(user._id)}>
-                      Continue
-                    </Button>
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </DropdownMenuContent>
-        </DropdownMenu>
+  const rowsUser = userContext?.users?.map((user: EnhancedUser) => (
+    <TableRow key={user._id} className="cursor-pointer hover:bg-foreground/5">
+      <TableCell className="font-medium">
+        {user.name || user.userName || "N/A"}
+      </TableCell>
+      
+      <TableCell>
+        {user.contactInfo?.email || `${user.userName?.toLowerCase()}@example.com`}
+      </TableCell>
+      
+      <TableCell className="hidden md:table-cell">
+        {user.companyInfo?.nameCompany || "N/A"}
+      </TableCell>
+      
+      <TableCell className="hidden md:table-cell">
+        {user.contactInfo?.phone || "N/A"}
+      </TableCell>
+      
+      <TableCell className="hidden md:table-cell">
+        <Badge 
+          className={cn(
+            "bg-foreground/5 border",
+            user.role === "Admin" && "border-blue-500 text-blue-700",
+            user.role === "Customer" && "border-green-500 text-green-700",
+            user.role === "Manager" && "border-purple-500 text-purple-700"
+          )}
+        >
+          {user.role || "Customer"}
+        </Badge>
+      </TableCell>
+      
+      <TableCell className="hidden md:table-cell">
+        {formatDate(user.createdAt)} 
+      </TableCell>
+      
+      <TableCell>
+        <div className="flex items-center space-x-1">
+          <Button 
+            size="icon" 
+            variant="ghost" 
+            onClick={() => push(`/dashboard/user/${user._id}`)}
+            title="View user details"
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+
+          <Link href={`/dashboard/user/updateUser/${user._id}`} passHref>
+            <Button size="icon" variant="ghost" title="Edit user">
+              <Edit className="h-4 w-4" />
+            </Button>
+          </Link>
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button size="icon" variant="ghost" title="Delete user">
+                <Trash className="h-4 w-4 text-red-500" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  Delete user: {user.name || user.userName}?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete
+                  the user and remove their data from our servers.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction asChild>
+                  <Button 
+                    variant="destructive" 
+                    onClick={() => deleteUser(user._id)}
+                    disabled={loading}
+                  >
+                    {loading ? "Deleting..." : "Delete"}
+                  </Button>
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </TableCell>
     </TableRow>
   ));
 
   return (
-    <div className="container ">
-      <Card x-chunk="dashboard-06-chunk-0" className="shadow-md py-4">
-        <CardHeader>
-          <CardTitle className={cn("font-bold text-[3rem]")}>
-            Users
-          </CardTitle>
-          <CardDescription className="text-[#444746] text-xl">
-            Manage your Users and view their sales performance.
-          </CardDescription>
+    <div className="container mx-auto py-6">
+      <Card className="shadow-lg">
+        <CardHeader className="pb-2">
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle className="text-3xl font-bold">
+                User Management
+              </CardTitle>
+              <CardDescription className="text-lg pt-1">
+                Manage your users and their account information
+              </CardDescription>
+            </div>
+            
+          </div>
         </CardHeader>
         <CardContent>
-          <Table className="border  mb-5 shadow-lg bg-gradient ">
-            <TableHeader className="bg-foreground/5">
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead className="hidden md:table-cell">Company Name</TableHead>
-                <TableHead className="hidden md:table-cell">Phone Number</TableHead>
-                <TableHead className="hidden md:table-cell">Role</TableHead>
-
-                <TableHead>
-                  <span className="sr-only">Action</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>{rowsUser}</TableBody>
-          </Table>
-          {/* <PaginationComponent pageNumber={1} />
-      <CounterUsers startNumberProductInThePage={startNumberProductInThePage} /> */}
-
+          {userContext?.users && userContext.users.length > 0 ? (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead className="hidden md:table-cell">Company</TableHead>
+                    <TableHead className="hidden md:table-cell">Phone</TableHead>
+                    <TableHead className="hidden md:table-cell">Role</TableHead>
+                    <TableHead className="hidden md:table-cell">Created</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rowsUser}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div className="text-center p-8">
+              <Users2 className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-lg font-medium">No users found</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Get started by creating a new user.
+              </p>
+              <div className="mt-6">
+                <Link href="/dashboard/user/createUser" passHref>
+                  <Button>Add New User</Button>
+                </Link>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

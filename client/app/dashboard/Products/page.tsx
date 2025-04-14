@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { PaginationControls } from "@/components/SalesOrder/showAllSalesOrder/pagination-controls";
 import CategoryList from '@/components/POSerp/CategoryList';
-import toast, { Toaster } from 'react-hot-toast'; // Import toast library
+import toast, { Toaster } from 'react-hot-toast'; 
 
 // Import UI icons from lucide-react
 import {

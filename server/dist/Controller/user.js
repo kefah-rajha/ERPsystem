@@ -24,9 +24,9 @@ exports.user = {
             const pageNumber = parseInt(req.params.pageNumber) || 1;
             const pageSize = parseInt(req.params.pageSize) || 10;
             const skipItems = (pageNumber - 1) * pageSize;
-            const { fieldSort, sort, role, fields, fieldSearch, searchInput } = req.body;
+            const { fieldSort, sort, role, fields, fieldSearch, searchInput, dateRange } = req.body;
             console.log(fieldSort, sort, role, fields, fieldSearch, searchInput);
-            if (fields == "All" && role == "All" && searchInput == "" && sort == "1") {
+            if (fields == "All" && role == "All" && searchInput == "" && sort == "1" && dateRange.startDate == "" && dateRange.endDate == "") {
                 console.log("test ");
                 const users = yield schemaUser_1.UserModel.find({}).skip(skipItems)
                     .limit(pageSize)
@@ -40,15 +40,43 @@ exports.user = {
             }
             else {
                 const query = {};
+                if (dateRange) {
+                    // Create a date filter if either startDate or endDate is provided
+                    if (dateRange.startDate || dateRange.endDate) {
+                        // Initialize createdAt object if it doesn't exist
+                        query.createdAt = query.createdAt || {};
+                        // If startDate is provided, use it; otherwise use a very old date
+                        if (dateRange.startDate) {
+                            query.createdAt.$gte = new Date(dateRange.startDate);
+                        }
+                        else {
+                            // You can set this to a reasonable "beginning of time" for your application
+                            query.createdAt.$gte = new Date('1970-01-01');
+                        }
+                        // If endDate is provided, use it; otherwise use current date
+                        if (dateRange.endDate) {
+                            query.createdAt.$lte = new Date(dateRange.endDate);
+                        }
+                        else {
+                            query.createdAt.$lte = new Date(); // Current date and time
+                        }
+                    }
+                }
                 // Add role filter if specified and not 'all'
                 if (role && role !== 'All') {
                     query.role = role;
                 }
                 // Add search filter if search input exists
-                if (searchInput && fieldSearch) {
-                    query[fieldSearch] = {
-                        $regex: new RegExp(`^${searchInput}`, 'i')
-                    };
+                console.log(searchInput, fieldSearch);
+                if (searchInput) {
+                    if (fieldSearch) {
+                        // If specific field is provided, search only in that field
+                        query[fieldSearch] = { $regex: searchInput, $options: 'i' };
+                    }
+                    else {
+                        // If no field is specified, default to searching by name only
+                        query.name = { $regex: searchInput, $options: 'i' };
+                    }
                 }
                 // Add empty/non-empty fields filter
                 if (fields === 'empty') {

@@ -21,7 +21,7 @@ function ShowUser() {
   });
   useEffect(() => {
     let ignore = false;
-    fetch(`/api/profile/profileInfo/${userID}`)
+    fetch(`/api/profile/getProfileInfo/${userID}`)
       .then((res) => {
         return res.json();
       })

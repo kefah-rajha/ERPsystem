@@ -19,6 +19,7 @@ function ShowCompanyInfo() {
         city: "",
         street: "",
       });
+      console.log(companyInfo,"companyInfo")
     useEffect(() => {
         let ignore = false;
         fetch(`/api/profile/companyInfo/${userID}`)
@@ -52,7 +53,7 @@ function ShowCompanyInfo() {
       const rowPropreties = Object.entries(companyInfo)
   .filter(
     ([key]) =>
-    
+      key !== "userId" &&
       key !== "_id" &&
       key !== "__v"
   )

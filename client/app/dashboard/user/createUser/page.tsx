@@ -31,6 +31,7 @@ function CreateUser() {
 
   return (
     <div className="container bg-gradient heighWithOutBar pt-2 overflow-auto pb-10 ">
+        <h1 className="text-4xl font-bold my-5">Create User</h1>
       <div className="flex items-center rounded-sm justify-between w-full h-16 bg-[#2F2F2F]  container">
         <div className="flex items-center gap-4">
           <div className="text-3xl font-extrabold text-[#C2C2C2]">
@@ -153,14 +154,14 @@ function CreateUser() {
           {step == 3 && <CreateCompanyInfo stepsHandle={stepsHandle} />}
         </motion.div>
       }
-      {/*
+      
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: step === 4 ? 1 : 0, y: 0 }}
         transition={{ duration: 1 }}
       >
         {step === 4 && <InfoDone />}
-      </motion.div> */}
+      </motion.div> 
     </div>
   );
 }

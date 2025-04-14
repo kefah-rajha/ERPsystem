@@ -73,7 +73,7 @@ const items: itemsType[] = [
   },
   {
     title: "User",
-    url: "dashboard/user",
+    url: "/dashboard/user",
     selected:"user"  ,
     icon: Bot,
 
