@@ -24,7 +24,7 @@ export interface responseContanctInfo extends userContactInfo {
 export interface userComapnyInfo {
     
     phone: string;
-    nameComapny:string,
+    nameCompany:string,
     email: string;
     address: string;
     website: string;

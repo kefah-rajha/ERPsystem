@@ -16,8 +16,8 @@ export interface userContactInfo {
 }
 export interface userCompanyInfo {
     
-   
-    nameComapny:string;
+    
+    nameCompany:string;
     phone: string;
     email: string;
     address: string;

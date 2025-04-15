@@ -1,8 +1,9 @@
 "use  client";
 import React, { useCallback, useContext, useEffect, useState } from "react";
-import {UserContext}from "@/context/userContext"
+import { UserContext } from "@/context/userContext"
 
 import { Button } from "@/components/ui/button";
+import { toast } from 'react-hot-toast';
 
 import {
   Dialog,
@@ -29,76 +30,93 @@ interface DateRangeState {
   endDate: string;
 }
 
-type userFilterDataType ={
-  pageNumber:number;
-pageSize:number;
+type userFilterDataType = {
+  pageNumber: number;
+  pageSize: number;
 }
-function UserFilter({pageNumber,pageSize}:userFilterDataType) {
-  const [filter, setFilter] = useState();
+function UserFilter({ pageNumber, pageSize }: userFilterDataType) {
   const [fieldSort, setFieldSort] = useState<string>("name");
   const [sort, setSort] = useState<string>("1");
   const [role, setRole] = useState<string>("All");
   const [fields, setFields] = useState<string>("All");
   const [fieldSearch, setFieldSearch] = useState<string>("name");
   const [searchInput, setSearchInput] = useState<string>("");
-  const userContext=useContext(UserContext)
- const [dateRange, setDateRange] = useState<DateRangeState>({
-        startDate: '',
-        endDate: ''
-    });
-    const defaultDateRange = { startDate: "", endDate: "" };
+  const userContext = useContext(UserContext)
+  const [dateRange, setDateRange] = useState<DateRangeState>({
+    startDate: '',
+    endDate: ''
+  });
+  const defaultDateRange = { startDate: "", endDate: "" };
 
   searchInput;
-   const handleResetFilters = useCallback(() => {
-          setFieldSort("name");
-          setSort("1");
-          setFields("All");
-          setFieldSearch("");
-          setSearchInput("");
-          setDateRange(defaultDateRange);
-  
-          
-  
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      }, []); 
- 
+  const handleResetFilters = useCallback(() => {
+    setFieldSort("name");
+    setSort("1");
+    setFields("All");
+    setFieldSearch("");
+    setSearchInput("");
+    setDateRange(defaultDateRange);
+
+
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const filterAndSearchHandler = async () => {
-    console.log(searchInput)
-    const data = {
-      fieldSort,
-      sort,
-      role,
-      fields,
-      fieldSearch,
-      searchInput,
-      dateRange 
-
-    };
-    console.log(data,"users")
-
-    const fetchData= await fetch(`/api/getUsers/${pageNumber}/${pageSize}`,{
-      method:"POST",
-      headers: {    "Content-Type": "application/json",
-      "Access-Control-Allow-Headers": "Content-Type",
-      "Access-Control-Allow-Methods": "*",
-      "Access-Control-Allow-Origin": "*",
-     },
-     body:JSON.stringify(data)
-    
-    })
-    const res= await fetchData.json()
-    if(res.data){
-      userContext?.setUsers(res.data)
+    try {
+      console.log(searchInput);
+      const data = {
+        fieldSort,
+        sort,
+        role,
+        fields,
+        fieldSearch,
+        searchInput,
+        dateRange
+      };
+      console.log(data, "users");
+  
+      const fetchData = await fetch(`/api/getUsers/${pageNumber}/${pageSize}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Headers": "Content-Type",
+          "Access-Control-Allow-Methods": "*",
+          "Access-Control-Allow-Origin": "*",
+        },
+        body: JSON.stringify(data)
+      });
+  
+      const res = await fetchData.json();
+      
+      if (res.success === false) {
+        toast.error(res?.message || "Failed to fetch users");
+        return;
+      }
+      
+      if (res.data) {
+        console.log(res.data, "user response");
+        userContext?.setUsers(res.data);
+        toast.success("Users data fetched successfully");
+      } else {
+        toast.error("No user data available");
+      }
+      
+      console.log(res);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      toast.error("An unexpected error occurred while fetching users");
     }
-    console.log(res)
   };
-  useEffect(()=>{
+  
+  useEffect(() => {
     const getData = setTimeout(() => {
-      filterAndSearchHandler()
-    }, 2000)
-    return () => clearTimeout(getData)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[searchInput , pageSize,pageNumber])
+      filterAndSearchHandler();
+    }, 2000);
+    
+    return () => clearTimeout(getData);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchInput, pageSize, pageNumber]);
 
 
   return (
@@ -148,21 +166,21 @@ function UserFilter({pageNumber,pageSize}:userFilterDataType) {
           </Button>
         </DialogTrigger>
         <DialogContent className="w-3/4  bg-gradient">
-        <DialogHeader className="flex justify-start ">
-                        <DialogTitle className="flex gap-2 border-b-2 border-gray-500 pb-4">
-                            <SlidersHorizontal className="h-4 w-4 mr-2 text-orange-600  " />
-                            Filter
-                            <Button
+          <DialogHeader className="flex justify-start ">
+            <DialogTitle className="flex gap-2 border-b-2 border-gray-500 pb-4">
+              <SlidersHorizontal className="h-4 w-4 mr-2 text-orange-600  " />
+              Filter
+              <Button
                 variant="default" //
-                
+
                 onClick={handleResetFilters}
-                className=" sm:w-auto w-4 h-4" 
-            >
-                <RotateCcw className="mr-2 h-4 w-4" /> 
-               Reset Filter
-            </Button>
-                        </DialogTitle>
-                    </DialogHeader>
+                className=" sm:w-auto w-4 h-4"
+              >
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Reset Filter
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
 
           <div className="flex justify-between items-center gap-2">
             <Select onValueChange={setFieldSort} value={fieldSort}>
@@ -230,62 +248,62 @@ function UserFilter({pageNumber,pageSize}:userFilterDataType) {
               <SelectContent>
                 <SelectItem value="All">All</SelectItem>
                 <SelectItem value="Empty">has empty fields</SelectItem>
-                
+
               </SelectContent>
             </Select>
           </div>
-          
-          <div className="flex space-x-4">
-                        <div className="flex flex-col w-1/2">
-                            <label
-                                htmlFor="start-date"
-                                className="mb-2 text-sm font-medium "
-                            >
-                                Date From
-                            </label>
-                            <input
-                                id="start-date"
-                                type="date"
-                                className="w-full px-3 py-2 inputCustom rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                value={dateRange.startDate}
-                                onChange={(e) => setDateRange(prev => ({
-                                    ...prev,
-                                    startDate: e.target.value
-                                }))}
-                            />
-                        </div>
 
-                        <div className="flex flex-col w-1/2">
-                            <label
-                                htmlFor="end-date"
-                                className="mb-2 text-sm font-medium "
-                            >
-                                Date To
-                            </label>
-                            <input
-                                id="end-date"
-                                type="date"
-                                className="w-full px-3 py-2 inputCustom  rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                value={dateRange.endDate}
-                                onChange={(e) => setDateRange(prev => ({
-                                    ...prev,
-                                    endDate: e.target.value
-                                }))}
-                            />
-                        </div>
-                    </div>
-          <Button
-                type="button"
-                variant="default"
-                className="h-8 w-full"
-                onClick={filterAndSearchHandler}
+          <div className="flex space-x-4">
+            <div className="flex flex-col w-1/2">
+              <label
+                htmlFor="start-date"
+                className="mb-2 text-sm font-medium "
               >
-                Apply
-              </Button>
+                Date From
+              </label>
+              <input
+                id="start-date"
+                type="date"
+                className="w-full px-3 py-2 inputCustom rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={dateRange.startDate}
+                onChange={(e) => setDateRange(prev => ({
+                  ...prev,
+                  startDate: e.target.value
+                }))}
+              />
+            </div>
+
+            <div className="flex flex-col w-1/2">
+              <label
+                htmlFor="end-date"
+                className="mb-2 text-sm font-medium "
+              >
+                Date To
+              </label>
+              <input
+                id="end-date"
+                type="date"
+                className="w-full px-3 py-2 inputCustom  rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={dateRange.endDate}
+                onChange={(e) => setDateRange(prev => ({
+                  ...prev,
+                  endDate: e.target.value
+                }))}
+              />
+            </div>
+          </div>
+          <Button
+            type="button"
+            variant="default"
+            className="h-8 w-full"
+            onClick={filterAndSearchHandler}
+          >
+            Apply
+          </Button>
 
           <DialogFooter className="sm:justify-start">
             <DialogClose asChild>
-             
+
             </DialogClose>
           </DialogFooter>
         </DialogContent>

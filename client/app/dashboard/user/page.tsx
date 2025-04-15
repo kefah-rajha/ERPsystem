@@ -9,6 +9,7 @@ import { useEffect, useState } from "react"
 import { Button } from '@/components/ui/button'
 import { Router, UserPlus } from 'lucide-react';
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import toast, { Toaster } from 'react-hot-toast'; 
 
 import {
   Card,
@@ -69,8 +70,24 @@ const router =useRouter()
   };
   return (
     <div className='  heighWithOutBar overflow-auto pt-4 bg-gradient container'>
+       <Toaster
+              position="top-right" // Or your preferred position
+              reverseOrder={false} // Or your preferred order
+              gutter={8} // Spacing
+              toastOptions={{
+                // Default options for all types
+                className: 'card-gradient', // You can add common classes here
+                duration: 5000, // Default duration
+                style: {
+                  background: '#363636', // Default background (optional, if you want a base)
+                  color: '#fff',      // Default text color
+                },
+      
+      
+              }}
+            />
       <UserProvider>
-        <div className='h-14 flex items-center overflow-auto container justify-end gap-2'>
+        <div className='h-14 flex items-center overflow-auto container  justify-end gap-2'>
           <UserFilter pageNumber={currentPage} pageSize={pageSize} />
           <Button className='h-10 rounded-sm   text-foreground card-gradient  hover:text-gray-400 '
           onClick={()=>router.push("/dashboard/user/createUser")}
@@ -79,8 +96,9 @@ const router =useRouter()
             Create User</Button>
           <ImportUsers />
         </div>
+        <div >
         <TableUser />
-
+        </div>
         <Card className={cn(!isExpanded ? "sticky bottom-0 w-fit" : "sticky bottom-0 w-full")} >
           <CardContent className="pt-6 pb-6 px-6">
             <CollapsibleCard

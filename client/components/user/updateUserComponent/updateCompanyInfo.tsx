@@ -55,7 +55,7 @@ function UpdatecompanyInfo({ id, stepsHandle }: dataType) {
   
 
   const [companyInfo, setCompanyInfo] = useState<responseCompanyInfo>({
-    nameComapny: "",
+    nameCompany: "",
     userId: "",
     phone: "",
     email: "",
@@ -96,7 +96,7 @@ function UpdatecompanyInfo({ id, stepsHandle }: dataType) {
   }, [id]);
 
   const profileFormSchema = z.object({
-    nameComapny:z.string(),
+    nameCompany:z.string(),
     phone: z
       .string()
       .refine(isValidPhoneNumber, { message: "Invalid phone number" })
@@ -117,7 +117,7 @@ function UpdatecompanyInfo({ id, stepsHandle }: dataType) {
     
       values: {
         phone: companyInfo?.phone,
-        nameComapny:companyInfo?.nameComapny,
+        nameCompany:companyInfo?.nameCompany,
         email:companyInfo?.email ,
         address:companyInfo?.address,
         website: companyInfo?.website,
@@ -164,7 +164,7 @@ function UpdatecompanyInfo({ id, stepsHandle }: dataType) {
           <form onSubmit={form.handleSubmit(onSubmit)} className="w-11/12">
           <FormField
               control={form.control}
-              name="nameComapny"
+              name="nameCompany"
               render={({ field }) => (
                 <FormItem className="relative ">
                   <UsersRound className="absolute top-[50%]  translate-y-[-50%] right-4  text-gray-400 h-4 w-4 sm:h-4 sm:w-4 " />

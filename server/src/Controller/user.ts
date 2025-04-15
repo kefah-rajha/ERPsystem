@@ -27,8 +27,9 @@ export const user = {
       if (fields == "All" && role == "All" && searchInput == "" && sort == "1" && dateRange.startDate == "" && dateRange.endDate == "") {
         console.log("test ")
         const users = await UserModel.find({}).skip(skipItems)
+          .populate('companyID') // Populate the companyID field
+          .populate('contactID') // Populate the contactID field
           .limit(pageSize)
-          .lean()
         console.log(users)
 
         return res.status(200).json({
@@ -103,7 +104,8 @@ export const user = {
           .sort(sortOptions)
           .skip(skipItems)
           .limit(pageSize)
-          .populate("")
+          .populate('companyID') // Populate the companyID field
+          .populate('contactID') // Populate the contactID field
           .lean()
         // console.log(users)
         return res.status(200).json({
@@ -208,10 +210,10 @@ export const user = {
         success: false,
       });
     } else {
-      
-      
 
-    
+
+
+
       return res.status(200).json({
         data: getDataUSer,
         success: true,
@@ -266,7 +268,7 @@ export const user = {
     try {
       const userId = req.params.id;
       const {
-        nameComapny,
+        nameCompany,
         phone,
         email,
         address,
@@ -275,14 +277,15 @@ export const user = {
         city,
         street,
       } = req.body as userCompanyInfo;
-      console.log(userId);
+      console.log(req.body,"nameComapny");
+
 
       const getDataUSer = await UserCompanyModel.findOne({ userId: userId });
 
       if (getDataUSer == null) {
         const companyInfoUser = new UserCompanyModel({
           userId: userId,
-          nameComapny,
+          nameCompany,
           phone,
           email,
           address,
@@ -308,7 +311,7 @@ export const user = {
           { userId: userId },
           {
             phone,
-            nameComapny,
+            nameCompany,
             email,
             address,
             website,
@@ -337,6 +340,7 @@ export const user = {
   getCompanyInfo: async (req: any, res: any) => {
     const userId = req.params.id;
     const getDataUSer = await UserCompanyModel.findOne({ userId: userId });
+    console.log(getDataUSer)
     if (!getDataUSer) {
       return res.status(400).json({
         success: false,
@@ -351,6 +355,8 @@ export const user = {
   ImportUser: async (req: any, res: any) => {
     const data = req.body;
     console.log(data)
+   try{
+     
     const mappedData = data.map(async (item: any) => {
 
 
@@ -379,10 +385,16 @@ export const user = {
       const contactInfoUser = new UserDetailsModel(contactInfo);
       await contactInfoUser.save();
     });
-    return res.status(400).json({
-      success: false,
-      message: "uh, there is thing, try later",
+    return res.status(200).json({
+      success: true,
+      message: "Import is done",
     });
+   }catch(error: any){
+    res.status(402).json({
+      message: error.message as string,
+      success: false,
+    });
+   }
   },
   createUsers: async (req: any, res: any) => {
     try {

@@ -29,8 +29,9 @@ exports.user = {
             if (fields == "All" && role == "All" && searchInput == "" && sort == "1" && dateRange.startDate == "" && dateRange.endDate == "") {
                 console.log("test ");
                 const users = yield schemaUser_1.UserModel.find({}).skip(skipItems)
-                    .limit(pageSize)
-                    .lean();
+                    .populate('companyID') // Populate the companyID field
+                    .populate('contactID') // Populate the contactID field
+                    .limit(pageSize);
                 console.log(users);
                 return res.status(200).json({
                     success: true,
@@ -104,6 +105,8 @@ exports.user = {
                     .sort(sortOptions)
                     .skip(skipItems)
                     .limit(pageSize)
+                    .populate('companyID') // Populate the companyID field
+                    .populate('contactID') // Populate the contactID field
                     .lean();
                 // console.log(users)
                 return res.status(200).json({
@@ -249,13 +252,13 @@ exports.user = {
     updatecompanyInfoUser: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const userId = req.params.id;
-            const { nameComapny, phone, email, address, website, postCode, city, street, } = req.body;
-            console.log(userId);
+            const { nameCompany, phone, email, address, website, postCode, city, street, } = req.body;
+            console.log(req.body, "nameComapny");
             const getDataUSer = yield schemaCompanyUser_1.UserCompanyModel.findOne({ userId: userId });
             if (getDataUSer == null) {
                 const companyInfoUser = new schemaCompanyUser_1.UserCompanyModel({
                     userId: userId,
-                    nameComapny,
+                    nameCompany,
                     phone,
                     email,
                     address,
@@ -274,7 +277,7 @@ exports.user = {
             else {
                 const userAfterUpdate = yield schemaCompanyUser_1.UserCompanyModel.findOneAndUpdate({ userId: userId }, {
                     phone,
-                    nameComapny,
+                    nameCompany,
                     email,
                     address,
                     website,
@@ -303,6 +306,7 @@ exports.user = {
     getCompanyInfo: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const userId = req.params.id;
         const getDataUSer = yield schemaCompanyUser_1.UserCompanyModel.findOne({ userId: userId });
+        console.log(getDataUSer);
         if (!getDataUSer) {
             return res.status(400).json({
                 success: false,
@@ -318,34 +322,42 @@ exports.user = {
     ImportUser: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const data = req.body;
         console.log(data);
-        const mappedData = data.map((item) => __awaiter(void 0, void 0, void 0, function* () {
-            const userInfo = {
-                userName: item["Username"],
-                password: "12345",
-                name: item["name"],
-                // Brithday: item["Brithday"],
-                role: item["role"],
-                createdAt: item["createdAt"],
-            };
-            const finale = new schemaUser_1.UserModel(userInfo);
-            const userDataAfterSave = yield finale.save();
-            const contactInfo = {
-                userId: userDataAfterSave._id,
-                phone: item["Phone"],
-                email: item["email"],
-                address: `${item["city"]}/${item["street"]}/${item["postcode"]} `,
-                website: "web.com",
-                postCode: item["postcode"],
-                city: item["city"],
-                street: item["street"],
-            };
-            const contactInfoUser = new schemaUserDetails_1.UserDetailsModel(contactInfo);
-            yield contactInfoUser.save();
-        }));
-        return res.status(400).json({
-            success: false,
-            message: "uh, there is thing, try later",
-        });
+        try {
+            const mappedData = data.map((item) => __awaiter(void 0, void 0, void 0, function* () {
+                const userInfo = {
+                    userName: item["Username"],
+                    password: "12345",
+                    name: item["name"],
+                    // Brithday: item["Brithday"],
+                    role: item["role"],
+                    createdAt: item["createdAt"],
+                };
+                const finale = new schemaUser_1.UserModel(userInfo);
+                const userDataAfterSave = yield finale.save();
+                const contactInfo = {
+                    userId: userDataAfterSave._id,
+                    phone: item["Phone"],
+                    email: item["email"],
+                    address: `${item["city"]}/${item["street"]}/${item["postcode"]} `,
+                    website: "web.com",
+                    postCode: item["postcode"],
+                    city: item["city"],
+                    street: item["street"],
+                };
+                const contactInfoUser = new schemaUserDetails_1.UserDetailsModel(contactInfo);
+                yield contactInfoUser.save();
+            }));
+            return res.status(200).json({
+                success: true,
+                message: "Import is done",
+            });
+        }
+        catch (error) {
+            res.status(402).json({
+                message: error.message,
+                success: false,
+            });
+        }
     }),
     createUsers: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {

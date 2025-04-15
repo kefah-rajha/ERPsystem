@@ -1,18 +1,10 @@
 "use client";
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef, ReactNode } from "react";
 import { AllusersResponse } from "@/dataType/dataTypeUser/dataTypeUser";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import toast, { Toaster } from 'react-hot-toast'; 
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 import {
   AlertDialog,
@@ -25,27 +17,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { CalendarPlus, AlignRight, Users2, Eye, Edit, Trash } from "lucide-react";
+import {  Users2, Eye, Edit, Trash } from "lucide-react";
 
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import Image from "next/image";
 import {
   Table,
   TableBody,
@@ -56,28 +37,77 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { toast } from "@/components/ui/use-toast";
 import { UserContext } from "@/context/userContext";
 import { cn } from "@/lib/utils";
 
 // Enhanced user data type that includes all three schemas
 interface EnhancedUser extends AllusersResponse {
-  contactInfo?: {
+  contactID?: {
     email?: string;
     phone?: string;
     address?: string;
     city?: string;
     postCode?: string;
   };
-  companyInfo?: {
+  companyID?: {
     nameCompany?: string;
     email?: string;
     phone?: string;
   };
 }
 
+// Props interface for TruncatedCell component
+interface TruncatedCellProps {
+  children: ReactNode;
+  className?: string;
+}
+
+// TruncatedCell component for handling long text with tooltip
+function TruncatedCell({ children, className = "" }: TruncatedCellProps) {
+  const [isTruncated, setIsTruncated] = useState(false);
+  const textRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    const checkTruncation = () => {
+      const element = textRef.current;
+      if (element) {
+        console.log(element.scrollWidth ,"element.scrollWidth ")
+        setIsTruncated(element.scrollWidth  > element.clientWidth );
+      }
+    };
+    
+    checkTruncation();
+    window.addEventListener('resize', checkTruncation);
+    return () => window.removeEventListener('resize', checkTruncation);
+  }, [children]);
+  
+  if (!children || children === "N/A") {
+    return <span className={className}>{children}</span>;
+  }
+  
+  return (
+    <TooltipProvider>
+      <Tooltip delayDuration={300}>
+        <TooltipTrigger asChild>
+          <div 
+            ref={textRef}
+            className={`truncate max-w-full ${className}`}
+          >
+            {children}
+          </div>
+        </TooltipTrigger>
+        {isTruncated && (
+          <TooltipContent>
+            <p className="max-w-xs break-words">{children}</p>
+          </TooltipContent>
+        )}
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
 function TableUser() {
-  const { push, replace } = useRouter();
+  const { push } = useRouter();
   const userContext = useContext(UserContext);
   const [loading, setLoading] = useState(false);
 
@@ -89,6 +119,7 @@ function TableUser() {
 
   const deleteUser = async (id: string) => {
     setLoading(true);
+    
     try {
       const fetchDeleteData = await fetch(`/api/deleteUser/${id}`, {
         method: "DELETE",
@@ -103,11 +134,7 @@ function TableUser() {
       const res = await fetchDeleteData.json();
       
       if (res.success === false) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: res?.message || "Failed to delete user",
-        });
+        toast.error(res?.message || "Failed to delete user");
       } else {
         const newUsers = userContext?.users?.filter(
           (item: AllusersResponse) => item._id !== id
@@ -115,20 +142,12 @@ function TableUser() {
         
         if (newUsers) {
           userContext?.setUsers(newUsers);
-          toast({
-            variant: "default",
-            title: "Success",
-            description: res?.message || "User deleted successfully",
-          });
+          toast.success(res?.message || "User deleted successfully");
         }
       }
     } catch (error) {
       console.error("Error deleting user:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "An unexpected error occurred",
-      });
+      toast.error("An unexpected error occurred");
     } finally {
       setLoading(false);
     }
@@ -136,20 +155,24 @@ function TableUser() {
 
   const rowsUser = userContext?.users?.map((user: EnhancedUser) => (
     <TableRow key={user._id} className="cursor-pointer hover:bg-foreground/5">
-      <TableCell className="font-medium">
-        {user.name || user.userName || "N/A"}
+      <TableCell className="font-medium max-w-[150px]">
+        <TruncatedCell>
+          {user.name || user.userName || "N/A"}
+        </TruncatedCell>
       </TableCell>
       
-      <TableCell>
-        {user.contactInfo?.email || `${user.userName?.toLowerCase()}@example.com`}
+      <TableCell className="max-w-[200px]">
+        <TruncatedCell>
+          {user.contactID?.email }
+        </TruncatedCell>
       </TableCell>
       
-      <TableCell className="hidden md:table-cell">
-        {user.companyInfo?.nameCompany || "N/A"}
-      </TableCell>
+     
       
-      <TableCell className="hidden md:table-cell">
-        {user.contactInfo?.phone || "N/A"}
+      <TableCell className="hidden md:table-cell max-w-[120px]">
+        <TruncatedCell>
+          {user.contactID?.phone || "N/A"}
+        </TruncatedCell>
       </TableCell>
       
       <TableCell className="hidden md:table-cell">
@@ -222,7 +245,7 @@ function TableUser() {
   ));
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto py-6 ">
       <Card className="shadow-lg">
         <CardHeader className="pb-2">
           <div className="flex justify-between items-center">
@@ -245,7 +268,6 @@ function TableUser() {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
-                    <TableHead className="hidden md:table-cell">Company</TableHead>
                     <TableHead className="hidden md:table-cell">Phone</TableHead>
                     <TableHead className="hidden md:table-cell">Role</TableHead>
                     <TableHead className="hidden md:table-cell">Created</TableHead>

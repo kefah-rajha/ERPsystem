@@ -1,5 +1,7 @@
 "use  client";
 import React, { ChangeEvent, useState } from "react";
+
+
 import {
   Dialog,
   DialogContent,
@@ -63,8 +65,16 @@ function ImportUsers() {
       }
 
       const data = await response.json();
-      if(data){
+      console.log(data)
+      if(data.success == true){
         setIsLoading(false);
+        toast({
+          title: "Success",
+          description: "Users imported successfully",
+        });
+        window.location.reload()
+
+
       }
       console.log(data);
     } catch (error) {
