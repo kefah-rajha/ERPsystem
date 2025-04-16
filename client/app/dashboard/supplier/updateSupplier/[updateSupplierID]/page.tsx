@@ -45,10 +45,8 @@ import { ToastAction } from "@/components/ui/toast";
 import { AllSupplierResponse } from "@/dataType/dataTypeSupplier/dataTypeSupplier";
 import { SupplierContext } from "@/context/supplierContext";
 
-interface UpdateSupplierDataType {
-  id: string;
-}
-function UpdateSupplierForm({ id }: UpdateSupplierDataType) {
+
+function UpdateSupplierForm() {
   const { toast } = useToast();
   const supplierContext = useContext(SupplierContext);
 
@@ -56,6 +54,9 @@ function UpdateSupplierForm({ id }: UpdateSupplierDataType) {
   const { push } = useRouter();
   const [date, setDate] = React.useState<Date>();
   const [open, setOpen] = React.useState(false);
+    const pathname = usePathname();
+    const id = pathname?.split("/").pop();
+    
   const [data, setData] = useState<AllSupplierResponse>({
     _id: "",
     firstName: "",
@@ -75,6 +76,7 @@ function UpdateSupplierForm({ id }: UpdateSupplierDataType) {
     city: "",
     street: "",
     country: "",
+    createdAt:new Date()
   });
   useEffect(() => {
     let ignore = false;
@@ -210,6 +212,9 @@ function UpdateSupplierForm({ id }: UpdateSupplierDataType) {
   }
   return (
     <>
+    <div className=" overflow-auto bg-gradient container heighWithOutBar">
+    <h1 className="text-3xl font-bold my-4">Update Supplier</h1>
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="w-11/12">
           <div className="flex gap-8">
@@ -369,7 +374,7 @@ function UpdateSupplierForm({ id }: UpdateSupplierDataType) {
                         <Input
                           placeholder="Mailing Address"
                           autoComplete="off"
-                          type="number"
+                          type="text"
                           {...field}
                           className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 file:text-red-600 focus:bg-[#302f2f] file:bg-[#302f2f] "
                         />
@@ -387,7 +392,7 @@ function UpdateSupplierForm({ id }: UpdateSupplierDataType) {
                         <Input
                           placeholder="Mailing Country"
                           autoComplete="off"
-                          type="number"
+                          type="text"
                           {...field}
                           className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 file:text-red-600 focus:bg-[#302f2f] file:bg-[#302f2f] "
                         />
@@ -461,7 +466,7 @@ function UpdateSupplierForm({ id }: UpdateSupplierDataType) {
                         <Input
                           placeholder="Address"
                           autoComplete="off"
-                          type="number"
+                          type="text"
                           {...field}
                           className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 file:text-red-600 focus:bg-[#302f2f] file:bg-[#302f2f] "
                         />
@@ -479,7 +484,7 @@ function UpdateSupplierForm({ id }: UpdateSupplierDataType) {
                         <Input
                           placeholder=" Country"
                           autoComplete="off"
-                          type="number"
+                          type="text"
                           {...field}
                           className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 file:text-red-600 focus:bg-[#302f2f] file:bg-[#302f2f] "
                         />
@@ -546,6 +551,7 @@ function UpdateSupplierForm({ id }: UpdateSupplierDataType) {
           </div>{" "}
         </form>
       </Form>
+      </div>
     </>
   );
 }

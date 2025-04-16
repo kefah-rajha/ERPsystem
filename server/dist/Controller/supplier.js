@@ -19,57 +19,93 @@ dotenv_1.default.config();
 exports.supplier = {
     getAllSupplier: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            const { pageNumber } = req.params;
-            console.log(pageNumber);
-            const { fieldSort, sort, fields, fieldSearch, searchInput } = req.body;
-            const sortAsNumber = sort == "1" ? 1 : -1;
-            const regex = searchInput == "" ? new RegExp(/^[a-zA-Z0-9]+$/) : new RegExp(`^${searchInput}`, 'i');
-            console.log(regex, "regex");
-            const search = {
-                $match: {
-                    [fieldSearch]: { $regex: regex }
-                }
-            };
-            const SortAlphaB = {
-                $sort: {
-                    [fieldSort]: sortAsNumber
-                }
-            };
-            const EmptyFields = {
-                $match: {
-                    $or: [
-                        { "lastName": "" },
-                        { "firstName": "" },
-                        { "email": "" },
-                        { "companyName": "" },
-                        { "phone": "" },
-                        { "address": "" },
-                    ]
-                }
-            };
-            const pipeline = [];
-            if (fields !== "Empty") {
-                const recallPost = yield schemaSupplier_1.supplierModel.aggregate([...pipeline, search, SortAlphaB]);
-                console.log(recallPost);
+            const pageNumber = parseInt(req.params.pageNumber) || 1;
+            const pageSize = parseInt(req.params.pageSize) || 10;
+            const skipItems = (pageNumber - 1) * pageSize;
+            const { fieldSort, sort, fields, fieldSearch, searchInput, dateRange } = req.body;
+            console.log(fieldSort, sort, fields, fieldSearch, searchInput);
+            // Simple case: no filters applied
+            if (fields === "All" && searchInput === "" && sort === "1" &&
+                (!dateRange || (dateRange.startDate === "" && dateRange.endDate === ""))) {
+                console.log("No filters applied - using simple find");
+                const suppliers = yield schemaSupplier_1.supplierModel.find({})
+                    .skip(skipItems)
+                    .limit(pageSize);
                 return res.status(200).json({
-                    data: recallPost,
                     success: true,
+                    data: suppliers,
+                    message: 'Suppliers retrieved successfully'
                 });
             }
-            else if (fields == "Empty") {
-                const recallPost = yield schemaSupplier_1.supplierModel.aggregate([...pipeline, search, EmptyFields,
-                    SortAlphaB
-                ]);
+            else {
+                // Build the query with filters
+                const query = {};
+                // Add date range filter if specified
+                if (dateRange) {
+                    if (dateRange.startDate || dateRange.endDate) {
+                        query.createdAt = query.createdAt || {};
+                        if (dateRange.startDate) {
+                            query.createdAt.$gte = new Date(dateRange.startDate);
+                        }
+                        else {
+                            query.createdAt.$gte = new Date('1970-01-01');
+                        }
+                        if (dateRange.endDate) {
+                            query.createdAt.$lte = new Date(dateRange.endDate);
+                        }
+                        else {
+                            query.createdAt.$lte = new Date();
+                        }
+                    }
+                }
+                // Add search filter if search input exists
+                if (searchInput) {
+                    if (fieldSearch) {
+                        // If specific field is provided, search only in that field
+                        query[fieldSearch] = { $regex: searchInput, $options: 'i' };
+                    }
+                    else {
+                        // If no field is specified, default to searching by first name
+                        query.firstName = { $regex: searchInput, $options: 'i' };
+                    }
+                }
+                // Add empty/non-empty fields filter
+                if (fields === "Empty") {
+                    query.$or = [
+                        { firstName: { $eq: '' } },
+                        { lastName: { $eq: '' } },
+                        { email: { $eq: '' } },
+                        { companyName: { $eq: '' } },
+                        { phone: { $eq: '' } },
+                        { address: { $eq: '' } },
+                    ];
+                }
+                // Build sort options
+                const sortOptions = {};
+                if (fieldSort) {
+                    sortOptions[fieldSort] = sort === '1' ? 1 : -1;
+                }
+                console.log("Query:", query);
+                console.log("Sort:", sortOptions);
+                // Execute query with filters and sorting
+                const suppliers = yield schemaSupplier_1.supplierModel
+                    .find(query)
+                    .sort(sortOptions)
+                    .skip(skipItems)
+                    .limit(pageSize)
+                    .lean();
                 return res.status(200).json({
-                    data: recallPost,
                     success: true,
+                    data: suppliers,
+                    message: 'Suppliers retrieved successfully'
                 });
             }
         }
         catch (error) {
-            return res.status(200).json({
-                message: error,
-                success: true,
+            console.error("Error in getAllSupplier:", error);
+            return res.status(500).json({
+                message: error instanceof Error ? error.message : "An unknown error occurred",
+                success: false,
             });
         }
     }),
@@ -128,6 +164,7 @@ exports.supplier = {
                         message: "uh, there is thing, try later",
                     });
                 }
+                console.log(supplierInfo, "supplierInfo");
                 return res.status(200).json({
                     data: supplierInfo,
                     success: true,

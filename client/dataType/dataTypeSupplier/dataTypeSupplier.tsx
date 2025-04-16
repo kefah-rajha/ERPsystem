@@ -17,4 +17,5 @@ export interface AllSupplierResponse{
   city: string;
   street: string;
   country:string;
+  createdAt:Date;
 }

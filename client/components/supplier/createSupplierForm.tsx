@@ -293,7 +293,7 @@ function CreateSupplierForm() {
                         <Input
                           placeholder="Mailing Address"
                           autoComplete="off"
-                          type="number"
+                          type="text"
                           {...field}
                           className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 file:text-red-600 focus:bg-[#302f2f] file:bg-[#302f2f] "
                         />
@@ -311,7 +311,7 @@ function CreateSupplierForm() {
                         <Input
                           placeholder="Mailing Country"
                           autoComplete="off"
-                          type="number"
+                          type="text"
                           {...field}
                           className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 file:text-red-600 focus:bg-[#302f2f] file:bg-[#302f2f] "
                         />
@@ -385,7 +385,7 @@ function CreateSupplierForm() {
                         <Input
                           placeholder="Address"
                           autoComplete="off"
-                          type="number"
+                          type="text"
                           {...field}
                           className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 file:text-red-600 focus:bg-[#302f2f] file:bg-[#302f2f] "
                         />
@@ -403,7 +403,7 @@ function CreateSupplierForm() {
                         <Input
                           placeholder=" Country"
                           autoComplete="off"
-                          type="number"
+                          type="text"
                           {...field}
                           className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 file:text-red-600 focus:bg-[#302f2f] file:bg-[#302f2f] "
                         />

@@ -83,11 +83,10 @@ import CollapsibleCard from "@/components/SalesOrder/showAllSalesOrder/Collapsib
 export default function Products() {
   // Extract URL query parameters for pagination
   const searchParams = useSearchParams();
-  const params = new URLSearchParams(searchParams);
-  const pathname = usePathname();
+  
 
   // Next.js router for navigation
-  const { replace, push } = useRouter();
+  const {  push } = useRouter();
 
 
 

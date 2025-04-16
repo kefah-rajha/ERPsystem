@@ -20,5 +20,6 @@ const supplierSchema = new mongoose_1.Schema({
     postCode: { type: String },
     city: { type: String },
     street: { type: String },
+    country: { type: String },
 });
 exports.supplierModel = (0, mongoose_1.model)('Supplier', supplierSchema);

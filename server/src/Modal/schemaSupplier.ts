@@ -22,7 +22,7 @@ interface Supplier {
     postCode: string;
     city: string;
     street: string;
-
+    country: string
 }
 
 const supplierSchema = new Schema<Supplier>({
@@ -43,7 +43,8 @@ const supplierSchema = new Schema<Supplier>({
     postCode: { type: String },
     city: { type: String },
     street: { type: String },
-
+    country :{ type: String },
+    
 });
 
 export const supplierModel = model<Supplier>('Supplier', supplierSchema);
