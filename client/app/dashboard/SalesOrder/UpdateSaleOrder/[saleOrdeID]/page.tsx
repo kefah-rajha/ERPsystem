@@ -123,6 +123,7 @@ export default function SalesOrderManagement() {
     const [supplierSearchQuery, setSupplierSearchQuery] = useState("");
     const [userNameCustomerSelected, setUserNameCustomerSelected] =
         useState<string>("");
+        const [supplierNameSelected, setSupplierNameSelected] = useState<string>("");
     const [supplierSearchResults, setSupplierSearchResults] = useState<
         {
             firstName: string;
@@ -610,8 +611,9 @@ export default function SalesOrderManagement() {
                                                                                                     value={supplier.firstName}
                                                                                                     key={supplier.firstName}
                                                                                                     onSelect={() => {
-                                                                                                        setUserNameCustomerSelected(
-                                                                                                            supplier.firstName
+                                                                                                        
+                                                                                                        setSupplierNameSelected(
+                                                                                                            supplier?.firstName
                                                                                                         );
                                                                                                         form.setValue(
                                                                                                             "supplier",

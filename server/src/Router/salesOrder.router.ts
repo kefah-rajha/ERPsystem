@@ -10,8 +10,7 @@ router.post('/searchProductSalesOrder',salesOrder.searchProductSalesOrder)
 router.post('/createSaleOrder',salesOrder.createSalesOrder)
 router.get('/getSalesOrders',salesOrder.getSalesOrders)
 router.delete("/deleteSalesOrder/:id",salesOrder.deleteSalesOrder);
-router.get("/getSaleOrder/:id",salesOrder.UpdateSaleOrder);
-router.get("/getSaleOrder/:id",salesOrder.UpdateSaleOrder);
+router.get("/getSaleOrder/:id",salesOrder.getSaleOrder);
 router.post("/updateSaleOrder/:id",salesOrder.UpdateSaleOrder);
 
 

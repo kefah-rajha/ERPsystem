@@ -1,6 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import {   Eye } from "lucide-react";
+import { useSearchParams, usePathname, useRouter } from "next/navigation";
+
 import {
   Dialog,
   DialogContent,
@@ -25,8 +28,18 @@ export function SalesOrderActions({
   onDelete,
   onEdit,
 }: SalesOrderActionsProps) {
+    const { push } = useRouter();
+  
   return (
     <div className="flex items-center gap-2">
+      <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  onClick={() => push(`/dashboard/SalesOrder/showingSaleOrder/${orderId}`)}
+                  title="View user details"
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
       <Button
         variant="ghost"
         size="icon"

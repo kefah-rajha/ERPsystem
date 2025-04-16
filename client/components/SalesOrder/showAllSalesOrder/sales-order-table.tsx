@@ -148,7 +148,7 @@ export function SalesOrderTable({ dateRange }: SalesOrderTableProps) {
               <TableCell>
                 <CustomerInfo customer={order.customer} />
               </TableCell>
-              <TableCell>sss</TableCell>
+              <TableCell>{order?.supplier?.name}</TableCell>
               <TableCell>
                 <OrderItems items={order.items} />
               </TableCell>

@@ -12,7 +12,6 @@ router.post('/searchProductSalesOrder', salesOrder_1.default.searchProductSalesO
 router.post('/createSaleOrder', salesOrder_1.default.createSalesOrder);
 router.get('/getSalesOrders', salesOrder_1.default.getSalesOrders);
 router.delete("/deleteSalesOrder/:id", salesOrder_1.default.deleteSalesOrder);
-router.get("/getSaleOrder/:id", salesOrder_1.default.UpdateSaleOrder);
-router.get("/getSaleOrder/:id", salesOrder_1.default.UpdateSaleOrder);
+router.get("/getSaleOrder/:id", salesOrder_1.default.getSaleOrder);
 router.post("/updateSaleOrder/:id", salesOrder_1.default.UpdateSaleOrder);
 exports.default = router;

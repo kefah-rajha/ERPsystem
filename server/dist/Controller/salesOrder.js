@@ -8,12 +8,57 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const schemaUser_1 = require("../Modal/schemaUser");
 const schemaSupplier_1 = require("../Modal/schemaSupplier");
 const schemaProducts_1 = require("../Modal/schemaProducts");
+const mongoose_1 = __importDefault(require("mongoose"));
 const schemaSalesOrder_1 = require("../Modal/schemaSalesOrder");
 const salesOrder = {
+    getSaleOrder: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            // Extract product ID from request parameters
+            const { id } = req.params;
+            console.log(id);
+            // Validate ID format
+            if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
+                return res.status(400).json({
+                    message: 'Invalid saleOrder ID format',
+                    success: false,
+                });
+            }
+            // Find saleOrder 
+            const saleOrder = yield schemaSalesOrder_1.SalesOrderModel.findById(id)
+                .lean(); // Convert to plain JavaScript object
+            // Check if saleOrder exists
+            if (!saleOrder) {
+                return res.status(404).json({
+                    message: 'Product not found',
+                    success: false,
+                });
+            }
+            // Send successful response
+            res.status(200).json({
+                posts: saleOrder,
+                success: true,
+                message: 'saleOrder retrieved successfully',
+            });
+        }
+        catch (error) {
+            // Enhanced error handling
+            console.error('Error in getProduct:', error);
+            // Type the error for better handling
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+            return res.status(500).json({
+                message: 'Server error while retrieving saleOrder',
+                error: errorMessage,
+                success: false,
+            });
+        }
+    }),
     searchCustomer: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const searchQuery = req.query.name || '';
@@ -21,10 +66,9 @@ const salesOrder = {
             const customers = yield schemaUser_1.UserModel.find({
                 userName: regex,
                 role: 'Customer' // Only search users with customer role
-            }).select('userName')
-                .populate("contactID", "phone postCode city street email")
-                .limit(5)
-                .exec();
+            })
+                .populate('contactID')
+                .limit(5);
             console.log(customers);
             return res.status(200).json({
                 data: customers,
@@ -103,7 +147,7 @@ const salesOrder = {
     createSalesOrder: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
             const data = req.body;
-            console.log(data === null || data === void 0 ? void 0 : data.values, "data?.values");
+            console.log(data, "data?.values");
             const order = new schemaSalesOrder_1.SalesOrderModel({
                 orderNumber: `SO-${Date.now()}`,
                 customer: {
@@ -121,7 +165,7 @@ const salesOrder = {
                 netTotal: data === null || data === void 0 ? void 0 : data.values.netAmount,
                 totalVat: data === null || data === void 0 ? void 0 : data.values.vatAmount,
                 totalAmount: data === null || data === void 0 ? void 0 : data.values.totalAmount,
-                vatRate: new Date(data === null || data === void 0 ? void 0 : data.values.vatRate),
+                vatRate: data === null || data === void 0 ? void 0 : data.values.vatRate,
                 includeVat: data === null || data === void 0 ? void 0 : data.values.includeVat,
                 currency: data === null || data === void 0 ? void 0 : data.values.currency,
                 paymentTerm: data === null || data === void 0 ? void 0 : data.values.paymentTerm

@@ -8,6 +8,59 @@ import { ProductModel } from "../Modal/schemaProducts"
 import mongoose, { Types } from "mongoose";
 import { SalesOrderModel } from "../Modal/schemaSalesOrder";
 const salesOrder = {
+ getSaleOrder: async (req: any, res: any) => {
+    try {
+      // Extract product ID from request parameters
+      const { id } = req.params;
+      console.log(id)
+  
+      // Validate ID format
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({
+          message: 'Invalid saleOrder ID format',
+          success: false,
+        });
+      }
+  
+      // Find saleOrder 
+      const saleOrder = await SalesOrderModel.findById(id).populate("items.product")
+        .lean(); // Convert to plain JavaScript object
+      
+
+      // Check if saleOrder exists
+      if (!saleOrder) {
+        return res.status(404).json({
+          message: 'Product not found',
+          success: false,
+        });
+      }
+  
+      
+  
+      // Send successful response
+      res.status(200).json({
+        posts: saleOrder,
+        success: true,
+        message: 'saleOrder retrieved successfully',
+      });
+  
+    } catch (error) {
+      // Enhanced error handling
+      console.error('Error in getProduct:', error);
+      
+      // Type the error for better handling
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
+      return res.status(500).json({
+        message: 'Server error while retrieving saleOrder',
+        error: errorMessage,
+        success: false,
+      });
+    }
+  },
+
+
+
   searchCustomer: async (req: any, res: any) => {
     try {
       const searchQuery = req.query.name || '';
@@ -18,10 +71,10 @@ const salesOrder = {
       const customers = await UserModel.find({
         userName: regex,
         role: 'Customer'  // Only search users with customer role
-      }).select('userName')
-        .populate("contactID", "phone postCode city street email")
+      })
+      .populate('contactID')
         .limit(5)
-        .exec();
+        
       console.log(customers)
 
       return res.status(200).json({
@@ -110,7 +163,7 @@ const salesOrder = {
   createSalesOrder: async (req: any, res: any) => {
     try {
       const data = req.body;
-      console.log(data?.values, "data?.values")
+      console.log(data, "data?.values")
 
       const order = new SalesOrderModel({
         orderNumber: `SO-${Date.now()}`,
@@ -129,7 +182,7 @@ const salesOrder = {
         netTotal: data?.values.netAmount,
         totalVat: data?.values.vatAmount,
         totalAmount: data?.values.totalAmount,
-        vatRate: new Date(data?.values.vatRate),
+        vatRate: data?.values.vatRate,
         includeVat: data?.values.includeVat,
         currency: data?.values.currency,
         paymentTerm: data?.values.paymentTerm

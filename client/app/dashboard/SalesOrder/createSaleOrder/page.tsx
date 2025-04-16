@@ -12,6 +12,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { SalesOrderProductsSelectedProvider } from "@/context/saleOrderSelectedProducts";
+import { toast as hotToast, Toaster } from "react-hot-toast"; // Added react-hot-toast
 
 import { cn } from "@/lib/utils";
 import AddProductButton from "@/components/SalesOrder/addProductButton";
@@ -57,6 +58,7 @@ import {
 import ProductSelected from "@/components/SalesOrder/ProductSelected";
 import CurrencyAndVatAndAmount from "@/components/SalesOrder/CurrencyAndVatAndAmount";
 import { toast } from "@/components/ui/use-toast";
+
 interface ContactInfoCustomerSearchResultsDataType {
   _id: string;
   phone: string;
@@ -74,13 +76,11 @@ interface customerSearchResultsDataType {
 
 type customerSearchResultsDataTypeArray = customerSearchResultsDataType[];
 interface itemsOrderSendToApiType {
-
   quantity: number;
   vat: number;
   vatAmount: number;
   totalAmount: number;
   product: string;
-
 }
 
 const formSchema = z.object({
@@ -110,8 +110,6 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-// Simulated database of customers
-
 export default function SalesOrderManagement() {
   const [openCustomer, setOpenCustomer] = useState(false);
   const [openSupplier, setOpenSupplier] = useState(false);
@@ -119,6 +117,7 @@ export default function SalesOrderManagement() {
   const [supplierSearchQuery, setSupplierSearchQuery] = useState("");
   const [userNameCustomerSelected, setUserNameCustomerSelected] =
     useState<string>("");
+  const [supplierNameSelected, setSupplierNameSelected] = useState<string>(""); // Added for supplier tracking
   const [supplierSearchResults, setSupplierSearchResults] = useState<
     {
       firstName: string;
@@ -136,57 +135,58 @@ export default function SalesOrderManagement() {
   const [calculatedValues, setCalculatedValues] = useState({
     netAmount: 0,
     vatAmount: 0,
+  });
+  const [finishAmount, setFinishAmount] = useState<number>(0);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Added for submit button state
 
-  })
-  const [finishAmount, setFinishAmount] = useState<number>(0)
   const confirmSelectedProductFUN = (productSelected: ProductSalesOrder[]) => {
     setConfirmSelectedProduct(productSelected);
   };
-  const [totalAmount, setTotalAmount] = useState<number>(0)
+  
+  const [totalAmount, setTotalAmount] = useState<number>(0);
+  
   const getTotalAmount = (amount: number) => {
-    setTotalAmount(amount)
-  }
+    setTotalAmount(amount);
+  };
 
-  // let shipmentAddressValue =customer
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
   });
 
   useEffect(() => {
     const searchCustomers = async () => {
-      console.log(customerSearchQuery);
       if (customerSearchQuery) {
         setIsSearching(true);
-        const searchCustomers = async () => {
-          try {
-            const response = await fetch(
-              `/api/searchCustomer?name=${customerSearchQuery}`
-            );
-            const customers = await response.json();
-            setCustomerSearchResults(customers.data);
-            console.log(customers);
-            setIsSearching(false);
-          } catch (error) {
-            console.error("Error fetching customers:", error);
-            return [];
+        try {
+          const response = await fetch(
+            `/api/searchCustomer?name=${customerSearchQuery}`
+          );
+          if (!response.ok) {
+            throw new Error("Failed to fetch customers");
           }
-        };
-        searchCustomers();
+          const customers = await response.json();
+          setCustomerSearchResults(customers.data);
+        } catch (error) {
+          console.error("Error fetching customers:", error);
+          hotToast.error("Failed to fetch customers. Please try again.");
+          setCustomerSearchResults([]);
+        } finally {
+          setIsSearching(false);
+        }
       } else {
         setCustomerSearchResults([]);
       }
     };
 
     const debounceTimer = setTimeout(searchCustomers, 300);
-
     return () => clearTimeout(debounceTimer);
   }, [customerSearchQuery]);
+
   useEffect(() => {
     if (customerSearchResults?.length > 0) {
       const selectedCustomer = customerSearchResults?.find(
         (customer) => customer?.userName === userNameCustomerSelected
       );
-      console.log(selectedCustomer, "selectedCustomer");
       if (selectedCustomer !== undefined) {
         form.setValue(
           "shipmentAddress",
@@ -194,71 +194,66 @@ export default function SalesOrderManagement() {
         );
         form.setValue("phone", selectedCustomer?.contactID?.phone);
         form.setValue("customerEmail", selectedCustomer?.contactID?.email);
-
         setCustomer(selectedCustomer);
       }
     }
   }, [customerSearchResults, form, userNameCustomerSelected]);
-  const { watch } = form
 
-  const vatRate = watch('vatRate') ? watch('vatRate') : 0
-  const includeVat = watch('includeVat')
+  const { watch } = form;
+
+  const vatRate = watch('vatRate') ? watch('vatRate') : 0;
+  const includeVat = watch('includeVat');
 
   useEffect(() => {
-    const vat = +vatRate / 100
-    console.log(vat, "vat")
-    let netAmount: number, vatAmount: number
+    const vat = +vatRate / 100;
+    let netAmount: number, vatAmount: number;
 
     if (includeVat) {
-      vatAmount = +(totalAmount * vat).toFixed(2)
+      vatAmount = +(totalAmount * vat).toFixed(2);
       netAmount = totalAmount;
-      setFinishAmount(totalAmount + +vatAmount)
-
+      setFinishAmount(totalAmount + +vatAmount);
     } else {
-      netAmount = totalAmount
-      vatAmount = +(totalAmount * vat).toFixed(2)
-      setFinishAmount(totalAmount)
-
+      netAmount = totalAmount;
+      vatAmount = +(totalAmount * vat).toFixed(2);
+      setFinishAmount(totalAmount);
     }
 
     setCalculatedValues({
       netAmount,
       vatAmount,
-
-    })
-  }, [totalAmount, vatRate, includeVat])
+    });
+  }, [totalAmount, vatRate, includeVat]);
 
   useEffect(() => {
     const searchSuppliers = async () => {
-      console.log(supplierSearchQuery);
       if (supplierSearchQuery) {
         setIsSearchingSupplier(true);
-        const searchSupplier = async () => {
-          try {
-            const response = await fetch(
-              `/api/searchSupplier?name=${supplierSearchQuery}`
-            );
-            const suppliers = await response.json();
-            setSupplierSearchResults(suppliers.data);
-            console.log(suppliers, "suppliers");
-            setIsSearchingSupplier(false);
-          } catch (error) {
-            console.error("Error fetching customers:", error);
-            return [];
+        try {
+          const response = await fetch(
+            `/api/searchSupplier?name=${supplierSearchQuery}`
+          );
+          if (!response.ok) {
+            throw new Error("Failed to fetch suppliers");
           }
-        };
-        searchSupplier();
+          const suppliers = await response.json();
+          setSupplierSearchResults(suppliers.data);
+        } catch (error) {
+          console.error("Error fetching suppliers:", error);
+          hotToast.error("Failed to fetch suppliers. Please try again.");
+          setSupplierSearchResults([]);
+        } finally {
+          setIsSearchingSupplier(false);
+        }
       } else {
         setSupplierSearchResults([]);
       }
     };
 
     const debounceTimer = setTimeout(searchSuppliers, 300);
-
     return () => clearTimeout(debounceTimer);
   }, [supplierSearchQuery]);
-  interface itemsOrder {
 
+  interface itemsOrder {
     quantity: number;
     vat: number;
     vatAmount: number;
@@ -277,56 +272,71 @@ export default function SalesOrderManagement() {
     Description: string;
     stock: string;
   }
-  const OrderProductsSelectToSendApi: itemsOrderSendToApiType[] = []
+
+  const OrderProductsSelectToSendApi: itemsOrderSendToApiType[] = [];
+  
   const handleOrderProductsSelected = (OrderProductsSelected: itemsOrder[]) => {
+    // Clear previous selections
+    OrderProductsSelectToSendApi.length = 0;
+    
     const products = OrderProductsSelected?.map(product => ({
       product: product._id,
       quantity: product.quantity,
       vat: product.vat,
       vatAmount: product.vatAmount,
       totalAmount: product.totalAmount,
-    }))
-    OrderProductsSelectToSendApi.push(...products)
-    console.log(OrderProductsSelectToSendApi)
-
-  }
+    }));
+    
+    OrderProductsSelectToSendApi.push(...products);
+  };
 
   async function onSubmit(valuesForm: FormValues) {
-    const values = {
-      ...valuesForm,
-      netAmount: calculatedValues.netAmount,
-      vatAmount: calculatedValues.vatAmount,
-      totalAmount: finishAmount
+    setIsSubmitting(true);
+    
+    try {
+      const values = {
+        ...valuesForm,
+        netAmount: calculatedValues.netAmount,
+        vatAmount: calculatedValues.vatAmount,
+        totalAmount: finishAmount
+      };
+
+      const data = {
+        values: values,
+        items: OrderProductsSelectToSendApi
+      };
+
+      const FetchData = await fetch("/api/createSaleOrder", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Headers": "Content-Type",
+          "Access-Control-Allow-Methods": "*",
+          "Access-Control-Allow-Origin": "*",
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!FetchData.ok) {
+        throw new Error("Failed to create sales order");
+      }
+      
+      const res = await FetchData.json();
+      
+      // Show success notification
+      hotToast.success("Sales order created successfully!");
+      
+      // Reset form or redirect if needed
+      // You might want to reset the form here or redirect to another page
+      
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      hotToast.error("Failed to create sales order. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    const data = {
-      values: values,
-      items: OrderProductsSelectToSendApi
-    }
-
-    const FetchData = await fetch("/api/createSaleOrder", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Headers": "Content-Type",
-        "Access-Control-Allow-Methods": "*",
-        "Access-Control-Allow-Origin": "*",
-      },
-      body: JSON.stringify(data),
-    });
-    const res = await FetchData.json();
-
-    console.log(res, "data");
-    toast({
-      title: "You submitted the following values:",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <p>Create New Sale Order Is Done</p>
-        </pre>
-      ),
-    });
-
   }
+
   const paymentTermOptions = [
     "Cash",
     "Card",
@@ -335,9 +345,13 @@ export default function SalesOrderManagement() {
     "Electronic Payments",
     "Deferred Payments",
   ];
+
   return (
     <SalesOrderProductsSelectedProvider>
-      <div className=" heighWithOutBar bg-background text-foreground overflow-auto">
+      <div className="heighWithOutBar bg-background text-foreground overflow-auto">
+        {/* Add React Hot Toast Container */}
+        <Toaster position="top-right" />
+        
         <div className="container mx-auto p-4">
           <Card>
             <CardHeader>
@@ -350,11 +364,22 @@ export default function SalesOrderManagement() {
                   onSubmit={form.handleSubmit(onSubmit)}
                   className="space-y-8"
                 >
-                  <Button type="submit">Save Sales Order</Button>
+                  <Button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      "Save Sales Order"
+                    )}
+                  </Button>
+                  
                   <div className="flex gap-4">
-
                     <div className="w-3/4 space-y-4">
-
                       <Card>
                         <CardHeader>
                           <CardTitle>Order Details</CardTitle>
@@ -364,7 +389,7 @@ export default function SalesOrderManagement() {
                             control={form.control}
                             name="customer"
                             render={({ field }) => (
-                              <FormItem >
+                              <FormItem>
                                 <FormLabel>Customer</FormLabel>
                                 <Popover
                                   open={openCustomer}
@@ -372,13 +397,12 @@ export default function SalesOrderManagement() {
                                 >
                                   <PopoverTrigger asChild>
                                     <FormControl>
-
                                       <Button
                                         variant="outline"
                                         role="combobox"
                                         aria-expanded={openCustomer}
                                         className={cn(
-                                          "w-full justify-between  pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]",
+                                          "w-full justify-between pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]",
                                           !field.value &&
                                           "text-muted-foreground"
                                         )}
@@ -399,7 +423,6 @@ export default function SalesOrderManagement() {
                                       <CommandInput
                                         placeholder="Search customer..."
                                         onValueChange={setCustomerSearchQuery}
-
                                       />
                                       {isSearching ? (
                                         <div className="flex items-center justify-center p-4">
@@ -460,8 +483,7 @@ export default function SalesOrderManagement() {
                                   <Input
                                     placeholder="Enter shipment address"
                                     {...field}
-                                    className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
-
+                                    className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -472,7 +494,7 @@ export default function SalesOrderManagement() {
                             control={form.control}
                             name="supplier"
                             render={({ field }) => (
-                              <FormItem >
+                              <FormItem>
                                 <FormLabel>Supplier</FormLabel>
                                 <Popover
                                   open={openSupplier}
@@ -485,7 +507,7 @@ export default function SalesOrderManagement() {
                                         role="combobox"
                                         aria-expanded={openSupplier}
                                         className={cn(
-                                          "w-full justify-between  pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]",
+                                          "w-full justify-between pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]",
                                           !field.value &&
                                           "text-muted-foreground"
                                         )}
@@ -496,7 +518,7 @@ export default function SalesOrderManagement() {
                                               supplier.firstName ===
                                               field.value
                                           )?.firstName
-                                          : "Select customer"}
+                                          : "Select supplier"}
                                         <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                       </Button>
                                     </FormControl>
@@ -504,7 +526,7 @@ export default function SalesOrderManagement() {
                                   <PopoverContent className="w-[300px] p-0">
                                     <Command>
                                       <CommandInput
-                                        placeholder="Search customer..."
+                                        placeholder="Search Supplier..."
                                         onValueChange={setSupplierSearchQuery}
                                       />
                                       {isSearchingSupplier ? (
@@ -514,7 +536,7 @@ export default function SalesOrderManagement() {
                                       ) : (
                                         <>
                                           <CommandEmpty>
-                                            No customer found.
+                                            No supplier found.
                                           </CommandEmpty>
                                           <CommandGroup>
                                             {supplierSearchResults.map(
@@ -523,7 +545,7 @@ export default function SalesOrderManagement() {
                                                   value={supplier.firstName}
                                                   key={supplier.firstName}
                                                   onSelect={() => {
-                                                    setUserNameCustomerSelected(
+                                                    setSupplierNameSelected(
                                                       supplier.firstName
                                                     );
                                                     form.setValue(
@@ -536,8 +558,7 @@ export default function SalesOrderManagement() {
                                                   <CheckIcon
                                                     className={cn(
                                                       "mr-2 h-4 w-4",
-                                                      customer?.userName ===
-                                                        field.value
+                                                      supplier.firstName === field.value
                                                         ? "opacity-100"
                                                         : "opacity-0"
                                                     )}
@@ -567,8 +588,7 @@ export default function SalesOrderManagement() {
                                   <Input
                                     placeholder="Enter sales manager"
                                     {...field}
-                                    className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
-
+                                    className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -585,8 +605,7 @@ export default function SalesOrderManagement() {
                                   <Input
                                     placeholder="Enter customer contact"
                                     {...field}
-                                    className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
-
+                                    className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -604,8 +623,7 @@ export default function SalesOrderManagement() {
                                     type="tel"
                                     placeholder="Enter phone number"
                                     {...field}
-                                    className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
-
+                                    className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]"
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -622,10 +640,8 @@ export default function SalesOrderManagement() {
                                 <Select
                                   onValueChange={field.onChange}
                                   defaultValue={field.value}
-
-
                                 >
-                                  <FormControl className="w-full pl-3 pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]">
+                                  <FormControl className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]">
                                     <SelectTrigger>
                                       <SelectValue placeholder="Select payment term" />
                                     </SelectTrigger>
@@ -646,7 +662,7 @@ export default function SalesOrderManagement() {
                             control={form.control}
                             name="shipmentDate"
                             render={({ field }) => (
-                              <FormItem >
+                              <FormItem>
                                 <FormLabel>Shipment Date</FormLabel>
                                 <Popover>
                                   <PopoverTrigger asChild>
@@ -654,7 +670,7 @@ export default function SalesOrderManagement() {
                                       <Button
                                         variant={"outline"}
                                         className={cn(
-                                          "w-full pl-3 text-left font-normal  pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525] ",
+                                          "w-full pl-3 text-left font-normal pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525] ",
                                           !field.value &&
                                           "text-muted-foreground"
                                         )}
@@ -702,14 +718,14 @@ export default function SalesOrderManagement() {
                             control={form.control}
                             name="orderDate"
                             render={({ field }) => (
-                              <FormItem >
+                              <FormItem>
                                 <Popover>
                                   <PopoverTrigger asChild>
-                                    <FormControl >
+                                    <FormControl>
                                       <Button
                                         variant={"outline"}
                                         className={cn(
-                                          "w-full pl-3 text-left font-normal  pr-4 py-2   h-14 rounded-md  inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525] ",
+                                          "w-full pl-3 text-left font-normal pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525] ",
                                           !field.value &&
                                           "text-muted-foreground"
                                         )}
@@ -750,10 +766,10 @@ export default function SalesOrderManagement() {
                         totalAmount={totalAmount}
                         netAmount={calculatedValues.netAmount}
                         vatAmount={calculatedValues.vatAmount}
-                        finishAmount={finishAmount} />
+                        finishAmount={finishAmount} 
+                      />
                     </div>
                   </div>
-
                 </form>
               </Form>
             </CardContent>
@@ -761,7 +777,10 @@ export default function SalesOrderManagement() {
           <Card className="mt-2 py-5">
             <CardContent>
               <AddProductButton />
-              <ProductSelected getTotalAmount={getTotalAmount} handleOrderProductsSelected={handleOrderProductsSelected} />
+              <ProductSelected 
+                getTotalAmount={getTotalAmount} 
+                handleOrderProductsSelected={handleOrderProductsSelected} 
+              />
             </CardContent>
           </Card>
         </div>
