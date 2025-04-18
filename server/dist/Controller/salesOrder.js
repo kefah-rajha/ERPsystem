@@ -31,7 +31,7 @@ const salesOrder = {
                 });
             }
             // Find saleOrder 
-            const saleOrder = yield schemaSalesOrder_1.SalesOrderModel.findById(id)
+            const saleOrder = yield schemaSalesOrder_1.SalesOrderModel.findById(id).populate("items.product")
                 .lean(); // Convert to plain JavaScript object
             // Check if saleOrder exists
             if (!saleOrder) {
@@ -145,6 +145,7 @@ const salesOrder = {
         }
     }),
     createSalesOrder: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a;
         try {
             const data = req.body;
             console.log(data, "data?.values");
@@ -168,7 +169,8 @@ const salesOrder = {
                 vatRate: data === null || data === void 0 ? void 0 : data.values.vatRate,
                 includeVat: data === null || data === void 0 ? void 0 : data.values.includeVat,
                 currency: data === null || data === void 0 ? void 0 : data.values.currency,
-                paymentTerm: data === null || data === void 0 ? void 0 : data.values.paymentTerm
+                paymentTerm: data === null || data === void 0 ? void 0 : data.values.paymentTerm,
+                status: (_a = data === null || data === void 0 ? void 0 : data.values) === null || _a === void 0 ? void 0 : _a.status,
             });
             const saveOrder = yield order.save();
             console.log(saveOrder);
@@ -284,7 +286,7 @@ const salesOrder = {
                 netTotal: data === null || data === void 0 ? void 0 : data.values.netAmount,
                 totalVat: data === null || data === void 0 ? void 0 : data.values.vatAmount,
                 totalAmount: data === null || data === void 0 ? void 0 : data.values.totalAmount,
-                vatRate: new Date(data === null || data === void 0 ? void 0 : data.values.vatRate),
+                vatRate: data === null || data === void 0 ? void 0 : data.values.vatRate,
                 includeVat: data === null || data === void 0 ? void 0 : data.values.includeVat,
                 currency: data === null || data === void 0 ? void 0 : data.values.currency,
                 paymentTerm: data === null || data === void 0 ? void 0 : data.values.paymentTerm

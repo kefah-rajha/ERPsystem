@@ -32,7 +32,7 @@ interface SalesOrder {
   netTotal: number;
   totalVat: number;
   totalAmount: number;
-  status: 'pending' | 'processed' | 'completed' | 'cancelled';
+  status: "pending" | "processed" | "completed" | "cancelled";
   notes?: string;
   vatRate: number,
   includeVat: boolean,

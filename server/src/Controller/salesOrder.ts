@@ -8,12 +8,12 @@ import { ProductModel } from "../Modal/schemaProducts"
 import mongoose, { Types } from "mongoose";
 import { SalesOrderModel } from "../Modal/schemaSalesOrder";
 const salesOrder = {
- getSaleOrder: async (req: any, res: any) => {
+  getSaleOrder: async (req: any, res: any) => {
     try {
       // Extract product ID from request parameters
       const { id } = req.params;
       console.log(id)
-  
+
       // Validate ID format
       if (!mongoose.Types.ObjectId.isValid(id)) {
         return res.status(400).json({
@@ -21,11 +21,11 @@ const salesOrder = {
           success: false,
         });
       }
-  
+
       // Find saleOrder 
       const saleOrder = await SalesOrderModel.findById(id).populate("items.product")
         .lean(); // Convert to plain JavaScript object
-      
+
 
       // Check if saleOrder exists
       if (!saleOrder) {
@@ -34,23 +34,23 @@ const salesOrder = {
           success: false,
         });
       }
-  
-      
-  
+
+
+
       // Send successful response
       res.status(200).json({
         posts: saleOrder,
         success: true,
         message: 'saleOrder retrieved successfully',
       });
-  
+
     } catch (error) {
       // Enhanced error handling
       console.error('Error in getProduct:', error);
-      
+
       // Type the error for better handling
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      
+
       return res.status(500).json({
         message: 'Server error while retrieving saleOrder',
         error: errorMessage,
@@ -72,9 +72,9 @@ const salesOrder = {
         userName: regex,
         role: 'Customer'  // Only search users with customer role
       })
-      .populate('contactID')
+        .populate('contactID')
         .limit(5)
-        
+
       console.log(customers)
 
       return res.status(200).json({
@@ -178,14 +178,15 @@ const salesOrder = {
         },
         items: data.items,
         salesManager: data?.values.salesManager,
-        shipmentDate:new Date(data?.values.shipmentDate),
+        shipmentDate: new Date(data?.values.shipmentDate),
         netTotal: data?.values.netAmount,
         totalVat: data?.values.vatAmount,
         totalAmount: data?.values.totalAmount,
         vatRate: data?.values.vatRate,
         includeVat: data?.values.includeVat,
         currency: data?.values.currency,
-        paymentTerm: data?.values.paymentTerm
+        paymentTerm: data?.values.paymentTerm,
+        status: data?.values ?. status,
       });
       const saveOrder = await order.save();
       console.log(saveOrder)
@@ -299,7 +300,7 @@ const salesOrder = {
 
       const { id } = req.params;
       const data = req.body
-      const dataSaleOrder={
+      const dataSaleOrder = {
         orderNumber: `SO-${Date.now()}`,
         customer: {
           userName: data?.values.customer,
@@ -312,17 +313,17 @@ const salesOrder = {
         },
         items: data.items,
         salesManager: data?.values.salesManager,
-        shipmentDate:new Date(data?.values.shipmentDate),
+        shipmentDate: new Date(data?.values.shipmentDate),
         netTotal: data?.values.netAmount,
         totalVat: data?.values.vatAmount,
         totalAmount: data?.values.totalAmount,
-        vatRate: new Date(data?.values.vatRate),
+        vatRate: data?.values.vatRate,
         includeVat: data?.values.includeVat,
         currency: data?.values.currency,
         paymentTerm: data?.values.paymentTerm
       }
       const UpdateData = await SalesOrderModel.findByIdAndUpdate(id, dataSaleOrder, { new: true })
-   console.log(UpdateData,"update")
+      console.log(UpdateData, "update")
       res.status(200).json({
         posts: UpdateData,
         success: true,

@@ -4,6 +4,7 @@ import { useState, useEffect, useContext } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { toast, Toaster } from "react-hot-toast";
 import { format } from "date-fns";
 import {
     CalendarIcon,
@@ -26,7 +27,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
-import {SalesOrderType} from "@/dataType/dataTypeSalesOrder/dataTypeSalesOrder"
+import { SalesOrderType } from "@/dataType/dataTypeSalesOrder/dataTypeSalesOrder"
 import {
     Popover,
     PopoverContent,
@@ -58,7 +59,6 @@ import {
 } from "@/components/ui/command";
 import ProductSelected from "@/components/SalesOrder/ProductSelected";
 import CurrencyAndVatAndAmount from "@/components/SalesOrder/CurrencyAndVatAndAmount";
-import { toast } from "@/components/ui/use-toast";
 import { SalesOrderProductsSelectedContext } from "@/context/saleOrderSelectedProducts"
 
 interface ContactInfoCustomerSearchResultsDataType {
@@ -86,6 +86,20 @@ interface itemsOrderSendToApiType {
     product: string;
 
 }
+const paymentTermOptions = [
+    "Cash",
+    "Card",
+    "Bank Transfers",
+    "Checks",
+    "Electronic Payments",
+    "Deferred Payments",
+] as const;
+const statusOptions = [
+    "pending",
+    "processed",
+    "completed",
+    "cancelled",
+] as const;
 
 const formSchema = z.object({
     customer: z.string().min(1, { message: "Customer is required" }),
@@ -97,10 +111,12 @@ const formSchema = z.object({
     customerEmail: z.string().min(1, { message: "Customer contact is required" }),
     phone: z.string().min(1, { message: "Phone is required" }),
     paymentTerm: z
-        .string({
+        .z.enum(paymentTermOptions, ({
             required_error: "Please select a payment term.",
-        })
-        .min(1, "Payment term is required"),
+        })),
+    status: z.enum(statusOptions, {
+        required_error: "Please select a status.",
+    }),
     shipmentDate: z.date({
         required_error: "Shipment date is required",
     }),
@@ -123,7 +139,7 @@ export default function SalesOrderManagement() {
     const [supplierSearchQuery, setSupplierSearchQuery] = useState("");
     const [userNameCustomerSelected, setUserNameCustomerSelected] =
         useState<string>("");
-        const [supplierNameSelected, setSupplierNameSelected] = useState<string>("");
+    const [supplierNameSelected, setSupplierNameSelected] = useState<string>("");
     const [supplierSearchResults, setSupplierSearchResults] = useState<
         {
             firstName: string;
@@ -149,8 +165,7 @@ export default function SalesOrderManagement() {
     };
     const [totalAmount, setTotalAmount] = useState<number>(0)
     const [itemsProduct, setItemsProduct] = useState<itemsOrder[]>([])
-    const [saleOrderFetch, setSaleOrderFetch] = useState<SalesOrderType  >({} as SalesOrderType)
-    console.log(saleOrderFetch?.orderDate,"saleOrderFetch")
+    const [saleOrderFetch, setSaleOrderFetch] = useState<SalesOrderType>({} as SalesOrderType)
 
     const getTotalAmount = (amount: number) => {
         setTotalAmount(amount)
@@ -161,30 +176,26 @@ export default function SalesOrderManagement() {
     // let shipmentAddressValue =customer
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
-        values: {
-            customer: saleOrderFetch?.customer?.userName ,
-            shipmentAddress: saleOrderFetch?.customer?.shipmentAddress ,
-            supplier: saleOrderFetch?.supplier?.name ,
-            salesManager: saleOrderFetch?.salesManager ,
-            customerEmail: saleOrderFetch?.customer?.customerEmail ,
-            phone: saleOrderFetch?.customer?.phone,
-            paymentTerm: saleOrderFetch?.paymentTerm ,
-            shipmentDate: saleOrderFetch?.shipmentDate && new Date(saleOrderFetch?.shipmentDate) ,
-            orderDate:  saleOrderFetch?.orderDate && new Date(saleOrderFetch?.orderDate) ,
-            currency: saleOrderFetch?.currency ,
-            vatRate: saleOrderFetch?.vatRate?.toString() ,
-            includeVat: saleOrderFetch?.includeVat 
-          }
     });
+
     useEffect(() => {
         let ignore = false;
-        console.log(id, "id in getProduct");
+        const loadingToast = toast.loading('Loading sale order details...');
+
         fetch(`/api/getSaleOrder/${id}`)
             .then((res) => {
                 return res.json();
             })
             .then((jsonData) => {
                 if (!ignore) {
+                    toast.dismiss(loadingToast);
+                
+                    if (jsonData.message == false) {
+                        toast.error(jsonData.error || 'Failed to load sale order');
+                        return;
+                    }
+
+
                     console.log(jsonData.posts, "sale order in SHowing");
                     setSaleOrderFetch(jsonData.posts)
                     setItemsProduct(jsonData.posts.items.map((item: any) => ({
@@ -207,14 +218,37 @@ export default function SalesOrderManagement() {
                         quantity: item.quantity,
                         totalAmount: item.totalAmount,
                         vat: item.vat,
-                        vatAmount: item.vatAmount
+                        vatAmount: item.vatAmount,
                     })))
+                    console.log(jsonData.posts.status,"jsonData.posts.status,")
 
-                    //   setProduct(jsonData.posts);
+                    form.reset({
+                        // Map fetched data to form schema fields
+                        customer: jsonData.posts.customer?.userName || '',
+                        shipmentAddress: jsonData.posts.customer?.shipmentAddress || '',
+                        supplier: jsonData.posts.supplier?.name || '',
+                        salesManager: jsonData.posts.salesManager || '',
+                        customerEmail: jsonData.posts.customer?.customerEmail || '', // Ensure this field exists on your customer object
+                        phone: jsonData.posts.customer?.phone || '', // Ensure this field exists on your customer object
+                        // Make sure the fetched values match the Zod enum types
+                        paymentTerm: jsonData.posts.paymentTerm,
+                        status: jsonData.posts.status,
+                        // Convert date strings to Date objects
+                        shipmentDate:  new Date(jsonData.posts.shipmentDate) ,
+                        orderDate:  new Date(jsonData.posts.orderDate),
+                        currency: jsonData.posts.currency || '',
+                        vatRate: jsonData.posts.vatRate?.toString() || '', // Ensure vatRate is a string for the form field
+                        includeVat: jsonData.posts.includeVat,
+                    });
+
+                    toast.success('Sale order loaded successfully');
+
                 }
             })
             .catch((err: unknown) => {
                 console.log(err);
+                toast.dismiss(loadingToast);
+                toast.error('Failed to load sale order details');
             })
             .finally(() => {
                 if (!ignore) {
@@ -376,54 +410,54 @@ export default function SalesOrderManagement() {
 
     }
 
-    async function onSubmit(valuesForm: FormValues) {
-        const values = {
-            ...valuesForm,
-            netAmount: calculatedValues.netAmount,
-            vatAmount: calculatedValues.vatAmount,
-            totalAmount: finishAmount
+ async function onSubmit(valuesForm: FormValues) {
+        const loadingToast = toast.loading('Updating sale order...');
+        
+        try {
+            const values = {
+                ...valuesForm,
+                netAmount: calculatedValues.netAmount,
+                vatAmount: calculatedValues.vatAmount,
+                totalAmount: finishAmount
+            }
+
+            const data = {
+                values: values,
+                items: OrderProductsSelectToSendApi
+            }
+
+            const FetchData = await fetch(`/api/updateSaleOrder/${id}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Headers": "Content-Type",
+                    "Access-Control-Allow-Methods": "*",
+                    "Access-Control-Allow-Origin": "*",
+                },
+                body: JSON.stringify(data),
+            });
+            
+            const res = await FetchData.json();
+            
+            toast.dismiss(loadingToast);
+            
+            if (res.success == true) {
+                toast.success('Sale order updated successfully!');
+                // Optional: redirect after success
+            } else {
+                toast.error(res.message || 'Failed to update sale order');
+            }
+        } catch (error) {
+            toast.dismiss(loadingToast);
+            toast.error('An error occurred while updating the sale order');
+            console.error('Update sale order error:', error);
         }
-
-        const data = {
-            values: values,
-            items: OrderProductsSelectToSendApi
-        }
-        console.log(data)
-
-        const FetchData = await fetch(`/api/updateSaleOrder/${id}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Access-Control-Allow-Headers": "Content-Type",
-                "Access-Control-Allow-Methods": "*",
-                "Access-Control-Allow-Origin": "*",
-            },
-            body: JSON.stringify(data),
-        });
-        const res = await FetchData.json();
-
-        console.log(res, "data");
-        toast({
-            title: "You submitted the following values:",
-            description: (
-                <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-                    <p>Update Sale Order Is Done</p>
-                </pre>
-            ),
-        });
-
     }
-    const paymentTermOptions = [
-        "Cash",
-        "Card",
-        "Bank Transfers",
-        "Checks",
-        "Electronic Payments",
-        "Deferred Payments",
-    ];
+    
+
     return (
         <SalesOrderProductsSelectedProvider>
-            <div className=" heighWithOutBar bg-background text-foreground overflow-auto">
+            <div className=" heighWithOutBar bg-gradient text-foreground overflow-auto">
                 <div className="container mx-auto p-4">
                     <Card>
                         <CardHeader>
@@ -611,7 +645,7 @@ export default function SalesOrderManagement() {
                                                                                                     value={supplier.firstName}
                                                                                                     key={supplier.firstName}
                                                                                                     onSelect={() => {
-                                                                                                        
+
                                                                                                         setSupplierNameSelected(
                                                                                                             supplier?.firstName
                                                                                                         );
@@ -722,6 +756,35 @@ export default function SalesOrderManagement() {
                                                                     <SelectContent>
 
                                                                         {paymentTermOptions.map((option) => (
+                                                                            <SelectItem key={option} value={option}>
+                                                                                {option}
+                                                                            </SelectItem>
+                                                                        ))}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+
+                                                    <FormField
+                                                        control={form.control}
+                                                        name="status"
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Status</FormLabel>
+                                                                <Select
+                                                                    onValueChange={field.onChange}
+                                                                    value={field.value}
+                                                                >
+                                                                    <FormControl className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]">
+                                                                        <SelectTrigger>
+                                                                            <SelectValue placeholder="Select status" />
+                                                                        </SelectTrigger>
+                                                                    </FormControl>
+                                                                    <SelectContent>
+
+                                                                        {statusOptions.map((option) => (
                                                                             <SelectItem key={option} value={option}>
                                                                                 {option}
                                                                             </SelectItem>

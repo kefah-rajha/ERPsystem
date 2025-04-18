@@ -82,6 +82,20 @@ interface itemsOrderSendToApiType {
   totalAmount: number;
   product: string;
 }
+const paymentTermOptions = [
+  "Cash",
+  "Card",
+  "Bank Transfers",
+  "Checks",
+  "Electronic Payments",
+  "Deferred Payments",
+] as const; 
+const statusOptions = [
+  'pending',
+  'processed',
+  'completed',
+  'cancelled',
+] as const; 
 
 const formSchema = z.object({
   customer: z.string().min(1, { message: "Customer is required" }),
@@ -93,10 +107,12 @@ const formSchema = z.object({
   customerEmail: z.string().min(1, { message: "Customer contact is required" }),
   phone: z.string().min(1, { message: "Phone is required" }),
   paymentTerm: z
-    .string({
+    .z.enum(paymentTermOptions, ({
       required_error: "Please select a payment term.",
-    })
-    .min(1, "Payment term is required"),
+    })),
+    status: z.enum(statusOptions, {
+      required_error: "Please select a status.",
+    }),
   shipmentDate: z.date({
     required_error: "Shipment date is required",
   }),
@@ -337,18 +353,10 @@ export default function SalesOrderManagement() {
     }
   }
 
-  const paymentTermOptions = [
-    "Cash",
-    "Card",
-    "Bank Transfers",
-    "Checks",
-    "Electronic Payments",
-    "Deferred Payments",
-  ];
-
+ 
   return (
     <SalesOrderProductsSelectedProvider>
-      <div className="heighWithOutBar bg-background text-foreground overflow-auto">
+      <div className="heighWithOutBar bg-background text-foreground bg-gradient overflow-auto">
         {/* Add React Hot Toast Container */}
         <Toaster position="top-right" />
         
@@ -658,6 +666,35 @@ export default function SalesOrderManagement() {
                               </FormItem>
                             )}
                           />
+                          <FormField
+  control={form.control}
+  name="status"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Status</FormLabel>
+      <Select
+        onValueChange={field.onChange}
+        defaultValue={field.value}
+      >
+        <FormControl className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]">
+          <SelectTrigger>
+            <SelectValue placeholder="Select status" />
+          </SelectTrigger>
+        </FormControl>
+        <SelectContent>
+          {/* Map over statusOptions directly */}
+          {statusOptions.map((option) => (
+            <SelectItem key={option} value={option}>
+              {/* You can display the option as is, or format it (e.g., capitalize first letter) */}
+              {option.charAt(0).toUpperCase() + option.slice(1)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
                           <FormField
                             control={form.control}
                             name="shipmentDate"

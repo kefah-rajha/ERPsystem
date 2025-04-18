@@ -8,7 +8,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
-
+import { Button } from "@/components/ui/button"
+import Invoice from "@/components/POS/invoice";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 // Types
 interface OrderItem {
   product: any; // Using any for now since we're fetching from API
@@ -147,6 +157,20 @@ export default function SalesOrderPage() {
         <Badge className={`${getStatusColor(saleOrder.status)} mt-2 sm:mt-0 text-sm px-3 py-1 uppercase`}>
           {saleOrder.status}
         </Badge>
+        <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="card-gradient">Generate Invoice</Button>
+      </DialogTrigger>
+      <DialogContent className="w-[90%] h-[90vh] overflow-hidden">
+        <DialogHeader>
+          <DialogTitle>Generate Invoice</DialogTitle>
+       
+        </DialogHeader>
+        <Invoice salesOrder={saleOrder} />
+
+        </DialogContent>
+        </Dialog>
+
       </div>
 
       <Tabs defaultValue="overview" className="w-full" onValueChange={setActiveTab}>

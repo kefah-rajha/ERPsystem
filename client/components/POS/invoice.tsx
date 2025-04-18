@@ -1,81 +1,462 @@
+// "use client"
+// import { useState } from 'react'
+// import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+// import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+// import { Button } from "@/components/ui/button"
+// import { PrinterIcon, DownloadIcon, ArrowLeftIcon } from 'lucide-react'
+// import { format } from 'date-fns'
+
+// // Mock function for PDF generation - you would replace this with actual PDF library
+// import  jsPDF  from 'jspdf'
+// import 'jspdf-autotable'
+// declare module 'jspdf' {
+//   interface jsPDF {
+//     autoTable: (options: any) => jsPDF;
+//     lastAutoTable: {
+//       finalY: number;
+//     };
+//   }
+// }
+
+// interface OrderItem {
+//   product: any; // Using any for now since we're fetching from API
+//   quantity: number;
+//   vat: number;
+//   vatAmount: number;
+//   totalAmount: number;
+// }
+
+// interface Customer {
+//  userName: string;
+//   shipmentAddress: string;
+//   phone: string;
+//   customerEmail: string;
+// }
+
+// interface SalesStaff {
+//   name: string;
+//   code: string;
+// }
+
+// interface SalesOrder {
+//   orderNumber: string;
+//   orderDate: Date;
+//   shipmentDate: Date;
+//   salesManager: string;
+//   customer: Customer;
+//   supplier: SalesStaff;
+//   items: OrderItem[];
+//   netTotal: number;
+//   totalVat: number;
+//   totalAmount: number;
+//   status: 'pending' | 'processed' | 'completed' | 'cancelled';
+//   notes?: string;
+//   vatRate: number;
+//   includeVat: boolean;
+//   currency: string;
+//   paymentTerm: "Cash" | "Card" | "Bank Transfers" | "Checks" | "Electronic Payments" | "Deferred Payments";
+// }
+
+
+// interface InvoiceType{
+//   salesOrder:SalesOrder
+// }
+// export default function Invoice({ salesOrder }:InvoiceType) {
+//   const [isPrinting, setIsPrinting] = useState(false)
+//   const [isExporting, setIsExporting] = useState(false)
+
+//   // If no sales order is provided, return empty state
+//   if (!salesOrder) {
+//     return (
+//       <div className="flex justify-center items-center h-64">
+//         <p>No invoice data available</p>
+//       </div>
+//     )
+//   }
+
+//   const handlePrint = () => {
+//     setIsPrinting(true)
+//     window.print()
+//     setTimeout(() => setIsPrinting(false), 500)
+//   }
+
+//   const handleDownloadPDF = () => {
+//     console.log("test")
+//     setIsExporting(true)
+    
+//     try {
+//       const doc = new jsPDF()
+      
+//       // Add company logo/header
+//       doc.setFontSize(20)
+//       doc.text('INVOICE', 105, 20, { align: 'center' })
+      
+//       // Add invoice details
+//       doc.setFontSize(12)
+//       doc.text(`Invoice Number: ${salesOrder.orderNumber}`, 15, 40)
+//       doc.text(`Date: ${format(new Date(salesOrder.orderDate), 'dd/MM/yyyy')}`, 15, 47)
+//       doc.text(`Shipment Date: ${format(new Date(salesOrder.shipmentDate), 'dd/MM/yyyy')}`, 15, 54)
+      
+//       // Add customer details
+//       doc.text('Bill To:', 15, 70)
+//       doc.text(salesOrder.customer.userName, 15, 77)
+//       doc.text(salesOrder.customer.shipmentAddress, 15, 84)
+//       doc.text(`Phone: ${salesOrder.customer.phone}`, 15, 91)
+//       doc.text(`Email: ${salesOrder.customer.customerEmail}`, 15, 98)
+      
+//       // Add sales details
+//       doc.text(`Sales Manager: ${salesOrder.salesManager}`, 120, 70)
+//       doc.text(`Supplier: ${salesOrder.supplier.name} (${salesOrder.supplier.code})`, 120, 77)
+//       doc.text(`Payment: ${salesOrder.paymentTerm}`, 120, 84)
+//       doc.text(`Currency: ${salesOrder.currency}`, 120, 91)
+      
+//       // Create table for items
+//       const tableColumn = ["Product", "Qty", "VAT %", "VAT Amount", "Total"]
+//       const tableRows:any = []
+      
+//       salesOrder.items.forEach(item => {
+//         const itemData = [
+//           item.product.toString(),
+//           item.quantity,
+//           `${item.vat}%`,
+//           `${salesOrder.currency} ${item.vatAmount.toFixed(2)}`,
+//           `${salesOrder.currency} ${item.totalAmount.toFixed(2)}`
+//         ]
+//         tableRows.push(itemData)
+//       })
+      
+//       doc.autoTable({
+//         head: [tableColumn],
+//         body: tableRows,
+//         startY: 110,
+//         theme: 'grid',
+//         styles: { fontSize: 10 }
+//       })
+      
+//       // Add totals at the bottom
+//       const finalY = doc.lastAutoTable.finalY + 10
+//       doc.text(`Net Total: ${salesOrder.currency} ${salesOrder.netTotal.toFixed(2)}`, 140, finalY)
+//       doc.text(`Total VAT: ${salesOrder.currency} ${salesOrder.totalVat.toFixed(2)}`, 140, finalY + 7)
+//       doc.text(`Total Amount: ${salesOrder.currency} ${salesOrder.totalAmount.toFixed(2)}`, 140, finalY + 14)
+      
+//       // Add notes if available
+//       if (salesOrder.notes) {
+//         doc.text('Notes:', 15, finalY + 30)
+//         doc.text(salesOrder.notes, 15, finalY + 37)
+//       }
+      
+//       // Add footer
+//       doc.text('Thank you for your business!', 105, 280, { align: 'center' })
+      
+//       doc.save(`Invoice-${salesOrder.orderNumber}.pdf`)
+//     } catch (error) {
+//       console.error('Error generating PDF:', error)
+//     }
+    
+//     setIsExporting(false)
+//   }
+
+//   const handleBack = () => {
+//     // Navigate back logic - implement as needed
+//     console.log("Navigating back...")
+//   }
+
+//   return (
+//     <div className="flex flex-col md:flex-row w-full  overflow-hidden mx-auto">
+//       <style jsx global>{`
+//         @media print {
+//           body * {
+//             visibility: hidden;
+//           }
+//           .invoice-container, .invoice-container * {
+//             visibility: visible;
+//           }
+//           .invoice-container {
+//             position: absolute;
+//             left: 0;
+//             top: 0;
+//             width: 100%;
+//           }
+//         }
+//       `}</style>
+//       <div className="invoice-container flex-grow overflow-auto border border-gray-200 shadow-md bg-white">
+//         <Card className="w-full border-0 overflow-auto shadow-none bg-white text-black">
+//           <CardHeader className="space-y-1 border-b border-gray-200">
+//             <CardTitle className="text-2xl font-bold">Invoice</CardTitle>
+//             <div className="flex justify-between text-sm">
+//               <div>
+//                 <p>Invoice Number: <span className="font-semibold">{salesOrder.orderNumber}</span></p>
+//                 <p>Date: <span className="font-semibold">{format(new Date(salesOrder.orderDate), 'dd/MM/yyyy')}</span></p>
+//                 <p>Shipment Date: <span className="font-semibold">{format(new Date(salesOrder.shipmentDate), 'dd/MM/yyyy')}</span></p>
+//                 <p>Status: <span className="font-semibold capitalize">{salesOrder.status}</span></p>
+//               </div>
+//               <div className="text-right text-muted">
+//                 <p>Your Company Name</p>
+//                 <p>Company Address Line 1</p>
+//                 <p>Company Address Line 2</p>
+//                 <p>Tax ID: 123456789</p>
+//               </div>
+//             </div>
+//           </CardHeader>
+//           <CardContent className="space-y-6 pt-6">
+//             <div className="flex justify-between">
+//               <div>
+//                 <h3 className="font-semibold mb-1">Bill To:</h3>
+//                 <p>{salesOrder.customer.userName}</p>
+//                 <p>{salesOrder.customer.shipmentAddress}</p>
+//                 <p>Phone: {salesOrder.customer.phone}</p>
+//                 <p>Email: {salesOrder.customer.customerEmail}</p>
+//               </div>
+//               <div className="text-right">
+//                 <h3 className="font-semibold mb-1">Sales Information:</h3>
+//                 <p>Sales Manager: {salesOrder.salesManager}</p>
+//                 <p>Supplier: {salesOrder.supplier.name} ({salesOrder.supplier.code})</p>
+//                 <p>Payment Terms: {salesOrder.paymentTerm}</p>
+//                 <p>Currency: {salesOrder.currency}</p>
+//               </div>
+//             </div>
+//             <Table>
+//               <TableHeader>
+//                 <TableRow>
+//                   <TableHead>Product</TableHead>
+//                   <TableHead className="text-center">Qty</TableHead>
+//                   <TableHead className="text-center">VAT %</TableHead>
+//                   <TableHead className="text-center">VAT Amount</TableHead>
+//                   <TableHead className="text-center">Total Amount</TableHead>
+//                 </TableRow>
+//               </TableHeader>
+//               <TableBody>
+//                 {salesOrder.items.map((item, index) => (
+//                   <TableRow key={index}>
+//                     <TableCell className="font-medium">{item.product.name.toString()}</TableCell>
+//                     <TableCell className="text-center">{item.quantity}</TableCell>
+//                     <TableCell className="text-center">{item.vat}%</TableCell>
+//                     <TableCell className="text-center">{salesOrder.currency} {item.vatAmount.toFixed(2)}</TableCell>
+//                     <TableCell className="text-center">{salesOrder.currency} {item.totalAmount.toFixed(2)}</TableCell>
+//                   </TableRow>
+//                 ))}
+//               </TableBody>
+//             </Table>
+//             <div className="flex flex-col items-end space-y-1 text-sm">
+//               <div className="flex justify-between w-1/2">
+//                 <span className="font-medium">Net Total:</span>
+//                 <span>{salesOrder.currency} {salesOrder.netTotal.toFixed(2)}</span>
+//               </div>
+//               <div className="flex justify-between w-1/2">
+//                 <span className="font-medium">VAT Total ({salesOrder.vatRate}%):</span>
+//                 <span>{salesOrder.currency} {salesOrder.totalVat.toFixed(2)}</span>
+//               </div>
+//               <div className="flex justify-between w-1/2 font-semibold text-base mt-2 pt-2 border-t border-gray-200">
+//                 <span>Total Amount:</span>
+//                 <span>{salesOrder.currency} {salesOrder.totalAmount.toFixed(2)}</span>
+//               </div>
+//             </div>
+//           </CardContent>
+//           <CardFooter className="flex-col items-start space-y-2 text-sm border-t border-gray-200 mt-6">
+//             {salesOrder.notes && (
+//               <div>
+//                 <p className="font-semibold">Notes:</p>
+//                 <p>{salesOrder.notes}</p>
+//               </div>
+//             )}
+//             <p className="mt-4">Thank you for your business!</p>
+//           </CardFooter>
+//         </Card>
+//       </div>
+//       <div className="bg-gray-100 dark:bg-gray-800 p-6 md:w-64 flex flex-col space-y-4">
+//         <h2 className="text-xl font-bold mb-4">Invoice Actions</h2>
+//         <Button 
+//           onClick={handleBack} 
+//           className="w-full"
+//           variant="outline"
+//         >
+//           <ArrowLeftIcon className="mr-2 h-4 w-4" /> Back
+//         </Button>
+//         <Button 
+//           onClick={handlePrint} 
+//           disabled={isPrinting} 
+//           className="w-full"
+//         >
+//           <PrinterIcon className="mr-2 h-4 w-4" /> {isPrinting ? 'Printing...' : 'Print Invoice'}
+//         </Button>
+//         <Button 
+//           onClick={handleDownloadPDF} 
+//           disabled={isExporting} 
+//           className="w-full"
+//           variant="secondary"
+//         >
+//           <DownloadIcon className="mr-2 h-4 w-4" /> {isExporting ? 'Exporting...' : 'Export PDF'}
+//         </Button>
+//       </div>
+//     </div>
+//   )
+// }
+
+
+
 "use client"
 import { useState } from 'react'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { PrinterIcon, DownloadIcon, ShoppingCartIcon, ArrowLeftIcon } from 'lucide-react'
+import { PrinterIcon, DownloadIcon, ArrowLeftIcon } from 'lucide-react'
+import { format } from 'date-fns'
 
-export default function Invoice() {
+// Import jsPDF correctly
+import { jsPDF } from "jspdf"
+// Import autotable as a separate import
+import autoTable from 'jspdf-autotable'
+
+interface OrderItem {
+  product: any; // Using any for now since we're fetching from API
+  quantity: number;
+  vat: number;
+  vatAmount: number;
+  totalAmount: number;
+}
+
+interface Customer {
+ userName: string;
+  shipmentAddress: string;
+  phone: string;
+  customerEmail: string;
+}
+
+interface SalesStaff {
+  name: string;
+  code: string;
+}
+
+interface SalesOrder {
+  orderNumber: string;
+  orderDate: Date;
+  shipmentDate: Date;
+  salesManager: string;
+  customer: Customer;
+  supplier: SalesStaff;
+  items: OrderItem[];
+  netTotal: number;
+  totalVat: number;
+  totalAmount: number;
+  status: 'pending' | 'processed' | 'completed' | 'cancelled';
+  notes?: string;
+  vatRate: number;
+  includeVat: boolean;
+  currency: string;
+  paymentTerm: "Cash" | "Card" | "Bank Transfers" | "Checks" | "Electronic Payments" | "Deferred Payments";
+}
+
+
+interface InvoiceType{
+  salesOrder:SalesOrder
+}
+export default function Invoice({ salesOrder }:InvoiceType) {
   const [isPrinting, setIsPrinting] = useState(false)
-  const [isPlacingOrder, setIsPlacingOrder] = useState(false)
-  const [orderPlaced, setOrderPlaced] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
 
-  const invoiceItems = [
-    { description: "Ergonomic Office Chair", quantity: 2, price: 299.99, note: "Black leather, adjustable height" },
-    { description: "Solid Oak Dining Table", quantity: 1, price: 799.99, note: "Seats 6, natural finish" },
-    { description: "Modern Leather Sofa", quantity: 1, price: 1299.99, note: "3-seater, charcoal gray" },
-    { description: "Adjustable Standing Desk", quantity: 1, price: 549.99, note: "Electric, white frame" },
-    { description: "Minimalist Bookshelf", quantity: 2, price: 149.99, note: "5 shelves, walnut veneer" },
-  ]
-
-  const subtotal = invoiceItems.reduce((sum, item) => sum + item.quantity * item.price, 0)
-  const taxRate = 0.08
-  const tax = subtotal * taxRate
-  const total = subtotal + tax
+  // If no sales order is provided, return empty state
+  if (!salesOrder) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <p>No invoice data available</p>
+      </div>
+    )
+  }
 
   const handlePrint = () => {
     setIsPrinting(true)
     window.print()
-    setIsPrinting(false)
+    setTimeout(() => setIsPrinting(false), 500)
   }
 
   const handleDownloadPDF = () => {
-    console.log("Downloading PDF...")
-  }
-
-  const handlePlaceOrder = () => {
-    setIsPlacingOrder(true)
-    setTimeout(() => {
-      console.log("Placing order...")
-      setIsPlacingOrder(false)
-      setOrderPlaced(true)
-    }, 1500)
+    setIsExporting(true)
+    
+    try {
+      // Create a new document
+      const doc = new jsPDF()
+      
+      // Add company logo/header
+      doc.setFontSize(20)
+      doc.text('INVOICE', 105, 20, { align: 'center' })
+      
+      // Add invoice details
+      doc.setFontSize(12)
+      doc.text(`Invoice Number: ${salesOrder.orderNumber}`, 15, 40)
+      doc.text(`Date: ${format(new Date(salesOrder.orderDate), 'dd/MM/yyyy')}`, 15, 47)
+      doc.text(`Shipment Date: ${format(new Date(salesOrder.shipmentDate), 'dd/MM/yyyy')}`, 15, 54)
+      
+      // Add customer details
+      doc.text('Bill To:', 15, 70)
+      doc.text(salesOrder.customer.userName, 15, 77)
+      doc.text(salesOrder.customer.shipmentAddress, 15, 84)
+      doc.text(`Phone: ${salesOrder.customer.phone}`, 15, 91)
+      doc.text(`Email: ${salesOrder.customer.customerEmail}`, 15, 98)
+      
+      // Add sales details
+      doc.text(`Sales Manager: ${salesOrder.salesManager}`, 120, 70)
+      doc.text(`Supplier: ${salesOrder.supplier.name} (${salesOrder.supplier.code})`, 120, 77)
+      doc.text(`Payment: ${salesOrder.paymentTerm}`, 120, 84)
+      doc.text(`Currency: ${salesOrder.currency}`, 120, 91)
+      
+      // Create table for items
+      const tableColumn = ["Product", "Qty", "VAT %", "VAT Amount", "Total"]
+      const tableRows:any = []
+      
+      salesOrder.items.forEach(item => {
+        const itemData = [
+          item.product.toString(),
+          item.quantity,
+          `${item.vat}%`,
+          `${salesOrder.currency} ${item.vatAmount.toFixed(2)}`,
+          `${salesOrder.currency} ${item.totalAmount.toFixed(2)}`
+        ]
+        tableRows.push(itemData)
+      })
+      
+      // Create the table using autoTable directly
+      autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: 110,
+        theme: 'grid',
+        styles: { fontSize: 10 }
+      })
+      
+      // Get the final Y position where the table ends
+      const finalY = (doc as any).lastAutoTable.finalY + 10
+      
+      // Add totals at the bottom
+      doc.text(`Net Total: ${salesOrder.currency} ${salesOrder.netTotal.toFixed(2)}`, 140, finalY)
+      doc.text(`Total VAT: ${salesOrder.currency} ${salesOrder.totalVat.toFixed(2)}`, 140, finalY + 7)
+      doc.text(`Total Amount: ${salesOrder.currency} ${salesOrder.totalAmount.toFixed(2)}`, 140, finalY + 14)
+      
+      // Add notes if available
+      if (salesOrder.notes) {
+        doc.text('Notes:', 15, finalY + 30)
+        doc.text(salesOrder.notes, 15, finalY + 37)
+      }
+      
+      // Add footer
+      doc.text('Thank you for your business!', 105, 280, { align: 'center' })
+      
+      // Save the PDF
+      doc.save(`Invoice-${salesOrder.orderNumber}.pdf`)
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+    }
+    
+    setIsExporting(false)
   }
 
   const handleBack = () => {
+    // Navigate back logic - implement as needed
     console.log("Navigating back...")
   }
 
   return (
-    <div className="flex flex-col md:flex-row w-full max-w-7xl mx-auto">
+    <div className="flex flex-col md:flex-row w-full max-w-7xl  overflow-hidden mx-auto">
       <style jsx global>{`
-        .invoice-container {
-          background-color: white !important;
-          color: black !important;
-        }
-        .invoice-container * {
-          color: black !important;
-        }
-        .invoice-container .text-muted {
-          color: #666 !important;
-        }
-        .invoice-container table {
-          border-collapse: separate;
-          border-spacing: 0;
-        }
-        .invoice-container th {
-          border-bottom: 2px solid #e0e0e0 !important;
-          font-weight: 600 !important;
-        }
-        .invoice-container td {
-          border-bottom: 1px solid #e0e0e0 !important;
-        }
-        .invoice-container tr:last-child td {
-          border-bottom: none !important;
-        }
-        .control-panel {
-          background: linear-gradient(258deg, rgba(31, 31, 31, 1) 15%, rgba(48, 48, 48, 1) 77%, rgba(31, 31, 31, 1) 87%);
-        }
         @media print {
           body * {
             visibility: hidden;
@@ -91,89 +472,113 @@ export default function Invoice() {
           }
         }
       `}</style>
-      <div className="invoice-container heighWithOutBar overflow-auto flex-grow overflow-x-auto border border-gray-200 shadow-md ">
-        <Card className="w-full border-0 shadow-none bg-white">
+      <div className="invoice-container flex-grow overflow-auto border border-gray-200  shadow-md bg-white">
+        <Card className="w-full border-0 shadow-none bg-white text-black ">
           <CardHeader className="space-y-1 border-b border-gray-200">
             <CardTitle className="text-2xl font-bold">Invoice</CardTitle>
             <div className="flex justify-between text-sm">
               <div>
-                <p>Invoice Number: <span className="font-semibold">INV-2023-001</span></p>
-                <p>Date: <span className="font-semibold">{new Date().toLocaleDateString()}</span></p>
+                <p>Invoice Number: <span className="font-semibold">{salesOrder.orderNumber}</span></p>
+                <p>Date: <span className="font-semibold">{format(new Date(salesOrder.orderDate), 'dd/MM/yyyy')}</span></p>
+                <p>Shipment Date: <span className="font-semibold">{format(new Date(salesOrder.shipmentDate), 'dd/MM/yyyy')}</span></p>
+                <p>Status: <span className="font-semibold capitalize">{salesOrder.status}</span></p>
               </div>
               <div className="text-right text-muted">
-                <p>Cozy Home Furnishings</p>
-                <p>789 Comfort Lane</p>
-                <p>Furniture City, FC 54321</p>
+                <p>Your Company Name</p>
+                <p>Company Address Line 1</p>
+                <p>Company Address Line 2</p>
+                <p>Tax ID: 123456789</p>
               </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-6 pt-6">
-            <div>
-              <h3 className="font-semibold mb-1">Bill To:</h3>
-              <p>Sarah Johnson</p>
-              <p>Modern Living Interiors</p>
-              <p>456 Design Avenue</p>
-              <p>Stylish Town, ST 98765</p>
+            <div className="flex justify-between">
+              <div>
+                <h3 className="font-semibold mb-1">Bill To:</h3>
+                <p>{salesOrder.customer.userName}</p>
+                <p>{salesOrder.customer.shipmentAddress}</p>
+                <p>Phone: {salesOrder.customer.phone}</p>
+                <p>Email: {salesOrder.customer.customerEmail}</p>
+              </div>
+              <div className="text-right">
+                <h3 className="font-semibold mb-1">Sales Information:</h3>
+                <p>Sales Manager: {salesOrder.salesManager}</p>
+                <p>Supplier: {salesOrder.supplier.name} ({salesOrder.supplier.code})</p>
+                <p>Payment Terms: {salesOrder.paymentTerm}</p>
+                <p>Currency: {salesOrder.currency}</p>
+              </div>
             </div>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Description</TableHead>
+                  <TableHead>Product</TableHead>
                   <TableHead className="text-center">Qty</TableHead>
-                  <TableHead className="text-center">Price</TableHead>
-                  <TableHead className="text-center">Amount</TableHead>
-                  <TableHead>Note</TableHead>
+                  <TableHead className="text-center">VAT %</TableHead>
+                  <TableHead className="text-center">VAT Amount</TableHead>
+                  <TableHead className="text-center">Total Amount</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {invoiceItems.map((item, index) => (
+                {salesOrder.items.map((item, index) => (
                   <TableRow key={index}>
-                    <TableCell className="font-medium">{item.description}</TableCell>
+                    <TableCell className="font-medium">{item.product.name.toString()}</TableCell>
                     <TableCell className="text-center">{item.quantity}</TableCell>
-                    <TableCell className="text-center">${item.price.toFixed(2)}</TableCell>
-                    <TableCell className="text-center">${(item.quantity * item.price).toFixed(2)}</TableCell>
-                    <TableCell className="text-sm text-muted">{item.note}</TableCell>
+                    <TableCell className="text-center">{item.vat}%</TableCell>
+                    <TableCell className="text-center">{salesOrder.currency} {item.vatAmount.toFixed(2)}</TableCell>
+                    <TableCell className="text-center">{salesOrder.currency} {item.totalAmount.toFixed(2)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
             <div className="flex flex-col items-end space-y-1 text-sm">
               <div className="flex justify-between w-1/2">
-                <span className="font-medium">Subtotal:</span>
-                <span>${subtotal.toFixed(2)}</span>
+                <span className="font-medium">Net Total:</span>
+                <span>{salesOrder.currency} {salesOrder.netTotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between w-1/2">
-                <span className="font-medium">Tax ({(taxRate * 100).toFixed(0)}%):</span>
-                <span>${tax.toFixed(2)}</span>
+                <span className="font-medium">VAT Total ({salesOrder.vatRate}%):</span>
+                <span>{salesOrder.currency} {salesOrder.totalVat.toFixed(2)}</span>
               </div>
               <div className="flex justify-between w-1/2 font-semibold text-base mt-2 pt-2 border-t border-gray-200">
-                <span>Total:</span>
-                <span>${total.toFixed(2)}</span>
+                <span>Total Amount:</span>
+                <span>{salesOrder.currency} {salesOrder.totalAmount.toFixed(2)}</span>
               </div>
             </div>
           </CardContent>
           <CardFooter className="flex-col items-start space-y-2 text-sm border-t border-gray-200 mt-6">
-            <p><span className="font-semibold">Payment Terms:</span> Due within 30 days</p>
-            <p><span className="font-semibold">Note:</span> Thank you for choosing Cozy Home Furnishings for your interior design needs!</p>
+            {salesOrder.notes && (
+              <div>
+                <p className="font-semibold">Notes:</p>
+                <p>{salesOrder.notes}</p>
+              </div>
+            )}
+            <p className="mt-4">Thank you for your business!</p>
           </CardFooter>
         </Card>
       </div>
-      <div className="control-panel text-white p-6 md:w-64 flex flex-col space-y-4">
+      <div className="bg-gray-100 dark:bg-gray-800 p-6 md:w-64 flex flex-col space-y-4">
         <h2 className="text-xl font-bold mb-4">Invoice Actions</h2>
-        <Button onClick={handleBack} className="w-full bg-gray-700 hover:bg-gray-600">
+        <Button 
+          onClick={handleBack} 
+          className="w-full"
+          variant="outline"
+        >
           <ArrowLeftIcon className="mr-2 h-4 w-4" /> Back
         </Button>
-        <Button onClick={handlePrint} disabled={isPrinting} className="w-full bg-blue-600 hover:bg-blue-500">
-          <PrinterIcon className="mr-2 h-4 w-4" /> Print Invoice
-        </Button>
-        <Button onClick={handleDownloadPDF} className="w-full bg-green-600 hover:bg-green-500">
-          <DownloadIcon className="mr-2 h-4 w-4" /> Download PDF
+        <Button 
+          onClick={handlePrint} 
+          disabled={isPrinting} 
+          className="w-full"
+        >
+          <PrinterIcon className="mr-2 h-4 w-4" /> {isPrinting ? 'Printing...' : 'Print Invoice'}
         </Button>
         <Button 
-         
-          className={`w-full ${orderPlaced ? 'bg-gray-600' : 'bg-yellow-600 hover:bg-yellow-500'}`}
+          onClick={handleDownloadPDF} 
+          disabled={isExporting} 
+          className="w-full"
+          variant="secondary"
         >
-          <ShoppingCartIcon className="mr-2 h-4 w-4" /> Place Order
+          <DownloadIcon className="mr-2 h-4 w-4" /> {isExporting ? 'Exporting...' : 'Export PDF'}
         </Button>
       </div>
     </div>
