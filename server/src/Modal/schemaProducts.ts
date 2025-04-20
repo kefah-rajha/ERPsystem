@@ -24,6 +24,7 @@ interface Product {
   subCategories: string[];
   photos:string [];
   mainPhoto:string;
+  warehouse:Schema.Types.ObjectId;
 }
 const attributes = new mongoose.Schema({
   properties: {
@@ -48,6 +49,7 @@ const productSchema = new Schema<Product>({
   allowOutOfStock: { type: Boolean },
   Description: { type: String },
   stock: { type: String },
+  warehouse: { type: mongoose.Schema.Types.ObjectId, ref: 'Warehouse' },
   vat: { type: String },
   subCategories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
   categories: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },

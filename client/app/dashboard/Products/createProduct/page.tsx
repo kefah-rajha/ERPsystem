@@ -56,6 +56,13 @@ import StatusProduct from "@/components/product/statusProduct";
 import { useRouter } from "next/navigation"
 import { Description } from "@radix-ui/react-toast";
 import PhotosProduct from "@/components/product/PhotosProduct";
+
+const UNASSIGNED_UI_VALUE = "UNASSIGNED_SELECTION";
+interface Warehouse {
+  id: string;
+  name: string;
+
+}
 const createProductFormSchema = z.object({
   name: z.string(),
   SKU: z.string(),
@@ -74,6 +81,8 @@ const createProductFormSchema = z.object({
   stock: z.string().refine((val) => !isNaN(parseInt(val)) && parseInt(val) >= 0, {
     message: "Stock cannot be less than 0.",
   }),
+  warehouse: z.string().min(1, { message: "Invalid warehouse ID." }),
+
 
   trackInventory: z.enum(["false", "true"]),
   allowOutOfStock: z.enum(["false", "true"]),
@@ -92,9 +101,13 @@ export default function CreateProducts() {
   const [nameSKU, setNameSKU] = useState<string>("");
   const [dataMainCategory, setDataMainCategory] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [loadingWarehouses, setLoadingWarehouses] = useState(true);
+  const [warehouseError, setWarehouseError] = useState<string | null>(null);
+
   const router = useRouter()
 
-console.log(inputImages,"inputImagesMainComponent")
+  console.log(inputImages, "inputImagesMainComponent")
   const form = useForm<productFormValues>({
     resolver: zodResolver(createProductFormSchema),
   });
@@ -121,12 +134,12 @@ console.log(inputImages,"inputImagesMainComponent")
     salesCode: '',
     purchaseCode: '',
     supplierCode: '',
-    stock: '',       // Empty string for numerical inputs initially
-    trackInventory: 'false', // Sensible default for boolean-like enum
-    allowOutOfStock: 'false', // Sensible default for boolean-like enum
+    stock: '',       
+    trackInventory: 'false',
+    allowOutOfStock: 'false',
     Description: '',
-    vat: '',         // Empty string for numerical inputs initially
-    Status: 'published', 
+    vat: '',         
+    Status: 'published',
   };
   const clearForm = () => {
     // Reset the form using the SAME default values object
@@ -148,6 +161,62 @@ console.log(inputImages,"inputImagesMainComponent")
 
 
 
+
+  // useEffect to fetch warehouses
+  useEffect(() => {
+    let ignore = false;
+    setLoadingWarehouses(true);
+    setWarehouseError(null);
+
+    fetch('/api/warehouse/getAllWarehouses')
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to fetch warehouses: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((jsonData) => {
+        if (!ignore) {
+
+          const fetchedWarehouses = jsonData?.data; // Get the array
+
+          if (Array.isArray(fetchedWarehouses)) {
+            const simplifiedWarehouses: Warehouse[] = fetchedWarehouses.map(warehouse => ({
+              id: warehouse._id, // Map _id to id
+              name: warehouse.name, // Keep the name
+              // Exclude other properties like features
+            }));
+
+
+            console.log(simplifiedWarehouses, "simplified warehouses fetched");
+            setWarehouses(simplifiedWarehouses);
+          } else {
+            console.error("API did not return an array for warehouses:", jsonData);
+            setWarehouseError("Unexpected data format from warehouse API");
+            // Use react-hot-toast
+            toast.error("Failed to load warehouse list due to data format");
+          }
+
+        }
+      })
+      .catch((err) => {
+        console.error("Warehouse fetch error:", err);
+        if (!ignore) {
+          setWarehouseError("Failed to load warehouse list");
+          // Use react-hot-toast
+          toast.error("Failed to load warehouse list");
+        }
+      })
+      .finally(() => {
+        if (!ignore) {
+          setLoadingWarehouses(false);
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, []); 
 
 
 
@@ -173,7 +242,7 @@ console.log(inputImages,"inputImagesMainComponent")
         ...data,
         photos: inputImages,
         categories: dataMainCategory,
-        subCategories: IDsAllCategories.filter(ct=>ct !==dataMainCategory)
+        subCategories: IDsAllCategories.filter(ct => ct !== dataMainCategory)
       };
 
       const FetchData = await fetch("/api/products/createProduct", {
@@ -237,29 +306,27 @@ console.log(inputImages,"inputImagesMainComponent")
   }
 
   const changeDataProductCategories = (data: any) => {
-    console.log(data,"changeDataProductCategories")
+    console.log(data, "changeDataProductCategories")
     setDataProductCategories(data);
   };
 
   const changeDataProductCategory = (data: string) => {
-    console.log(data,"changeDataProductCategory")
+    console.log(data, "changeDataProductCategory")
     setDataMainCategory(data);
   };
 
   return (
     <div className="heighWithOutBar overflow-auto bg-gradient">
-      {/* Add Toaster component for displaying toasts */}
       <Toaster
-        position="top-right" // Or your preferred position
-        reverseOrder={false} // Or your preferred order
+        position="top-right" 
+        reverseOrder={false} 
         gutter={8} // Spacing
         toastOptions={{
-          // Default options for all types
-          className: 'card-gradient', // You can add common classes here
-          duration: 5000, // Default duration
+          className: 'card-gradient', 
+          duration: 5000, 
           style: {
-            background: '#363636', // Default background (optional, if you want a base)
-            color: '#fff',      // Default text color
+            background: '#363636', 
+            color: '#fff',     
           },
 
 
@@ -504,6 +571,53 @@ console.log(inputImages,"inputImagesMainComponent")
                               />
                             </div>
 
+                            <FormField
+                              control={form.control}
+                              name="warehouse"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Warehouse</FormLabel>
+                                  <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value}
+                                    disabled={loadingWarehouses || warehouseError !== null}
+                                  >
+                                    <FormControl className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]">
+                                      <SelectTrigger>
+                                        <SelectValue placeholder={loadingWarehouses ? "Loading warehouses..." : warehouseError ? "Error loading warehouses" : "Select a warehouse (Optional)"} />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem key="no-warehouse-option" value={""}>
+                                        <span className="text-muted-foreground">No warehouse selected</span>
+                                      </SelectItem>
+
+                                      {loadingWarehouses && (
+                                        <SelectItem value="loading" disabled>Loading warehouses...</SelectItem>
+                                      )}
+                                      {warehouseError && (
+                                        <SelectItem value="error" disabled>Error loading: {warehouseError}</SelectItem>
+                                      )}
+
+
+                                      {!loadingWarehouses && warehouseError === null && (
+                                        warehouses.map((warehouse) => (
+                                          <SelectItem key={warehouse.id} value={warehouse.id}> 
+                                            {warehouse.name}
+                                          </SelectItem>
+                                        ))
+                                      )}
+
+                                      {!loadingWarehouses && warehouseError === null && warehouses.length === 0 && (
+                                        <div className="px-2 py-1 text-sm text-gray-500">No warehouses found</div>
+                                      )}
+
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
                             <div className="grid gap-3 ">
                               <Label htmlFor="description" className="px-2">
                                 Description

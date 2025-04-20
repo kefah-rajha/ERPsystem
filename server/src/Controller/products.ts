@@ -198,6 +198,9 @@ export const products = {
       if (data.price) {
         data.price = parseFloat(data.price);
       }
+      if (data.warehouse) {
+        data.warehouse = data.warehouse== "" ? null :data.warehouse;
+      }
       const newProduct = new ProductModel(
         data
       )

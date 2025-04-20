@@ -148,7 +148,7 @@ const salesOrder = {
         var _a;
         try {
             const data = req.body;
-            console.log(data, "data?.values");
+            console.log(data.values.currency, "data?.values");
             const order = new schemaSalesOrder_1.SalesOrderModel({
                 orderNumber: `SO-${Date.now()}`,
                 customer: {

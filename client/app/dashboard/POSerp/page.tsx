@@ -8,7 +8,7 @@ import OrdersList from '@/components/POSerp/orders/OrdersList';
 import { useFilteredProducts } from '@/hooks/useFilteredProducts';
 import { currencies } from '@/lib/data/currencies';
 import { CheckoutFormValues } from '@/lib/schemas/checkout';
-import { categoriesResopnseData } from "@/dataType/dataTypeCategory/dataTypeCategory";
+import { categoriesResponseData } from "@/dataType/dataTypeCategory/dataTypeCategory";
 import ProductFilter from "@/components/product/productFilter"
 import FormInfoOrder from '@/components/POSerp/checkout/formInfoOrder';
 import { calculateItemTotal, calculateCartTotals, formatPrice } from '@/lib/price-utils';
@@ -22,6 +22,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import getNumberProductsServer from "@/lib/ProductFetch/getNumberProducts";
+import CollapsibleCard from "@/components/SalesOrder/showAllSalesOrder/CollapsibleCard";
+import { cn } from '@/lib/utils';
 
 
 
@@ -48,7 +50,7 @@ export default function App() {
     photos: string[]
   }
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [categories, setCategories] = useState<categoriesResopnseData[]>([]);
+  const [categories, setCategories] = useState<categoriesResponseData[]>([]);
   const [numberProducts, setNumberProducts] = useState<number>(0);
   const [countPages, setCountPages] = useState<number>(1);
   const [currentPage, setCurrentPage] = useState(1);
@@ -64,11 +66,14 @@ export default function App() {
   const [products, setProducts] = useState<
     [ProductAttribute] | undefined | ProductAttribute[]
   >([]);
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const handleSetProducts = useCallback((newProducts: ProductAttribute[]) => {
     setProducts(newProducts);
   }, [setProducts]);
-
-  console.log(products, "products")
+useEffect(()=>{
+},[])
+  console.log(cartItems, "products")
   useEffect(() => {
     let ignore = false;
     fetch("/api/category/getAllCategories")
@@ -220,7 +225,7 @@ const handlePageSizeChange = (size: number) => {
                   items={cartItems}
                   subAmount={totalAmount.subtotal}
                   total={totalAmount.total}
-                  currency={settings.currency}
+                  currency={settings.currency.code}
                   vatGeneral={settings.customVatRate || 0}
                   
 
@@ -236,20 +241,28 @@ const handlePageSizeChange = (size: number) => {
           products={products}
           onAddToCart={handleAddToCart}
         />
-             <Card className="sticky bottom-0  ">
-        <CardContent className="pt-6 pb-6 px-6">
-
-          <PaginationControls
-            numberProducts={numberProducts}
-            countPages={countPages}
-            pageSize={pageSize}
-            currentPage={currentPage}
-            onPageChange={handlePageChange}
-            onPageSizeChange={handlePageSizeChange}
-          />
-
-        </CardContent>
-      </Card>
+              <Card className={cn(!isExpanded ? "sticky bottom-0 w-fit" : "sticky bottom-0 w-full")} >
+                       <CardContent className="pt-6 pb-6 px-6">
+                         <CollapsibleCard
+                           numberProducts={numberProducts}
+                           currentPage={currentPage}
+                           countPages={countPages}
+                           isExpanded={isExpanded}
+                           setIsExpanded={setIsExpanded}
+             
+                         >
+                           <PaginationControls
+                             numberProducts={numberProducts}
+                             countPages={countPages}
+                             pageSize={pageSize}
+                             currentPage={currentPage}
+                             onPageChange={handlePageChange}
+                             onPageSizeChange={handlePageSizeChange}
+                           // disabled={loading}
+                           />
+                         </CollapsibleCard>
+                       </CardContent>
+                     </Card>
       </main>
     </div>
   );

@@ -56,6 +56,7 @@ interface Product {
   SupplierName: string;
   salesCode: string;
   purchaseCode: string;
+  warehouse:string;
   supplierCode: string;
   trackInventory: boolean;
   allowOutOfStock: boolean;
@@ -507,6 +508,10 @@ console.log(product,"product")
                       </h3>
                       <Table>
                         <TableBody>
+                        <TableRow>
+                            <TableCell className="font-medium">Warehouse</TableCell>
+                            <TableCell className="font-mono">{product?.warehouse}</TableCell>
+                          </TableRow>
                           <TableRow>
                             <TableCell className="font-medium w-1/3">Stock</TableCell>
                             <TableCell>
@@ -548,6 +553,7 @@ console.log(product,"product")
                               </span>
                             </TableCell>
                           </TableRow>
+                          
                           <TableRow>
                             <TableCell className="font-medium">Sales Code</TableCell>
                             <TableCell className="font-mono">{product?.salesCode}</TableCell>

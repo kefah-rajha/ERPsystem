@@ -163,7 +163,8 @@ const salesOrder = {
   createSalesOrder: async (req: any, res: any) => {
     try {
       const data = req.body;
-      console.log(data, "data?.values")
+      console.log(data.values.currency
+        , "data?.values")
 
       const order = new SalesOrderModel({
         orderNumber: `SO-${Date.now()}`,
