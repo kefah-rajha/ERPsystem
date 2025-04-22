@@ -171,6 +171,9 @@ exports.products = {
             if (data.price) {
                 data.price = parseFloat(data.price);
             }
+            if (data.warehouse) {
+                data.warehouse = data.warehouse == "" ? null : data.warehouse;
+            }
             const newProduct = new schemaProducts_1.ProductModel(data);
             yield newProduct.save();
             return res.status(200).json({

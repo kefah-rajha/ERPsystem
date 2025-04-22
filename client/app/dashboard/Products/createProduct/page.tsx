@@ -588,7 +588,7 @@ export default function CreateProducts() {
                                       </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                      <SelectItem key="no-warehouse-option" value={""}>
+                                      <SelectItem key="no-warehouse-option" value={"No warehouse selected"}>
                                         <span className="text-muted-foreground">No warehouse selected</span>
                                       </SelectItem>
 

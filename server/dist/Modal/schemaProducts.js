@@ -47,6 +47,7 @@ const productSchema = new mongoose_1.Schema({
     allowOutOfStock: { type: Boolean },
     Description: { type: String },
     stock: { type: String },
+    warehouse: { type: mongoose_1.default.Schema.Types.ObjectId, ref: 'Warehouse' },
     vat: { type: String },
     subCategories: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: 'Category' }],
     categories: { type: mongoose_1.default.Schema.Types.ObjectId, ref: 'Category' },

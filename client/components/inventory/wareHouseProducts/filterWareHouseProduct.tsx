@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@radix-ui/react-label";
 import CategorySelect from "@/components/product/CategorySelect";
+import { usePathname } from "next/navigation";
 interface ProductAttribute {
     _id: string;
     name: string;
@@ -82,7 +83,9 @@ interface wareHouseType {
 
 
 
-function UserFilter({ pageNumber, pageSize, setProducts ,selectedCategory}: userFilterDataType) {
+function FilterWareHouseProduct({ pageNumber, pageSize, setProducts ,selectedCategory}: userFilterDataType) {
+    const pathname = usePathname();
+    const id = pathname?.split("/").pop() || "All";
     const [fieldSort, setFieldSort] = useState<string>("name");
     const [sort, setSort] = useState<string>("1");
     const [fields, setFields] = useState<string>("All");
@@ -101,7 +104,7 @@ function UserFilter({ pageNumber, pageSize, setProducts ,selectedCategory}: user
         endDate: ''
     });
     const [selectedBrands, setSelectedBrands] = useState<string>("All")
-    const [selectedWareHouse, setSelectedWareHouse] = useState<string>("All")
+    const [selectedWareHouse, setSelectedWareHouse] = useState<string >(id)
 
     const defaultPriceRange = { min: 0, max: 1000 };
     const defaultDateRange = { startDate: "", endDate: "" };
@@ -119,6 +122,7 @@ function UserFilter({ pageNumber, pageSize, setProducts ,selectedCategory}: user
         
 
     }, []); 
+
     // Constants with type annotations
     const MAX_PRICE: number = 5000;
     const DEFAULT_STEP: number = 10;
@@ -191,7 +195,7 @@ function UserFilter({ pageNumber, pageSize, setProducts ,selectedCategory}: user
         }, 2000)
         return () => clearTimeout(getData)
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchInput, pageSize, pageNumber,selectedCategory])
+    }, [searchInput, pageSize, pageNumber,selectedCategory,id])
 
 
     return (
@@ -243,7 +247,7 @@ function UserFilter({ pageNumber, pageSize, setProducts ,selectedCategory}: user
                         Filter
                     </Button>
                 </DialogTrigger>
-                <DialogContent className="w-2/4  bg-gradient overflow-auto">
+                <DialogContent className="w-2/4 h-[90vh]  bg-gradient overflow-auto">
                     <DialogHeader className="flex justify-start ">
                         <DialogTitle className="flex gap-2 border-b-2 border-gray-500 pb-4">
                             <SlidersHorizontal className="h-4 w-4 mr-2 text-orange-600  " />
@@ -482,6 +486,6 @@ function UserFilter({ pageNumber, pageSize, setProducts ,selectedCategory}: user
     );
 }
 
-export default UserFilter;
+export default FilterWareHouseProduct;
 
 

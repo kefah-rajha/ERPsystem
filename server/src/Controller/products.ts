@@ -1,5 +1,6 @@
 import { Types } from 'mongoose';
 import { ProductModel } from "../Modal/schemaProducts"
+import Warehouse, { IWarehouse } from '../Modal/warehouse.model';
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 export const products = {
@@ -75,7 +76,8 @@ export const products = {
         supplierName,
         inStock,
         priceRange,
-        dateRange
+        dateRange,
+        selectedWareHouse
       } = req.body;
 
       // Build filter query
@@ -116,6 +118,12 @@ export const products = {
           { subCategories: selectedCategory }
         ];
       } 
+       
+      if (selectedWareHouse !== "All") {
+        // Get products with stock greater than 0
+        query.warehouse = selectedWareHouse;
+      } 
+      
        
 
       // Price range filter
@@ -160,6 +168,7 @@ export const products = {
       ]);
       const suppliers = await ProductModel.distinct('SupplierName');
       const brand = await ProductModel.distinct('brandName');
+      const warehouses = await Warehouse.find().select('name _id');
 
 
 
@@ -175,6 +184,8 @@ export const products = {
             priceStats,
             suppliers,
              brand,
+             warehouses
+             
             
             // maxPrice,
             // searchTerm
@@ -199,7 +210,7 @@ export const products = {
         data.price = parseFloat(data.price);
       }
       if (data.warehouse) {
-        data.warehouse = data.warehouse== "" ? null :data.warehouse;
+        data.warehouse = data.warehouse== "No warehouse selected" ? null :data.warehouse;
       }
       const newProduct = new ProductModel(
         data

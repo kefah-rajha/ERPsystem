@@ -15,7 +15,7 @@ import {
   Globe 
 } from 'lucide-react';
 import Link from "next/link";
-
+import WareHouseProducts from "@/components/inventory/wareHouseProducts/wareHouseProducts"
 import { Button } from "@/components/ui/button";
 
 import { useState, useEffect } from 'react';
@@ -131,7 +131,7 @@ export default function WarehouseDetailsPage() {
   const capacityUtilization = ((warehouse.capacity.usedSquareFeet / warehouse.capacity.totalSquareFeet) * 100).toFixed(2);
 
   return (
-    <div className="container mx-auto px-4 py-8 overflow-auto heighWithOutBar">
+    <div className="container mx-auto px-4 py-8 overflow-auto bg-gradient heighWithOutBar">
       <Button variant="ghost" size="icon" asChild >
                 <Link href="/dashboard/inventory">
                 
@@ -242,6 +242,14 @@ export default function WarehouseDetailsPage() {
           </div>
         </CardContent>
       </Card>
+      <Card>
+      <CardContent className='mt-2'>
+        <h2 className='text-3xl py-4'>WareHouse's Products</h2>
+      
+        <WareHouseProducts/>
+       </CardContent>
+      </Card>
+
     </div>
   );
 }

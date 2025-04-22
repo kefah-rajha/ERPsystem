@@ -510,7 +510,7 @@ console.log(product,"product")
                         <TableBody>
                         <TableRow>
                             <TableCell className="font-medium">Warehouse</TableCell>
-                            <TableCell className="font-mono">{product?.warehouse}</TableCell>
+                            <TableCell className="font-mono">{product?.warehouse == null ? "N/A" :product?.warehouse}</TableCell>
                           </TableRow>
                           <TableRow>
                             <TableCell className="font-medium w-1/3">Stock</TableCell>
