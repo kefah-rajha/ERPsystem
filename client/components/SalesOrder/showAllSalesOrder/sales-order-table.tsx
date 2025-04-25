@@ -181,16 +181,7 @@ export function SalesOrderTable({ dateRange }: SalesOrderTableProps) {
           ))}
         </TableBody>
       </Table>
-      <div className="border-t py-4">
-        {/* <PaginationControls
-          totalItems={ordersDataResponse?.length}
-          countPages={countPages}
-          pageSize={pageSize}
-          currentPage={currentPage}
-          onPageChange={handlePageChange}
-          onPageSizeChange={handlePageSizeChange}
-        /> */}
-      </div>
+      
     </div>
   );
 }

@@ -38,7 +38,6 @@ interface CurrencyAndVatAndAmountType {
 export default function CurrencyAndVatAndAmount({ form, totalAmount, netAmount, vatAmount, finishAmount }: CurrencyAndVatAndAmountType) {
 
 
-
   const { watch, control } = form
 
 
@@ -46,7 +45,6 @@ export default function CurrencyAndVatAndAmount({ form, totalAmount, netAmount, 
 
   const currency = watch('currency')
   const vatRate = watch('vatRate') ? watch('vatRate') : 0
-  const includeVat = watch('includeVat')
 
 
 
@@ -60,7 +58,7 @@ export default function CurrencyAndVatAndAmount({ form, totalAmount, netAmount, 
             name="totalAmount"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Total Amount {includeVat ? '(inc. VAT)' : '(exc. VAT)'}</FormLabel>
+                <FormLabel>Total Amount </FormLabel>
                 <FormControl>
                   <div className="flex items-center space-x-2">
                     <div className="w-full pl-3 pr-4 py-2text-2xl font-bold flex items-center  h-14 rounded-md  border  border-foreground/10">{finishAmount} {currency}</div>
@@ -129,26 +127,7 @@ export default function CurrencyAndVatAndAmount({ form, totalAmount, netAmount, 
         </div>
       </div>
 
-      <FormField
-        control={control}
-        name="includeVat"
-        render={({ field }) => (
-          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md  p-4">
-            <FormControl>
-              <Checkbox
-                checked={field.value}
-                onCheckedChange={field.onChange}
-                
-              />
-            </FormControl>
-            <div className="space-y-1 leading-none">
-              <FormLabel>
-                Price includes VAT
-              </FormLabel>
-            </div>
-          </FormItem>
-        )}
-      />
+
     </Card>
   )
 }

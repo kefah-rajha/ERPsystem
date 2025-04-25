@@ -46,5 +46,7 @@ const supplierSchema = new Schema<Supplier>({
     country :{ type: String },
     
 });
-
 export const supplierModel = model<Supplier>('Supplier', supplierSchema);
+
+supplierModel.collection.createIndex({ firstName: 1 });
+supplierModel.collection.createIndex({ lastName: 1 });

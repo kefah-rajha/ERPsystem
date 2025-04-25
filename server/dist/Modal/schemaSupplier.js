@@ -23,3 +23,5 @@ const supplierSchema = new mongoose_1.Schema({
     country: { type: String },
 });
 exports.supplierModel = (0, mongoose_1.model)('Supplier', supplierSchema);
+exports.supplierModel.collection.createIndex({ firstName: 1 });
+exports.supplierModel.collection.createIndex({ lastName: 1 });

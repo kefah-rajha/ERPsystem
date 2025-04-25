@@ -18,6 +18,7 @@ export default function ProductTable({ products ,closeDialog}: ProductTableProps
   const salesOrderProductsSelectedContext =useContext(SalesOrderProductsSelectedContext)
 
   const [selectedProducts, setSelectedProducts] = useState<ProductSalesOrder[]>([])
+  console.log(selectedProducts,"selectedProducts")
   const confirmSelectedProductsFun=() => {
     console.log("test Click")
     salesOrderProductsSelectedContext?.setSalesOrderProductsSelected(selectedProducts)

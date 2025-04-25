@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.products = void 0;
 const schemaProducts_1 = require("../Modal/schemaProducts");
+const warehouse_model_1 = __importDefault(require("../Modal/warehouse.model"));
 const mongoose_1 = __importDefault(require("mongoose"));
 exports.products = {
     getProduct: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -67,7 +68,7 @@ exports.products = {
             const pageNumber = parseInt(req.params.pageNumber) || 1;
             const pageSize = parseInt(req.params.pageSize) || 10;
             const skipItems = (pageNumber - 1) * pageSize;
-            const { fieldSort, sort, fields, fieldSearch, searchInput, selectedBrands, selectedCategory, supplierName, inStock, priceRange, dateRange } = req.body;
+            const { fieldSort, sort, fields, fieldSearch, searchInput, selectedBrands, selectedCategory, supplierName, inStock, priceRange, dateRange, selectedWareHouse } = req.body;
             // Build filter query
             const query = {};
             if (searchInput) {
@@ -100,6 +101,10 @@ exports.products = {
                     { categories: selectedCategory },
                     { subCategories: selectedCategory }
                 ];
+            }
+            if (selectedWareHouse !== "All") {
+                // Get products with stock greater than 0
+                query.warehouse = selectedWareHouse;
             }
             // Price range filter
             if (priceRange.min || priceRange.max) {
@@ -141,6 +146,7 @@ exports.products = {
             ]);
             const suppliers = yield schemaProducts_1.ProductModel.distinct('SupplierName');
             const brand = yield schemaProducts_1.ProductModel.distinct('brandName');
+            const warehouses = yield warehouse_model_1.default.find().select('name _id');
             console.log(suppliers);
             // Send response
             res.status(200).json({
@@ -151,6 +157,7 @@ exports.products = {
                         priceStats,
                         suppliers,
                         brand,
+                        warehouses
                         // maxPrice,
                         // searchTerm
                     }
@@ -172,7 +179,7 @@ exports.products = {
                 data.price = parseFloat(data.price);
             }
             if (data.warehouse) {
-                data.warehouse = data.warehouse == "" ? null : data.warehouse;
+                data.warehouse = data.warehouse == "No warehouse selected" ? null : data.warehouse;
             }
             const newProduct = new schemaProducts_1.ProductModel(data);
             yield newProduct.save();

@@ -37,13 +37,16 @@ interface ProductSelectedType {
 
 export default function ProductSelected({getTotalAmount,handleOrderProductsSelected,itemsProduct}:ProductSelectedType) {
     const salesOrderProductsSelectedContext =useContext(SalesOrderProductsSelectedContext)
-
+console.log(itemsProduct,"itemsProductitemsProduct")
   const [orderItems, setOrderItems] = useState<itemsOrder[] >([])
+  
   const ProductSelected= salesOrderProductsSelectedContext?.salesOrderProductsSelected
-useEffect(()=>{
-  if(itemsProduct !== undefined){
-  setOrderItems(itemsProduct)}
-},[itemsProduct])
+  useEffect(() => {
+    if (itemsProduct && itemsProduct.length > 0) {
+      console.log("Setting orderItems from itemsProduct:", itemsProduct);
+      setOrderItems([...itemsProduct]); // Create a new array to ensure state update
+    }
+  }, [itemsProduct]);
 useEffect(()=>{
   handleOrderProductsSelected(orderItems)
 },[handleOrderProductsSelected, orderItems])

@@ -61,6 +61,7 @@ export  function ProductSelectedTable({
   onVATChange ,
   onDelete
 }: OrderSummaryTableProps) {
+  console.log(items,"itemsitemsitems")
   return (
     <Table>
       <TableHeader>
