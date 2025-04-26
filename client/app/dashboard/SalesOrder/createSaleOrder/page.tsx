@@ -121,7 +121,6 @@ const formSchema = z.object({
   }),
   currency: z.string().min(1, "Please select a currency"),
   vatRate: z.string().min(1, "Please select a VAT rate"),
-  includeVat: z.boolean(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -218,27 +217,20 @@ export default function SalesOrderManagement() {
   const { watch } = form;
 
   const vatRate = watch('vatRate') ? watch('vatRate') : 0;
-  const includeVat = watch('includeVat');
 
   useEffect(() => {
     const vat = +vatRate / 100;
     let netAmount: number, vatAmount: number;
 
-    if (includeVat) {
-      vatAmount = +(totalAmount * vat).toFixed(2);
-      netAmount = totalAmount;
-      setFinishAmount(totalAmount + +vatAmount);
-    } else {
-      netAmount = totalAmount;
-      vatAmount = +(totalAmount * vat).toFixed(2);
-      setFinishAmount(totalAmount);
-    }
+    vatAmount = +(totalAmount * vat).toFixed(2);
+    netAmount = totalAmount;
+    setFinishAmount(totalAmount + +vatAmount);
 
     setCalculatedValues({
       netAmount,
       vatAmount,
     });
-  }, [totalAmount, vatRate, includeVat]);
+  }, [totalAmount, vatRate]);
 
   useEffect(() => {
     const searchSuppliers = async () => {

@@ -188,7 +188,6 @@ const purchaseOrderController = {
                 currency: data?.values.currency,
                 paymentTerm: data?.values.paymentTerm,
                 vatRate: data?.values.vatRate,
-                includeVat: data?.values.includeVat
             });
 
             const savedPurchaseOrder = await purchaseOrder.save();
@@ -240,7 +239,87 @@ const purchaseOrderController = {
             });
         }
 
-    }
+    },
+    updatePurchaseOrder: async (req: any, res: any) => {
+        try {
+
+            const { id } = req.params;
+            const data = req.body
+            const purchaseOrder = {
+                purchaseOrderNumber: data?.values.purchaseOrderNumber || `PO-${Date.now()}`,
+                orderDate: new Date(data?.values.orderDate),
+                expectedDeliveryDate: new Date(data?.values.expectedDeliveryDate),
+                requestedBy: data?.values.requestedBy,
+                supplier: {
+                    name: data?.values.supplier.name,
+                    contactPerson: data?.values.supplier.contactPerson,
+                    supplierEmail: data?.values.supplier.supplierEmail,
+                    phone: data?.values.supplier.phone,
+                    address: data?.values.supplier.address,
+                    taxId: data?.values.supplier.taxId
+                },
+                shippingAddress: data?.values.shippingAddress,
+                items: data.items.map((item: any) => ({
+                    product: item.product,
+                    quantity: item.quantity,
+                    unitPrice: item.unitPrice,
+                    vat: item.vat,
+                    vatAmount: item.vatAmount,
+                    totalAmount: item.totalAmount
+                })),
+                netTotal: data?.values.netTotal,
+                totalVat: data?.values.totalVat,
+                totalAmount: data?.values.totalAmount,
+                status: data?.values.status || "draft",
+                notes: data?.values.notes,
+                currency: data?.values.currency,
+                paymentTerm: data?.values.paymentTerm,
+                vatRate: data?.values.vatRate,
+            };
+            const UpdateData = await PurchaseOrderModel.findByIdAndUpdate(id, purchaseOrder, { new: true })
+            console.log(UpdateData, "update")
+            res.status(200).json({
+              posts: UpdateData,
+              success: true,
+            })
+      
+          } catch (error) {
+            return res.status(400).json({
+              message: error,
+              success: false,
+            });
+          }
+      
+    },
+    deletePurchaseOrder: async (req: any, res: any) => {
+        try {
+          const { id } = req.params;
+    
+    
+          const saleOrderDelete = await PurchaseOrderModel.findByIdAndDelete(id);
+          console.log(saleOrderDelete)
+          if (saleOrderDelete?._id) {
+    
+            res.status(200).json({
+              message: "delete sales order is done",
+              success: true,
+            });
+    
+    
+          } else {
+            res.status(402).json({
+              message: "delete user is falid",
+              success: false,
+            });
+    
+          }
+        } catch (error: unknown) {
+          res.status(402).json({
+            message: error as string,
+            success: false,
+          });
+        }
+      },
 
 }
 export default purchaseOrderController

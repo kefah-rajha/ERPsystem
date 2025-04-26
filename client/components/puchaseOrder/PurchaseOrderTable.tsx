@@ -105,7 +105,7 @@ export function PurchaseOrderTable({ dateRange }: PurchaseOrderTableProps) {
   };
 
   const handleEdit = (id: string) => {
-    push(`/dashboard/PurchaseOrder/UpdatePurchaseOrder/${id}`);
+    push(`/dashboard/purchaseOrder/UpdatePurchaseOrder/${id}`);
   };
 
   const handlePageChange = (page: number) => {

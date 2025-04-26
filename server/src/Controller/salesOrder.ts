@@ -184,7 +184,6 @@ const salesOrder = {
         totalVat: data?.values.vatAmount,
         totalAmount: data?.values.totalAmount,
         vatRate: data?.values.vatRate,
-        includeVat: data?.values.includeVat,
         currency: data?.values.currency,
         paymentTerm: data?.values.paymentTerm,
         status: data?.values ?. status,

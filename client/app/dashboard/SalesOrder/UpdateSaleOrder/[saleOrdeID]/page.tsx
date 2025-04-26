@@ -125,7 +125,7 @@ const formSchema = z.object({
     }),
     currency: z.string().min(1, "Please select a currency"),
     vatRate: z.string().min(1, "Please select a VAT rate"),
-    includeVat: z.boolean(),
+
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -189,7 +189,7 @@ export default function SalesOrderManagement() {
             .then((jsonData) => {
                 if (!ignore) {
                     toast.dismiss(loadingToast);
-                
+
                     if (jsonData.message == false) {
                         toast.error(jsonData.error || 'Failed to load sale order');
                         return;
@@ -220,7 +220,7 @@ export default function SalesOrderManagement() {
                         vat: item.vat,
                         vatAmount: item.vatAmount,
                     })))
-                    console.log(jsonData.posts.status,"jsonData.posts.status,")
+                    console.log(jsonData.posts.status, "jsonData.posts.status,")
 
                     form.reset({
                         // Map fetched data to form schema fields
@@ -234,11 +234,11 @@ export default function SalesOrderManagement() {
                         paymentTerm: jsonData.posts.paymentTerm,
                         status: jsonData.posts.status,
                         // Convert date strings to Date objects
-                        shipmentDate:  new Date(jsonData.posts.shipmentDate) ,
-                        orderDate:  new Date(jsonData.posts.orderDate),
+                        shipmentDate: new Date(jsonData.posts.shipmentDate),
+                        orderDate: new Date(jsonData.posts.orderDate),
                         currency: jsonData.posts.currency || '',
                         vatRate: jsonData.posts.vatRate?.toString() || '', // Ensure vatRate is a string for the form field
-                        includeVat: jsonData.posts.includeVat,
+
                     });
 
                     toast.success('Sale order loaded successfully');
@@ -321,31 +321,21 @@ export default function SalesOrderManagement() {
     const { watch } = form
 
     const vatRate = watch('vatRate') ? watch('vatRate') : 0
-    const includeVat = watch('includeVat')
 
     useEffect(() => {
         const vat = +vatRate / 100
         console.log(vat, "vat")
         let netAmount: number, vatAmount: number
 
-        if (includeVat) {
-            vatAmount = +(totalAmount * vat).toFixed(2)
-            netAmount = totalAmount;
-            setFinishAmount(totalAmount + +vatAmount)
-
-        } else {
-            netAmount = totalAmount
-            vatAmount = +(totalAmount * vat).toFixed(2)
-            setFinishAmount(totalAmount)
-
-        }
-
+        vatAmount = +(totalAmount * vat).toFixed(2)
+        netAmount = totalAmount;
+        setFinishAmount(totalAmount + +vatAmount)
         setCalculatedValues({
             netAmount,
             vatAmount,
 
         })
-    }, [totalAmount, vatRate, includeVat])
+    }, [totalAmount, vatRate])
 
     useEffect(() => {
         const searchCustomers = async () => {
@@ -410,9 +400,9 @@ export default function SalesOrderManagement() {
 
     }
 
- async function onSubmit(valuesForm: FormValues) {
+    async function onSubmit(valuesForm: FormValues) {
         const loadingToast = toast.loading('Updating sale order...');
-        
+
         try {
             const values = {
                 ...valuesForm,
@@ -436,11 +426,11 @@ export default function SalesOrderManagement() {
                 },
                 body: JSON.stringify(data),
             });
-            
+
             const res = await FetchData.json();
-            
+
             toast.dismiss(loadingToast);
-            
+
             if (res.success == true) {
                 toast.success('Sale order updated successfully!');
                 // Optional: redirect after success
@@ -453,7 +443,7 @@ export default function SalesOrderManagement() {
             console.error('Update sale order error:', error);
         }
     }
-    
+
 
     return (
         <SalesOrderProductsSelectedProvider>

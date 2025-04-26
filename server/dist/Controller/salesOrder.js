@@ -167,7 +167,6 @@ const salesOrder = {
                 totalVat: data === null || data === void 0 ? void 0 : data.values.vatAmount,
                 totalAmount: data === null || data === void 0 ? void 0 : data.values.totalAmount,
                 vatRate: data === null || data === void 0 ? void 0 : data.values.vatRate,
-                includeVat: data === null || data === void 0 ? void 0 : data.values.includeVat,
                 currency: data === null || data === void 0 ? void 0 : data.values.currency,
                 paymentTerm: data === null || data === void 0 ? void 0 : data.values.paymentTerm,
                 status: (_a = data === null || data === void 0 ? void 0 : data.values) === null || _a === void 0 ? void 0 : _a.status,

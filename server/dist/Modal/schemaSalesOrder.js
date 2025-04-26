@@ -88,10 +88,6 @@ const SalesOrderSchema = new mongoose_1.Schema({
         type: String,
         required: true
     },
-    includeVat: {
-        type: Boolean,
-        required: true
-    },
     salesManager: {
         type: String,
         required: true

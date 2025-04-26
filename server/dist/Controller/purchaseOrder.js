@@ -8,17 +8,60 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const schemaSupplier_1 = require("../Modal/schemaSupplier");
+const mongoose_1 = __importDefault(require("mongoose"));
 const schemaPurchaseOrder_1 = require("../Modal/schemaPurchaseOrder");
 const purchaseOrderController = {
-    getPurchaseOrders: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    getPurchaseOrder: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            // Get date filters from query parameters (e.g., ?from=YYYY-MM-DD&to=YYYY-MM-DD)
-            const { from, to } = req.query;
-            // Get pagination parameters from path parameters
-            // Note: Path parameters are typically strings, so we need to parse them
-            const { pageNumber, pageSize } = req.params;
+            // Extract purchase order ID from request parameters
+            const { id } = req.params;
+            console.log(id);
+            // Validate ID format
+            if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
+                return res.status(400).json({
+                    message: 'Invalid purchase order ID format',
+                    success: false,
+                });
+            }
+            // Find purchase order
+            // Assuming PurchaseOrderModel has an 'items' field with a 'product' subfield to populate
+            const purchaseOrder = yield schemaPurchaseOrder_1.PurchaseOrderModel.findById(id).populate("items.product")
+                .lean(); // Convert to plain JavaScript object
+            // Check if purchase order exists
+            if (!purchaseOrder) {
+                return res.status(404).json({
+                    message: 'Purchase order not found', // Corrected message
+                    success: false,
+                });
+            }
+            // Send successful response
+            res.status(200).json({
+                purchaseOrder: purchaseOrder, // Changed key to purchaseOrder
+                success: true,
+                message: 'Purchase order retrieved successfully',
+            });
+        }
+        catch (error) {
+            // Enhanced error handling
+            console.error('Error in getPurchaseOrder:', error); // Changed function name in log
+            // Type the error for better handling
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+            return res.status(500).json({
+                message: 'Server error while retrieving purchase order', // Changed message
+                error: errorMessage,
+                success: false,
+            });
+        }
+    }),
+    getPurchaseOrders: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        console.log(req.query, "query");
+        try {
+            const { from, to, pageNumber = 1, pageSize = 10 } = req.query;
             // Validate input dates
             if (!from || !to) {
                 return res.status(400).json({
@@ -51,8 +94,6 @@ const purchaseOrderController = {
                     $lte: toDate
                 }
             };
-            // You can add more filters here based on other query parameters if needed
-            // e.g., const { status } = req.query; if (status) filter.status = status;
             // Retrieve total count of matching purchase orders
             const totalPurchaseOrders = yield schemaPurchaseOrder_1.PurchaseOrderModel.countDocuments(filter);
             // Retrieve paginated Purchase Orders
@@ -121,7 +162,6 @@ const purchaseOrderController = {
                 currency: data === null || data === void 0 ? void 0 : data.values.currency,
                 paymentTerm: data === null || data === void 0 ? void 0 : data.values.paymentTerm,
                 vatRate: data === null || data === void 0 ? void 0 : data.values.vatRate,
-                includeVat: data === null || data === void 0 ? void 0 : data.values.includeVat
             });
             const savedPurchaseOrder = yield purchaseOrder.save();
             console.log(savedPurchaseOrder);
@@ -167,6 +207,80 @@ const purchaseOrderController = {
                 success: false,
             });
         }
-    })
+    }),
+    updatePurchaseOrder: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const { id } = req.params;
+            const data = req.body;
+            const purchaseOrder = {
+                purchaseOrderNumber: (data === null || data === void 0 ? void 0 : data.values.purchaseOrderNumber) || `PO-${Date.now()}`,
+                orderDate: new Date(data === null || data === void 0 ? void 0 : data.values.orderDate),
+                expectedDeliveryDate: new Date(data === null || data === void 0 ? void 0 : data.values.expectedDeliveryDate),
+                requestedBy: data === null || data === void 0 ? void 0 : data.values.requestedBy,
+                supplier: {
+                    name: data === null || data === void 0 ? void 0 : data.values.supplier.name,
+                    contactPerson: data === null || data === void 0 ? void 0 : data.values.supplier.contactPerson,
+                    supplierEmail: data === null || data === void 0 ? void 0 : data.values.supplier.supplierEmail,
+                    phone: data === null || data === void 0 ? void 0 : data.values.supplier.phone,
+                    address: data === null || data === void 0 ? void 0 : data.values.supplier.address,
+                    taxId: data === null || data === void 0 ? void 0 : data.values.supplier.taxId
+                },
+                shippingAddress: data === null || data === void 0 ? void 0 : data.values.shippingAddress,
+                items: data.items.map((item) => ({
+                    product: item.product,
+                    quantity: item.quantity,
+                    unitPrice: item.unitPrice,
+                    vat: item.vat,
+                    vatAmount: item.vatAmount,
+                    totalAmount: item.totalAmount
+                })),
+                netTotal: data === null || data === void 0 ? void 0 : data.values.netTotal,
+                totalVat: data === null || data === void 0 ? void 0 : data.values.totalVat,
+                totalAmount: data === null || data === void 0 ? void 0 : data.values.totalAmount,
+                status: (data === null || data === void 0 ? void 0 : data.values.status) || "draft",
+                notes: data === null || data === void 0 ? void 0 : data.values.notes,
+                currency: data === null || data === void 0 ? void 0 : data.values.currency,
+                paymentTerm: data === null || data === void 0 ? void 0 : data.values.paymentTerm,
+                vatRate: data === null || data === void 0 ? void 0 : data.values.vatRate,
+            };
+            const UpdateData = yield schemaPurchaseOrder_1.PurchaseOrderModel.findByIdAndUpdate(id, purchaseOrder, { new: true });
+            console.log(UpdateData, "update");
+            res.status(200).json({
+                posts: UpdateData,
+                success: true,
+            });
+        }
+        catch (error) {
+            return res.status(400).json({
+                message: error,
+                success: false,
+            });
+        }
+    }),
+    deletePurchaseOrder: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+        try {
+            const { id } = req.params;
+            const saleOrderDelete = yield schemaPurchaseOrder_1.PurchaseOrderModel.findByIdAndDelete(id);
+            console.log(saleOrderDelete);
+            if (saleOrderDelete === null || saleOrderDelete === void 0 ? void 0 : saleOrderDelete._id) {
+                res.status(200).json({
+                    message: "delete sales order is done",
+                    success: true,
+                });
+            }
+            else {
+                res.status(402).json({
+                    message: "delete user is falid",
+                    success: false,
+                });
+            }
+        }
+        catch (error) {
+            res.status(402).json({
+                message: error,
+                success: false,
+            });
+        }
+    }),
 };
 exports.default = purchaseOrderController;

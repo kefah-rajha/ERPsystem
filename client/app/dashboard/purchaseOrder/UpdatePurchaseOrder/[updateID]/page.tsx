@@ -14,7 +14,7 @@ import {
 import { toast, Toaster } from "react-hot-toast";
 
 import { cn } from "@/lib/utils";
-import AddProductButton from "@/components/SalesOrder/addProductButton";
+import AddProductButton from "@/components/puchaseOrder/addProductButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ProductSalesOrder } from "@/dataType/dataTypeSalesOrder/dataTypeSalesOrder";
@@ -55,10 +55,10 @@ import {
     CommandInput,
     CommandItem,
 } from "@/components/ui/command";
-import ProductSelected from "@/components/SalesOrder/ProductSelected";
+import ProductSelected from "@/components/puchaseOrder/ProductSelected";
 import CurrencyAndVatAndAmount from "@/components/SalesOrder/CurrencyAndVatAndAmount";
 import { Textarea } from "@/components/ui/textarea";
-import { SalesOrderProductsSelectedProvider } from "@/context/saleOrderSelectedProducts";
+import { PurchaseOrderProductsSelectedProvider } from "@/context/pucahseOrderProducts";
 
 interface ContactInfoSupplierSearchResultsDataType {
     _id: string;
@@ -517,7 +517,7 @@ export default function PurchaseOrderUpdate() {
     }
 
     return (
-        <SalesOrderProductsSelectedProvider>
+        <PurchaseOrderProductsSelectedProvider>
             <div className="heighWithOutBar bg-background text-foreground bg-gradient overflow-auto">
                 <Toaster position="top-right" />
 
@@ -947,7 +947,7 @@ export default function PurchaseOrderUpdate() {
                     </Card>
                 </div>
             </div>
-        </SalesOrderProductsSelectedProvider>
+        </PurchaseOrderProductsSelectedProvider>
 
     );
 }

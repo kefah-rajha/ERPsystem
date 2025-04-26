@@ -31,6 +31,7 @@ const PurchaseOrderSchema = new mongoose_1.Schema({
     netTotal: { type: Number, required: true, default: 0 },
     totalVat: { type: Number, required: true, default: 0 },
     totalAmount: { type: Number, required: true, default: 0 },
+    vatRate: { type: Number, required: true, default: 0 },
     status: { type: String, required: true, enum: ["draft", "pending_approval", "approved", "ordered", "partially_received", "received", "cancelled"], default: "draft" },
     notes: String,
     currency: { type: String, required: true, default: 'USD' },

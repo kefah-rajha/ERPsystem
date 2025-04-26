@@ -35,7 +35,6 @@ interface SalesOrder {
   status: "pending" | "processed" | "completed" | "cancelled";
   notes?: string;
   vatRate: number,
-  includeVat: boolean,
   currency: string,
   paymentTerm:"Cash"|
   "Card" |
@@ -136,10 +135,7 @@ const SalesOrderSchema = new Schema<SalesOrder>(
       type: String,
       required: true
     },
-    includeVat :{
-      type: Boolean,
-      required: true
-    },
+
     salesManager: {
       type: String,
       required: true

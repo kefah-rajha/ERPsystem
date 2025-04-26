@@ -22,17 +22,14 @@ router.post('/purchaseOrder/createPurchaseOrder', purchaseOrderController.create
 router.get('/purchaseOrder/getPurchaseOrders', purchaseOrderController.getPurchaseOrders);
 router.get('/getPurchaseOrder/:id', purchaseOrderController.getPurchaseOrder);
 
-// Route to delete a specific purchase order by ID
-// DELETE /api/purchase-orders/deletePurchaseOrder/60d5ecb8b49aa834c4a7f8b1
-// router.delete("/deletePurchaseOrder/:id", purchaseOrderController.deletePurchaseOrder);
+
+router.delete("/deletePurchaseOrder/:id", purchaseOrderController.deletePurchaseOrder);
 
 // Route to get the details of a single purchase order by ID
 // GET /api/purchase-orders/getPurchaseOrder/60d5ecb8b49aa834c4a7f8b1
 // router.get("/getPurchaseOrder/:id", purchaseOrderController.getPurchaseOrder);
 
-// Route to update an existing purchase order by ID
-// POST or PUT/PATCH /api/purchase-orders/updatePurchaseOrder/60d5ecb8b49aa834c4a7f8b1
-// router.post("/updatePurchaseOrder/:id", purchaseOrderController.updatePurchaseOrder); // You can also use PUT or PATCH
+router.post("/updatePurchaseOrder/:id", purchaseOrderController.updatePurchaseOrder); // You can also use PUT or PATCH
 
 // Make sure to export the router for use in the main application file (app.ts or server.ts)
 export default router;

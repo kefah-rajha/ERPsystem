@@ -16,15 +16,12 @@ router.get('/purchaseOrder/searchSupplier', purchaseOrder_1.default.searchSuppli
 // --- CRUD operation routes for purchase orders ---
 router.post('/purchaseOrder/createPurchaseOrder', purchaseOrder_1.default.createPurchaseOrder);
 router.get('/purchaseOrder/getPurchaseOrders', purchaseOrder_1.default.getPurchaseOrders);
-// Route to delete a specific purchase order by ID
-// DELETE /api/purchase-orders/deletePurchaseOrder/60d5ecb8b49aa834c4a7f8b1
-// router.delete("/deletePurchaseOrder/:id", purchaseOrderController.deletePurchaseOrder);
+router.get('/getPurchaseOrder/:id', purchaseOrder_1.default.getPurchaseOrder);
+router.delete("/deletePurchaseOrder/:id", purchaseOrder_1.default.deletePurchaseOrder);
 // Route to get the details of a single purchase order by ID
 // GET /api/purchase-orders/getPurchaseOrder/60d5ecb8b49aa834c4a7f8b1
 // router.get("/getPurchaseOrder/:id", purchaseOrderController.getPurchaseOrder);
-// Route to update an existing purchase order by ID
-// POST or PUT/PATCH /api/purchase-orders/updatePurchaseOrder/60d5ecb8b49aa834c4a7f8b1
-// router.post("/updatePurchaseOrder/:id", purchaseOrderController.updatePurchaseOrder); // You can also use PUT or PATCH
+router.post("/updatePurchaseOrder/:id", purchaseOrder_1.default.updatePurchaseOrder); // You can also use PUT or PATCH
 // Make sure to export the router for use in the main application file (app.ts or server.ts)
 exports.default = router;
 // In the main application file (e.g., app.ts):

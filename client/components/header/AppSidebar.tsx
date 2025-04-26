@@ -94,6 +94,14 @@ const items: itemsType[] = [
 
   },
   {
+    title: "Purchase Order",
+    url: "/dashboard/purchaseOrder",
+    selected:"purchaseOrder",
+
+    icon: BookOpen,
+
+  },
+  {
     title: "supplier",
     url: "/dashboard/supplier",
     selected:"supplier",

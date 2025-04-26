@@ -5,9 +5,9 @@ import { useContext, useEffect, useState } from "react"
 import { Calculator } from "lucide-react"
 import { Product, VATOption } from "@/dataType/test"
 import { Card } from "@/components/ui/card"
-import { ProductSelectedTable } from "@/components/SalesOrder/ProductSelected/ProductSelectedTable"
-import { TotalAmount } from "@/components/SalesOrder/ProductSelected/TotalAmount"
-import { SalesOrderProductsSelectedContext } from "@/context/saleOrderSelectedProducts"
+import { ProductSelectedTable } from "@/components/puchaseOrder/ProductSelected/ProductSelectedTable"
+import { TotalAmount } from "@/components/puchaseOrder/ProductSelected/TotalAmount"
+import { PurchaseOrderProductsSelectedContext } from "@/context/pucahseOrderProducts"
 interface itemsOrder {
 
   quantity: number;
@@ -36,16 +36,19 @@ interface ProductSelectedType {
 }
 
 export default function ProductSelected({ getTotalAmount, handleOrderProductsSelected, itemsProduct }: ProductSelectedType) {
-  const salesOrderProductsSelectedContext = useContext(SalesOrderProductsSelectedContext)
+  const PurchaseOrderProductsSelected = useContext(PurchaseOrderProductsSelectedContext)
   const [orderItems, setOrderItems] = useState<itemsOrder[]>([])
 
-  const ProductSelected = salesOrderProductsSelectedContext?.salesOrderProductsSelected
+  const ProductSelected = PurchaseOrderProductsSelected?.purchaseOrderProductsSelected
+  const SetProductSelected = PurchaseOrderProductsSelected
+
   useEffect(() => {
     // First, let's add a debug check
     console.log("itemsProduct dependency triggered:", itemsProduct);
     
     if (itemsProduct && itemsProduct.length > 0) {
       console.log("Setting orderItems from itemsProduct:", itemsProduct);
+      SetProductSelected?.setPurchaseOrderProductsSelected(itemsProduct)
       setOrderItems(prev => {
         console.log("Previous orderItems:", prev);
         return [...itemsProduct]; // Create a new array to ensure state update
@@ -68,6 +71,7 @@ export default function ProductSelected({ getTotalAmount, handleOrderProductsSel
       }))
       setOrderItems(items)
     }
+    
   }, [ProductSelected])
 
   const handleQuantityChange = (id: string, quantity: number) => {
