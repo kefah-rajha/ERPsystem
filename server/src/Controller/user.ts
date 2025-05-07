@@ -277,7 +277,7 @@ export const user = {
         city,
         street,
       } = req.body as userCompanyInfo;
-      console.log(req.body,"nameComapny");
+      console.log(req.body, "nameComapny");
 
 
       const getDataUSer = await UserCompanyModel.findOne({ userId: userId });
@@ -355,46 +355,46 @@ export const user = {
   ImportUser: async (req: any, res: any) => {
     const data = req.body;
     console.log(data)
-   try{
-     
-    const mappedData = data.map(async (item: any) => {
+    try {
+
+      const mappedData = data.map(async (item: any) => {
 
 
-      const userInfo = {
-        userName: item["Username"],
-        password: "12345",
-        name: item["name"],
-        // Brithday: item["Brithday"],
-        role: item["role"],
-        createdAt: item["createdAt"],
+        const userInfo = {
+          userName: item["Username"],
+          password: "12345",
+          name: item["name"],
+          // Brithday: item["Brithday"],
+          role: item["role"],
+          createdAt: item["createdAt"],
 
 
-      };
-      const finale = new UserModel(userInfo);
-      const userDataAfterSave = await finale.save();
-      const contactInfo = {
-        userId: userDataAfterSave._id,
-        phone: item["Phone"],
-        email: item["email"],
-        address: `${item["city"]}/${item["street"]}/${item["postcode"]} `,
-        website: "web.com",
-        postCode: item["postcode"],
-        city: item["city"],
-        street: item["street"],
-      };
-      const contactInfoUser = new UserDetailsModel(contactInfo);
-      await contactInfoUser.save();
-    });
-    return res.status(200).json({
-      success: true,
-      message: "Import is done",
-    });
-   }catch(error: any){
-    res.status(402).json({
-      message: error.message as string,
-      success: false,
-    });
-   }
+        };
+        const finale = new UserModel(userInfo);
+        const userDataAfterSave = await finale.save();
+        const contactInfo = {
+          userId: userDataAfterSave._id,
+          phone: item["Phone"],
+          email: item["email"],
+          address: `${item["city"]}/${item["street"]}/${item["postcode"]} `,
+          website: "web.com",
+          postCode: item["postcode"],
+          city: item["city"],
+          street: item["street"],
+        };
+        const contactInfoUser = new UserDetailsModel(contactInfo);
+        await contactInfoUser.save();
+      });
+      return res.status(200).json({
+        success: true,
+        message: "Import is done",
+      });
+    } catch (error: any) {
+      res.status(402).json({
+        message: error.message as string,
+        success: false,
+      });
+    }
   },
   createUsers: async (req: any, res: any) => {
     try {

@@ -50,7 +50,7 @@ export default function PurchaseOrderPage() {
         {/* Update button text and link */}
         <Button
           className='h-10 rounded-sm text-foreground card-gradient hover:text-gray-400 mb-2'
-          onClick={() => router.push('/dashboard/PurchaseOrder/createPurchaseOrder')} // Adjust route
+          onClick={() => router.push('/dashboard/purchaseOrder/createPurchaseOrder')} // Adjust route
         >
           <Boxes className='h-4 w-4 mr-2 text-green-300' /> {/* Icon is reusable */}
           Create Purchase Order {/* Updated text */}

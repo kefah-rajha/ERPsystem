@@ -9,6 +9,7 @@ import  supplierRouter  from "./Router/supplier.router";
 import salesOrderRouter from "./Router/salesOrder.router"
 import warehouseRouter from "./Router/warehouse.router"
 import PurchaseOrder from "./Router/PurchaseOrder.router"
+import accountRouter from "./Router/account.router"
 
 
 
@@ -53,7 +54,7 @@ app.use("/api",salesOrderRouter)
 
 app.use("/api",warehouseRouter)
 app.use("/api",PurchaseOrder)
-
+app.use("/api",accountRouter)
 
 
 
