@@ -36,6 +36,7 @@ interface SalesOrder {
   notes?: string;
   vatRate: number,
   currency: string,
+  bankAccount:string,
   paymentTerm:"Cash"|
   "Card" |
   "Bank Transfers" |
@@ -132,6 +133,10 @@ const SalesOrderSchema = new Schema<SalesOrder>(
       default: 'pending'
     },
     currency: {
+      type: String,
+      required: true
+    },
+    bankAccount: {
       type: String,
       required: true
     },

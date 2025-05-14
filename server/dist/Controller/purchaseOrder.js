@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const schemaSupplier_1 = require("../Modal/schemaSupplier");
 const mongoose_1 = __importDefault(require("mongoose"));
 const schemaPurchaseOrder_1 = require("../Modal/schemaPurchaseOrder");
+const schemaAccounting_1 = require("../Modal/schemaAccounting");
 const purchaseOrderController = {
     getPurchaseOrder: (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         try {
@@ -162,9 +163,20 @@ const purchaseOrderController = {
                 currency: data === null || data === void 0 ? void 0 : data.values.currency,
                 paymentTerm: data === null || data === void 0 ? void 0 : data.values.paymentTerm,
                 vatRate: data === null || data === void 0 ? void 0 : data.values.vatRate,
+                bankAccount: data === null || data === void 0 ? void 0 : data.values.bankAccount,
             });
             const savedPurchaseOrder = yield purchaseOrder.save();
             console.log(savedPurchaseOrder);
+            if (savedPurchaseOrder) {
+                const accountId = data === null || data === void 0 ? void 0 : data.values.bankAccount;
+                const purchaseOrderDetails = {
+                    _id: savedPurchaseOrder._id.toString(),
+                    orderNumber: savedPurchaseOrder.purchaseOrderNumber,
+                    amount: data === null || data === void 0 ? void 0 : data.values.totalAmount,
+                    status: data === null || data === void 0 ? void 0 : data.values.status
+                };
+                const updatedAccount = yield addSalesOrderToAccount(accountId, purchaseOrderDetails);
+            }
             if (savedPurchaseOrder) {
                 return res.status(200).json({
                     data: savedPurchaseOrder,
@@ -284,3 +296,27 @@ const purchaseOrderController = {
     }),
 };
 exports.default = purchaseOrderController;
+const addSalesOrderToAccount = (accountId, data) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        // Determine if this is a deposit (positive amount) or withdrawal (negative amount)
+        // For sales orders, typically money comes IN to the account (deposit)
+        const isWithdrawals = true; // Sales orders are typically deposits
+        // Find and update the account
+        const updatedAccount = yield schemaAccounting_1.accounModel.findByIdAndUpdate(accountId, {
+            $push: { purchaseOrder: data },
+            $inc: {
+                // Increment deposits with the sales order amount
+                withdrawals: isWithdrawals ? data.amount : 0,
+                // Update total amount in account
+                amount: -data.amount,
+                // Increment completed operations
+            }
+        }, { new: true } // Return the updated document
+        );
+        return updatedAccount;
+    }
+    catch (error) {
+        console.error('Error adding sales order to account:', error);
+        throw error;
+    }
+});

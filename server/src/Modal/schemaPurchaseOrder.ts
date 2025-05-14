@@ -42,6 +42,8 @@ interface PurchaseOrder {
   paymentTerm: "Net 30" | "Net 60" | "Due on Receipt" | "Cash On Delivery" | string; // Payment terms for the supplier
   // You might need vatRate and includeVat if prices are entered differently
    vatRate?: number;
+     bankAccount:string,
+   
   // includeVat?: boolean;
 }
 
@@ -81,6 +83,10 @@ const PurchaseOrderSchema = new Schema<PurchaseOrder>({
   status: { type: String, required: true, enum: ["draft", "pending_approval", "approved", "ordered", "partially_received", "received", "cancelled"], default: "draft" },
   notes: String,
   currency: { type: String, required: true, default: 'USD' },
+   bankAccount: {
+      type: String,
+      required: true
+    },
   paymentTerm: { type: String, required: true }
 }, { timestamps: true }); // Automatically add createdAt and updatedAt
 

@@ -1,7 +1,21 @@
 import mongoose, { Schema, Document, Model, HydratedDocument } from 'mongoose';
+interface salesOrder{
+  _id:string;
+  orderNumber:string;
+  amount:number;
+  status:string ;
+}
+
+interface purchaseOrder{
+  _id:string;
+  orderNumber:string;
+  amount:number;
+  status:string ;
+}
 
 interface IAccount {
   name: string;
+  initalAmount: number;
   amount: number;
   withdrawals: number;
   deposits: number;
@@ -10,10 +24,23 @@ interface IAccount {
   pendingOperations: number;
   remainingOperationsValue: number;
   creator: string;
+  salesOrder:salesOrder[],
+  purchaseOrder:purchaseOrder[]
 }
 
 type IAccountDocument = HydratedDocument<IAccount>;
-
+const salesOrderSchema: Schema<salesOrder> = new mongoose.Schema<salesOrder>({
+  _id: { type: String },
+  orderNumber: { type: String },
+  amount: { type: Number },
+  status: { type: String },
+})
+const purchaseOrderSchema: Schema<purchaseOrder> = new mongoose.Schema<purchaseOrder>({
+  _id: { type: String },
+  orderNumber: { type: String },
+  amount: { type: Number },
+  status: { type: String },
+})
 const accountSchema: Schema<IAccountDocument> = new mongoose.Schema<IAccountDocument>({
   name: {
     type: String,
@@ -54,6 +81,13 @@ const accountSchema: Schema<IAccountDocument> = new mongoose.Schema<IAccountDocu
     required: true,
     trim: true,
   },
+  initalAmount:{
+    type: Number,
+    required: true,
+    default: 0
+  },
+  salesOrder:[salesOrderSchema],
+  purchaseOrder:[purchaseOrderSchema],
 });
 
 export const accounModel: Model<IAccountDocument> = mongoose.model<IAccountDocument>('Account', accountSchema);

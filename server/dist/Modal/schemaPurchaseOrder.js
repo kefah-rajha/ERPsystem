@@ -35,6 +35,10 @@ const PurchaseOrderSchema = new mongoose_1.Schema({
     status: { type: String, required: true, enum: ["draft", "pending_approval", "approved", "ordered", "partially_received", "received", "cancelled"], default: "draft" },
     notes: String,
     currency: { type: String, required: true, default: 'USD' },
+    bankAccount: {
+        type: String,
+        required: true
+    },
     paymentTerm: { type: String, required: true }
 }, { timestamps: true }); // Automatically add createdAt and updatedAt
 exports.PurchaseOrderModel = (0, mongoose_1.model)('PurchaseOrder', PurchaseOrderSchema);

@@ -88,6 +88,10 @@ const SalesOrderSchema = new mongoose_1.Schema({
         type: String,
         required: true
     },
+    bankAccount: {
+        type: String,
+        required: true
+    },
     salesManager: {
         type: String,
         required: true

@@ -5,6 +5,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.accounModel = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
+const salesOrderSchema = new mongoose_1.default.Schema({
+    _id: { type: String },
+    orderNumber: { type: String },
+    amount: { type: Number },
+    status: { type: String },
+});
+const purchaseOrderSchema = new mongoose_1.default.Schema({
+    _id: { type: String },
+    orderNumber: { type: String },
+    amount: { type: Number },
+    status: { type: String },
+});
 const accountSchema = new mongoose_1.default.Schema({
     name: {
         type: String,
@@ -45,5 +57,12 @@ const accountSchema = new mongoose_1.default.Schema({
         required: true,
         trim: true,
     },
+    initalAmount: {
+        type: Number,
+        required: true,
+        default: 0
+    },
+    salesOrder: [salesOrderSchema],
+    purchaseOrder: [purchaseOrderSchema],
 });
 exports.accounModel = mongoose_1.default.model('Account', accountSchema);

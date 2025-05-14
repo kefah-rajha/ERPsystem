@@ -4,9 +4,9 @@ export const account = {
 try {
   console.log("test")
         
-            const resAllCategory = await accounModel.find()
+            const resAllBankAccount = await accounModel.find()
             return res.status(200).json({
-                data: resAllCategory,
+                data: resAllBankAccount,
                 success: true,
             });
         } catch (error: unknown) {
@@ -26,7 +26,8 @@ try {
 
       const newAccount = new accounModel({
         name,
-        amount,
+        initalAmount: amount,
+        amount:0,
         creator
       });
 

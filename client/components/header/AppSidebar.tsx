@@ -1,5 +1,18 @@
 "use client"
-import { Calendar, ChevronRight, Brain, Container, LucideIcon, Search, Settings } from "lucide-react"
+import { 
+  LayoutDashboard, 
+  ShoppingCart, 
+  Users, 
+  Package, 
+  ClipboardList, 
+  ShoppingBag, 
+  Building, 
+  Warehouse, 
+  Calculator, 
+  ChevronRight,
+  Brain,
+  LucideIcon
+} from "lucide-react";
 
 import {
   SidebarGroup,
@@ -59,63 +72,59 @@ const items: itemsType[] = [
   {
     title: "DashBoard",
     url: "/dashboard",
-    selected:"dashboard",
-    icon: SquareTerminal,
+    selected: "dashboard",
+    icon: LayoutDashboard, // Better icon representing a dashboard
     isActive: true,
-
   },
   {
     title: "POS",
     url: "/dashboard/POSerp",
-    selected:"POSerp",
-    icon: Bot,
-
+    selected: "POSerp",
+    icon: ShoppingCart, // Point of Sale = shopping cart
   },
   {
     title: "User",
     url: "/dashboard/user",
-    selected:"user"  ,
-    icon: Bot,
-
+    selected: "user",
+    icon: Users, // Better icon for users/people
   },
   {
     title: "Products",
     url: "/dashboard/Products",
-    selected:"Products",
-    icon: BookOpen,
-   
+    selected: "Products",
+    icon: Package, // Better icon for products
   },
   {
     title: "Sales Order",
     url: "/dashboard/SalesOrder",
-    selected:"SalesOrder",
-
-    icon: BookOpen,
-
+    selected: "SalesOrder",
+    icon: ClipboardList, // Good for order management
   },
   {
     title: "Purchase Order",
     url: "/dashboard/purchaseOrder",
-    selected:"purchaseOrder",
-
-    icon: BookOpen,
-
+    selected: "purchaseOrder",
+    icon: ShoppingBag, // Represents purchasing
   },
   {
     title: "supplier",
     url: "/dashboard/supplier",
-    selected:"supplier",
-    icon: Settings2,
-
+    selected: "supplier",
+    icon: Building, // Representing companies/suppliers
   },
   {
     title: "Inventory",
     url: "/dashboard/inventory",
-    selected:"inventory",
-    icon: Container,
-  
+    selected: "inventory",
+    icon: Warehouse, // Perfect for inventory management
   },
-]
+  {
+    title: "Accounting",
+    url: "/dashboard/Accounting",
+    selected: "Accounting",
+    icon: Calculator, // Better represents accounting features
+  },
+];
 const headerNav = {
   title: "ErpSystem",
   url: "/",
@@ -150,8 +159,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <Collapsible key={item?.title} asChild defaultOpen={item?.isActive ?? false}>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild tooltip={item.title} className={cn( Url=== "/dashboard" ? 
-                  Url=== item.url && 'bg-orange-300' : UrlWithoutDashboard.includes(item?.selected)
-                                && 'bg-orange-300')}>
+                  Url=== item.url && 'bg-orange-400' : UrlWithoutDashboard.includes(item?.selected)
+                                && 'bg-orange-400')}>
                     <a href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>

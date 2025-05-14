@@ -3,8 +3,9 @@
 import { useState, useEffect, useContext } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+
 import * as z from "zod";
-import { toast, Toaster } from "react-hot-toast";
+import { toast as hotToast, Toaster } from "react-hot-toast"; // Added react-hot-toast
 import { format } from "date-fns";
 import {
     CalendarIcon,
@@ -69,6 +70,10 @@ interface ContactInfoCustomerSearchResultsDataType {
     street: string;
     email: string;
 }
+interface BankAccount {
+    id: string;
+    name: string;
+}
 
 interface customerSearchResultsDataType {
     _id: string;
@@ -125,6 +130,8 @@ const formSchema = z.object({
     }),
     currency: z.string().min(1, "Please select a currency"),
     vatRate: z.string().min(1, "Please select a VAT rate"),
+    bankAccount: z.string().min(1, "Please select a bankAccount "),
+
 
 });
 
@@ -137,6 +144,8 @@ export default function SalesOrderManagement() {
     const [openSupplier, setOpenSupplier] = useState(false);
     const [customerSearchQuery, setCustomerSearchQuery] = useState("");
     const [supplierSearchQuery, setSupplierSearchQuery] = useState("");
+    const [bankAccounts, setBankAccount] = useState<BankAccount[]>([])
+
     const [userNameCustomerSelected, setUserNameCustomerSelected] =
         useState<string>("");
     const [supplierNameSelected, setSupplierNameSelected] = useState<string>("");
@@ -179,25 +188,59 @@ export default function SalesOrderManagement() {
     });
 
     useEffect(() => {
-        let ignore = false;
-        const loadingToast = toast.loading('Loading sale order details...');
+        const searchBankAccount = async () => {
 
+            setIsSearching(true);
+            try {
+                const response = await fetch(
+                    `/api/account/getAccounts`
+                );
+                if (!response.ok) {
+                    throw new Error("Failed to fetch customers");
+                }
+                const bankAccounts = await response.json();
+                console.log(bankAccounts, "bankAccounts");
+                const bankAccountsArray = bankAccounts.data.map((account: any) => {
+                    return {
+                        name: account.name,
+                        id: account._id,
+                    };
+                })
+                setBankAccount(bankAccountsArray);
+            } catch (error) {
+                console.error("Error fetching customers:", error);
+                hotToast.error("Failed to fetch customers. Please try again.");
+                setBankAccount([]);
+            } finally {
+                setIsSearching(false);
+            }
+
+        };
+
+        const debounceTimer = setTimeout(searchBankAccount, 300);
+        return () => clearTimeout(debounceTimer);
+    }, []);
+
+console.log(itemsProduct,"itemsProduct")
+    useEffect(() => {
+        let ignore = false;
+if(bankAccounts){
         fetch(`/api/getSaleOrder/${id}`)
             .then((res) => {
                 return res.json();
             })
             .then((jsonData) => {
                 if (!ignore) {
-                    toast.dismiss(loadingToast);
 
                     if (jsonData.message == false) {
-                        toast.error(jsonData.error || 'Failed to load sale order');
+                        hotToast.error(jsonData.error || 'Failed to load sale order');
                         return;
                     }
-
+                     hotToast.success('Sale order loaded successfully');
 
                     console.log(jsonData.posts, "sale order in SHowing");
                     setSaleOrderFetch(jsonData.posts)
+                    setItemsProduct([])
                     setItemsProduct(jsonData.posts.items.map((item: any) => ({
                         Description: item.product.Description,
                         Discount: item.product.Discount,
@@ -220,7 +263,7 @@ export default function SalesOrderManagement() {
                         vat: item.vat,
                         vatAmount: item.vatAmount,
                     })))
-                    console.log(jsonData.posts.status, "jsonData.posts.status,")
+                    console.log(jsonData.posts.bankAccount, "jsonData.posts.bankAccount,")
 
                     form.reset({
                         // Map fetched data to form schema fields
@@ -238,17 +281,18 @@ export default function SalesOrderManagement() {
                         orderDate: new Date(jsonData.posts.orderDate),
                         currency: jsonData.posts.currency || '',
                         vatRate: jsonData.posts.vatRate?.toString() || '', // Ensure vatRate is a string for the form field
+                       
+                        bankAccount: jsonData?.posts?.bankAccount ,
 
                     });
 
-                    toast.success('Sale order loaded successfully');
+                   
 
                 }
             })
             .catch((err: unknown) => {
                 console.log(err);
-                toast.dismiss(loadingToast);
-                toast.error('Failed to load sale order details');
+                hotToast.error('Failed to load sale order details');
             })
             .finally(() => {
                 if (!ignore) {
@@ -257,12 +301,20 @@ export default function SalesOrderManagement() {
             });
         return () => {
             ignore = true;
-        };
-    }, [id]);
+        };}
+    }, [id,bankAccounts]);
 
 
 
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
 
+        setValue,
+        control,
+    } = form;
+    console.log(errors, "error")
 
 
 
@@ -366,6 +418,7 @@ export default function SalesOrderManagement() {
 
         return () => clearTimeout(debounceTimer);
     }, [supplierSearchQuery]);
+      console.log(bankAccounts,"bankAccountsss")
     interface itemsOrder {
 
         quantity: number;
@@ -401,7 +454,7 @@ export default function SalesOrderManagement() {
     }
 
     async function onSubmit(valuesForm: FormValues) {
-        const loadingToast = toast.loading('Updating sale order...');
+        const loadingToast = hotToast.loading('Updating sale order...');
 
         try {
             const values = {
@@ -429,17 +482,17 @@ export default function SalesOrderManagement() {
 
             const res = await FetchData.json();
 
-            toast.dismiss(loadingToast);
+            hotToast.dismiss(loadingToast);
 
             if (res.success == true) {
-                toast.success('Sale order updated successfully!');
+                hotToast.success('Sale order updated successfully!');
                 // Optional: redirect after success
             } else {
-                toast.error(res.message || 'Failed to update sale order');
+                hotToast.error(res.message || 'Failed to update sale order');
             }
         } catch (error) {
-            toast.dismiss(loadingToast);
-            toast.error('An error occurred while updating the sale order');
+            hotToast.dismiss(loadingToast);
+            hotToast.error('An error occurred while updating the sale order');
             console.error('Update sale order error:', error);
         }
     }
@@ -448,6 +501,8 @@ export default function SalesOrderManagement() {
     return (
         <SalesOrderProductsSelectedProvider>
             <div className=" heighWithOutBar bg-gradient text-foreground overflow-auto">
+                        <Toaster position="top-right" />
+                
                 <div className="container mx-auto p-4">
                     <Card>
                         <CardHeader>
@@ -831,6 +886,37 @@ export default function SalesOrderManagement() {
                                                             </FormItem>
                                                         )}
                                                     />
+
+                                                    <FormField
+                                                        control={form.control}
+                                                        name="bankAccount"
+                                                        render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel>Bank Account</FormLabel>
+                                                                <Select
+                                                                    onValueChange={field.onChange}
+                                                                    value={field.value}
+                                                                >
+                                                                    <FormControl className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]">
+                                                                        <SelectTrigger>
+                                                                            <SelectValue placeholder="Select bank account" />
+                                                                        </SelectTrigger>
+                                                                    </FormControl>
+                                                                    <SelectContent>
+                                                                      
+                                                                        {bankAccounts?.map((option) => (
+                                                                            <SelectItem key={option.id} value={option.id}>
+                                                                                {/* You can display the option as is, or format it (e.g., capitalize first letter) */}
+                                                                                {option.name}
+                                                                            </SelectItem>
+                                                                        ))}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+
                                                 </CardContent>
                                             </Card>
                                         </div>

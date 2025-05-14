@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -67,6 +67,10 @@ interface ContactInfoCustomerSearchResultsDataType {
   street: string;
   email: string;
 }
+interface BankAccount {
+  id: string;
+  name: string;
+}
 
 interface customerSearchResultsDataType {
   _id: string;
@@ -89,13 +93,13 @@ const paymentTermOptions = [
   "Checks",
   "Electronic Payments",
   "Deferred Payments",
-] as const; 
+] as const;
 const statusOptions = [
   'pending',
   'processed',
   'completed',
   'cancelled',
-] as const; 
+] as const;
 
 const formSchema = z.object({
   customer: z.string().min(1, { message: "Customer is required" }),
@@ -110,9 +114,9 @@ const formSchema = z.object({
     .z.enum(paymentTermOptions, ({
       required_error: "Please select a payment term.",
     })),
-    status: z.enum(statusOptions, {
-      required_error: "Please select a status.",
-    }),
+  status: z.enum(statusOptions, {
+    required_error: "Please select a status.",
+  }),
   shipmentDate: z.date({
     required_error: "Shipment date is required",
   }),
@@ -121,6 +125,7 @@ const formSchema = z.object({
   }),
   currency: z.string().min(1, "Please select a currency"),
   vatRate: z.string().min(1, "Please select a VAT rate"),
+  bankAccount: z.string().min(1, "Please select a bankAccount "),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -153,13 +158,13 @@ export default function SalesOrderManagement() {
   });
   const [finishAmount, setFinishAmount] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false); // Added for submit button state
-
+  const [bankAccounts, setBankAccount] = useState<BankAccount[]>([])
   const confirmSelectedProductFUN = (productSelected: ProductSalesOrder[]) => {
     setConfirmSelectedProduct(productSelected);
   };
-  
+
   const [totalAmount, setTotalAmount] = useState<number>(0);
-  
+
   const getTotalAmount = (amount: number) => {
     setTotalAmount(amount);
   };
@@ -167,6 +172,42 @@ export default function SalesOrderManagement() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
   });
+  const { register, handleSubmit, formState }=form
+
+  useEffect(() => {
+    const searchBankAccount = async () => {
+
+      setIsSearching(true);
+      try {
+        const response = await fetch(
+          `/api/account/getAccounts`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch customers");
+        }
+        const bankAccounts = await response.json();
+        console.log(bankAccounts,"bankAccounts");
+        const bankAccountsArray=bankAccounts.data.map((account:any)=>{
+          return {
+            name: account.name,
+            id: account._id,
+          };
+        })
+        setBankAccount(bankAccountsArray);
+      } catch (error) {
+        console.error("Error fetching customers:", error);
+        hotToast.error("Failed to fetch customers. Please try again.");
+        setBankAccount([]);
+      } finally {
+        setIsSearching(false);
+      }
+
+    };
+
+    const debounceTimer = setTimeout(searchBankAccount, 300);
+    return () => clearTimeout(debounceTimer);
+  }, []);
+
 
   useEffect(() => {
     const searchCustomers = async () => {
@@ -282,11 +323,11 @@ export default function SalesOrderManagement() {
   }
 
   const OrderProductsSelectToSendApi: itemsOrderSendToApiType[] = [];
-  
+
   const handleOrderProductsSelected = (OrderProductsSelected: itemsOrder[]) => {
     // Clear previous selections
     OrderProductsSelectToSendApi.length = 0;
-    
+
     const products = OrderProductsSelected?.map(product => ({
       product: product._id,
       quantity: product.quantity,
@@ -294,13 +335,13 @@ export default function SalesOrderManagement() {
       vatAmount: product.vatAmount,
       totalAmount: product.totalAmount,
     }));
-    
+
     OrderProductsSelectToSendApi.push(...products);
   };
 
   async function onSubmit(valuesForm: FormValues) {
     setIsSubmitting(true);
-    
+
     try {
       const values = {
         ...valuesForm,
@@ -324,19 +365,19 @@ export default function SalesOrderManagement() {
         },
         body: JSON.stringify(data),
       });
-      
+
       if (!FetchData.ok) {
         throw new Error("Failed to create sales order");
       }
-      
+
       const res = await FetchData.json();
-      
+
       // Show success notification
       hotToast.success("Sales order created successfully!");
-      
+
       // Reset form or redirect if needed
       // You might want to reset the form here or redirect to another page
-      
+
     } catch (error) {
       console.error("Error submitting form:", error);
       hotToast.error("Failed to create sales order. Please try again.");
@@ -345,13 +386,13 @@ export default function SalesOrderManagement() {
     }
   }
 
- 
+
   return (
     <SalesOrderProductsSelectedProvider>
       <div className="heighWithOutBar bg-background text-foreground bg-gradient overflow-auto">
         {/* Add React Hot Toast Container */}
         <Toaster position="top-right" />
-        
+
         <div className="container mx-auto p-4">
           <Card>
             <CardHeader>
@@ -364,8 +405,8 @@ export default function SalesOrderManagement() {
                   onSubmit={form.handleSubmit(onSubmit)}
                   className="space-y-8"
                 >
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? (
@@ -377,7 +418,7 @@ export default function SalesOrderManagement() {
                       "Save Sales Order"
                     )}
                   </Button>
-                  
+
                   <div className="flex gap-4">
                     <div className="w-3/4 space-y-4">
                       <Card>
@@ -659,34 +700,34 @@ export default function SalesOrderManagement() {
                             )}
                           />
                           <FormField
-  control={form.control}
-  name="status"
-  render={({ field }) => (
-    <FormItem>
-      <FormLabel>Status</FormLabel>
-      <Select
-        onValueChange={field.onChange}
-        defaultValue={field.value}
-      >
-        <FormControl className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]">
-          <SelectTrigger>
-            <SelectValue placeholder="Select status" />
-          </SelectTrigger>
-        </FormControl>
-        <SelectContent>
-          {/* Map over statusOptions directly */}
-          {statusOptions.map((option) => (
-            <SelectItem key={option} value={option}>
-              {/* You can display the option as is, or format it (e.g., capitalize first letter) */}
-              {option.charAt(0).toUpperCase() + option.slice(1)}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <FormMessage />
-    </FormItem>
-  )}
-/>
+                            control={form.control}
+                            name="status"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Status</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                >
+                                  <FormControl className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]">
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select status" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {/* Map over statusOptions directly */}
+                                    {statusOptions.map((option) => (
+                                      <SelectItem key={option} value={option}>
+                                        {/* You can display the option as is, or format it (e.g., capitalize first letter) */}
+                                        {option.charAt(0).toUpperCase() + option.slice(1)}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
                           <FormField
                             control={form.control}
                             name="shipmentDate"
@@ -729,6 +770,35 @@ export default function SalesOrderManagement() {
                                     />
                                   </PopoverContent>
                                 </Popover>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                           <FormField
+                            control={form.control}
+                            name="bankAccount"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Bank Account</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                >
+                                  <FormControl className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]">
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select bank account" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {/* Map over statusOptions directly */}
+                                    {bankAccounts.map((option) => (
+                                      <SelectItem key={option.id} value={option.id}>
+                                        {/* You can display the option as is, or format it (e.g., capitalize first letter) */}
+                                        {option.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                                 <FormMessage />
                               </FormItem>
                             )}
@@ -795,7 +865,7 @@ export default function SalesOrderManagement() {
                         totalAmount={totalAmount}
                         netAmount={calculatedValues.netAmount}
                         vatAmount={calculatedValues.vatAmount}
-                        finishAmount={finishAmount} 
+                        finishAmount={finishAmount}
                       />
                     </div>
                   </div>
@@ -806,9 +876,9 @@ export default function SalesOrderManagement() {
           <Card className="mt-2 py-5">
             <CardContent>
               <AddProductButton />
-              <ProductSelected 
-                getTotalAmount={getTotalAmount} 
-                handleOrderProductsSelected={handleOrderProductsSelected} 
+              <ProductSelected
+                getTotalAmount={getTotalAmount}
+                handleOrderProductsSelected={handleOrderProductsSelected}
               />
             </CardContent>
           </Card>

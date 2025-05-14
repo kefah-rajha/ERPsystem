@@ -58,6 +58,10 @@ import ProductSelected from "@/components/SalesOrder/ProductSelected";
 import CurrencyAndVatAndAmount from "@/components/SalesOrder/CurrencyAndVatAndAmount";
 import { Textarea } from "@/components/ui/textarea";
 import { SalesOrderProductsSelectedProvider } from "@/context/saleOrderSelectedProducts";
+interface BankAccount {
+  id: string;
+  name: string;
+}
 
 interface ContactInfoSupplierSearchResultsDataType {
   _id: string;
@@ -140,6 +144,8 @@ const formSchema = z.object({
   currency: z.string().min(1, "Please select a currency"),
   vatRate: z.string().min(1, "Please select a VAT rate"),
   notes: z.string().optional(),
+  bankAccount: z.string().min(1, "Please select a bankAccount "),
+
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -154,6 +160,8 @@ export default function PurchaseOrderManagement() {
   console.log(supplierNameSelected, "supplierNameSelected")
   const [supplier, setSupplier] = useState<supplierSearchResultsDataType>();
   const [isSearching, setIsSearching] = useState(false);
+    const [bankAccounts, setBankAccount] = useState<BankAccount[]>([])
+  
   const [confirmSelectedProduct, setConfirmSelectedProduct] = useState<
     ProductSalesOrder[] | []
   >([]);
@@ -178,9 +186,45 @@ export default function PurchaseOrderManagement() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       status: "draft",
-     
+
     }
   });
+
+  
+    useEffect(() => {
+      const searchBankAccount = async () => {
+  
+        setIsSearching(true);
+        try {
+          const response = await fetch(
+            `/api/account/getAccounts`
+          );
+          if (!response.ok) {
+            throw new Error("Failed to fetch customers");
+          }
+          const bankAccounts = await response.json();
+          console.log(bankAccounts,"bankAccounts");
+          const bankAccountsArray=bankAccounts.data.map((account:any)=>{
+            return {
+              name: account.name,
+              id: account._id,
+            };
+          })
+          setBankAccount(bankAccountsArray);
+        } catch (error) {
+          console.error("Error fetching customers:", error);
+          hotToast.error("Failed to fetch customers. Please try again.");
+          setBankAccount([]);
+        } finally {
+          setIsSearching(false);
+        }
+  
+      };
+  
+      const debounceTimer = setTimeout(searchBankAccount, 300);
+      return () => clearTimeout(debounceTimer);
+    }, []);
+  
 
   useEffect(() => {
     const searchSuppliers = async () => {
@@ -249,11 +293,11 @@ export default function PurchaseOrderManagement() {
     const vat = +vatRate / 100;
     let netTotal: number, totalVat: number;
 
-    
-      totalVat = +(totalAmount * vat).toFixed(2);
-      netTotal = totalAmount;
-      setFinishAmount(totalAmount + +totalVat);
-   
+
+    totalVat = +(totalAmount * vat).toFixed(2);
+    netTotal = totalAmount;
+    setFinishAmount(totalAmount + +totalVat);
+
 
     setCalculatedValues({
       netTotal,
@@ -661,7 +705,35 @@ export default function PurchaseOrderManagement() {
                               </FormItem>
                             )}
                           />
-
+  <FormField
+                            control={form.control}
+                            name="bankAccount"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Bank Account</FormLabel>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                >
+                                  <FormControl className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]">
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select bank account" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {/* Map over statusOptions directly */}
+                                    {bankAccounts.map((option) => (
+                                      <SelectItem key={option.id} value={option.id}>
+                                        {/* You can display the option as is, or format it (e.g., capitalize first letter) */}
+                                        {option.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
                           <FormField
                             control={form.control}
                             name="notes"
@@ -679,6 +751,8 @@ export default function PurchaseOrderManagement() {
                               </FormItem>
                             )}
                           />
+
+                          
                         </CardContent>
                       </Card>
                     </div>
@@ -760,7 +834,7 @@ export default function PurchaseOrderManagement() {
           </Card>
         </div>
       </div>
-      </SalesOrderProductsSelectedProvider>
-    
+    </SalesOrderProductsSelectedProvider>
+
   );
 }
