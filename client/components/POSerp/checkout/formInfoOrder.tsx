@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { format } from "date-fns";
+import { toast as hotToast, Toaster } from "react-hot-toast";
 import {
   CalendarIcon,
   CarIcon as CaretSortIcon,
@@ -12,7 +13,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { SalesOrderProductsSelectedProvider } from "@/context/saleOrderSelectedProducts";
-import toast, { Toaster } from 'react-hot-toast'; // Import react-hot-toast
+ // Import react-hot-toast
 
 import { cn } from "@/lib/utils";
 import AddProductButton from "@/components/SalesOrder/addProductButton";
@@ -99,6 +100,10 @@ interface ContactInfoCustomerSearchResultsDataType {
   street: string;
   email: string;
 }
+interface BankAccount {
+  id: string;
+  name: string;
+}
 
 interface customerSearchResultsDataType {
   _id: string;
@@ -121,13 +126,13 @@ const paymentTermOptions = [
   "Checks",
   "Electronic Payments",
   "Deferred Payments",
-] as const; 
+] as const;
 const statusOptions = [
   'pending',
   'processed',
   'completed',
   'cancelled',
-] as const; 
+] as const;
 
 const formSchema = z.object({
   customer: z.string().min(1, { message: "Customer is required" }),
@@ -138,13 +143,13 @@ const formSchema = z.object({
   salesManager: z.string().min(1, { message: "Sales manager is required" }),
   customerEmail: z.string().min(1, { message: "Customer contact is required" }),
   phone: z.string().min(1, { message: "Phone is required" }),
-   paymentTerm: z
-      .z.enum(paymentTermOptions, ({
-        required_error: "Please select a payment term.",
-      })),
-      status: z.enum(statusOptions, {
-        required_error: "Please select a status.",
-      }),
+  paymentTerm: z
+    .z.enum(paymentTermOptions, ({
+      required_error: "Please select a payment term.",
+    })),
+  status: z.enum(statusOptions, {
+    required_error: "Please select a status.",
+  }),
   shipmentDate: z.date({
     required_error: "Shipment date is required",
   }),
@@ -153,7 +158,8 @@ const formSchema = z.object({
   }).default(new Date()),
   currency: z.string().min(1, "Please select a currency").default('USD'),
   vatRate: z.string().min(1, "Please select a VAT rate").default('0'),
-  includeVat: z.boolean().default(true),
+  bankAccount: z.string().min(1, "Please select a bankAccount "),
+
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -170,7 +176,8 @@ export default function FormInfoOrder({ items, subAmount, total, currency, vatGe
   const [openCustomer, setOpenCustomer] = useState(false);
   const [openSupplier, setOpenSupplier] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const [bankAccounts, setBankAccount] = useState<BankAccount[]>([])
+
   const [customerSearchQuery, setCustomerSearchQuery] = useState("");
   const [supplierSearchQuery, setSupplierSearchQuery] = useState("");
   const [userNameCustomerSelected, setUserNameCustomerSelected] = useState<string>("");
@@ -245,6 +252,43 @@ export default function FormInfoOrder({ items, subAmount, total, currency, vatGe
   }, [customerSearchQuery]);
 
   useEffect(() => {
+    const searchBankAccount = async () => {
+
+      setIsSearching(true);
+      try {
+        const response = await fetch(
+          `/api/account/getAccounts`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch customers");
+        }
+        const bankAccounts = await response.json();
+        console.log(bankAccounts,"bankAccounts");
+        const bankAccountsArray=bankAccounts.data.map((account:any)=>{
+          return {
+            name: account.name,
+            id: account._id,
+          };
+        })
+        setBankAccount(bankAccountsArray);
+      } catch (error) {
+        console.error("Error fetching customers:", error);
+        hotToast.error("Failed to fetch customers. Please try again.");
+        setBankAccount([]);
+      } finally {
+        setIsSearching(false);
+      }
+
+    };
+
+    const debounceTimer = setTimeout(searchBankAccount, 300);
+    return () => clearTimeout(debounceTimer);
+  }, []);
+
+
+
+
+  useEffect(() => {
     if (customerSearchResults?.length > 0) {
       const selectedCustomer = customerSearchResults?.find(
         (customer) => customer?.userName === userNameCustomerSelected
@@ -313,14 +357,13 @@ export default function FormInfoOrder({ items, subAmount, total, currency, vatGe
 
   async function onSubmit(valuesForm: FormValues) {
     setIsSubmitting(true);
-    
+
     // Show loading toast
-    const loadingToast = toast.loading('Processing your order...');
-    
+    const loadingToast = hotToast.loading('Processing your order...');
+
     try {
       valuesForm.currency = currency;
       valuesForm.vatRate = String(vatGeneral);
-      valuesForm.includeVat = true;
 
       const values = {
         ...valuesForm,
@@ -331,7 +374,7 @@ export default function FormInfoOrder({ items, subAmount, total, currency, vatGe
 
       // Make sure we're using the state value, not an empty array
       if (orderProductsData.length === 0) {
-        toast.error('No products selected!', { id: loadingToast });
+        hotToast.error('No products selected!', { id: loadingToast });
         setIsSubmitting(false);
         return;
       }
@@ -340,7 +383,7 @@ export default function FormInfoOrder({ items, subAmount, total, currency, vatGe
         values: values,
         items: orderProductsData
       };
-      
+
       console.log(data, "data");
 
       const FetchData = await fetch("/api/createSaleOrder", {
@@ -353,34 +396,34 @@ export default function FormInfoOrder({ items, subAmount, total, currency, vatGe
         },
         body: JSON.stringify(data),
       });
-      
+
       const res = await FetchData.json();
       console.log(res, "data");
 
       // Show success toast
-      toast.success('Sales order created successfully!', { id: loadingToast });
+      hotToast.success('Sales order created successfully!', { id: loadingToast });
     } catch (error) {
       console.error("Error submitting form:", error);
-      toast.error('Something went wrong. Please try again.', { id: loadingToast });
+      hotToast.error('Something went wrong. Please try again.', { id: loadingToast });
     } finally {
       setIsSubmitting(false);
     }
   }
-  
-  
+
+
   return (
     <div className="text-foreground mb-6">
       {/* Add the Toaster component for rendering toast notifications */}
       <Toaster position="top-right" />
-      
+
       <div>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-8"
           >
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={isSubmitting}
             >
               {isSubmitting ? (
@@ -745,6 +788,35 @@ export default function FormInfoOrder({ items, subAmount, total, currency, vatGe
                               />
                             </PopoverContent>
                           </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="bankAccount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Bank Account</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl className="w-full pl-3 pr-4 py-2 h-14 rounded-md inputCustom focus:outline-none focus:ring-1 focus:bg-[#262525]">
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select bank account" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {/* Map over statusOptions directly */}
+                              {bankAccounts.map((option) => (
+                                <SelectItem key={option.id} value={option.id}>
+                                  {/* You can display the option as is, or format it (e.g., capitalize first letter) */}
+                                  {option.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}

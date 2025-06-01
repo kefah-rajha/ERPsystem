@@ -295,59 +295,65 @@ const salesOrder = {
                         console.log(`Sales Order ID ${id} pulled from Account ${accountId}'s salesOrder array.`);
                     }
                     if (pullResult.matchedCount > 0) {
-                        // 5. تشغيل Aggregation Pipeline على مستند Account لإعادة حساب المجاميع والإحصائيات
-                        const aggregationResult = yield schemaAccounting_1.accounModel.aggregate([
-                            { $match: { _id: new mongoose_1.default.Types.ObjectId(accountId) } }, // استخدم ObjectId إذا كان accountId نصاً
-                            { $unwind: "$salesOrder" }, // افصل عناصر المصفوفة إلى مستندات منفصلة مؤقتاً
-                            {
-                                $group: {
-                                    _id: "$_id",
-                                    initalAmount: { $first: "$initalAmount" }, // اجمع النتائج مرة أخرى بناءً على معرف الحساب
-                                    calculatedTotalAmount: { $sum: "$salesOrder.amount" }, // اجمع إجمالي المبالغ
-                                    calculatedCompleted: { $sum: { $cond: [{ $eq: ["$salesOrder.status", "completed"] }, 1, 0] } }, // عد العمليات المكتملة
-                                    calculatedPending: { $sum: { $cond: [{ $ne: ["$salesOrder.status", "completed"] }, 1, 0] } }, // عد العمليات المعلقة
-                                    calculatedRemainingValue: { $sum: { $cond: [{ $ne: ["$salesOrder.status", "completed"] }, "$salesOrder.amount", 0] } } // اجمع قيم العمليات المعلقة
+                        const AccountDetails = yield schemaAccounting_1.accounModel.findOne({ _id: accountId });
+                        if (AccountDetails) {
+                            const withdrawalsValue = AccountDetails === null || AccountDetails === void 0 ? void 0 : AccountDetails.withdrawals;
+                            if (AccountDetails.salesOrder.length > 0) {
+                                // 5. تشغيل Aggregation Pipeline على مستند Account لإعادة حساب المجاميع والإحصائيات
+                                const aggregationResult = yield schemaAccounting_1.accounModel.aggregate([
+                                    { $match: { _id: new mongoose_1.default.Types.ObjectId(accountId) } }, // استخدم ObjectId إذا كان accountId نصاً
+                                    { $unwind: "$salesOrder" }, // افصل عناصر المصفوفة إلى مستندات منفصلة مؤقتاً
+                                    {
+                                        $group: {
+                                            _id: "$_id",
+                                            // اجمع النتائج مرة أخرى بناءً على معرف الحساب
+                                            calculatedTotalAmount: { $sum: "$salesOrder.amount" }, // اجمع إجمالي المبالغ
+                                            calculatedCompleted: { $sum: { $cond: [{ $eq: ["$salesOrder.status", "completed"] }, 1, 0] } }, // عد العمليات المكتملة
+                                            calculatedPending: { $sum: { $cond: [{ $ne: ["$salesOrder.status", "completed"] }, 1, 0] } }, // عد العمليات المعلقة
+                                            calculatedRemainingValue: { $sum: { $cond: [{ $ne: ["$salesOrder.status", "completed"] }, "$salesOrder.amount", 0] } } // اجمع قيم العمليات المعلقة
+                                        }
+                                    }
+                                ]);
+                                console.log(aggregationResult, "aggregationResult");
+                                let newTotalAmount = 0;
+                                let newCompleted = 0;
+                                let newPending = 0;
+                                let newRemainingValue = 0;
+                                let deposits = 0;
+                                if (aggregationResult.length > 0) {
+                                    const result = aggregationResult[0];
+                                    newTotalAmount = result.calculatedTotalAmount;
+                                    newCompleted = result.calculatedCompleted;
+                                    newPending = result.calculatedPending;
+                                    newRemainingValue = result.calculatedRemainingValue;
+                                    deposits = result.calculatedTotalAmount;
                                 }
+                                else {
+                                    // هذا يحدث إذا أصبحت مصفوفة salesOrder فارغة (مثلاً بعد حذف كل العناصر)
+                                    console.warn(`Aggregation for Account ${accountId} returned no results. Setting totals to 0.`);
+                                }
+                                // 6. تحديث مستند Account بالحقول التجميعية الجديدة المحسوبة
+                                const updatedAccount = yield schemaAccounting_1.accounModel.findByIdAndUpdate(accountId, {
+                                    $set: {
+                                        amount: deposits - withdrawalsValue, // تحديث الحقل 'amount' بالمجموع الجديد
+                                        completedOperations: newCompleted, // تحديث عدد العمليات المكتملة
+                                        pendingOperations: newPending, // تحديث عدد العمليات المعلقة
+                                        remainingOperationsValue: newRemainingValue,
+                                        deposits: deposits // تحديث قيمة العمليات المعلقة
+                                    }
+                                }, { new: true } // لإرجاع مستند الحساب بعد التحديث
+                                );
+                                // });
                             }
-                        ]);
-                        console.log(aggregationResult, "aggregationResult");
-                        let newTotalAmount = 0;
-                        let newCompleted = 0;
-                        let newPending = 0;
-                        let newRemainingValue = 0;
-                        let deposits = 0;
-                        if (aggregationResult.length > 0) {
-                            const result = aggregationResult[0];
-                            newTotalAmount = result.calculatedTotalAmount;
-                            newCompleted = result.calculatedCompleted;
-                            newPending = result.calculatedPending;
-                            newRemainingValue = result.calculatedRemainingValue;
-                            deposits = result.calculatedTotalAmount;
                         }
-                        else {
-                            // هذا يحدث إذا أصبحت مصفوفة salesOrder فارغة (مثلاً بعد حذف كل العناصر)
-                            console.warn(`Aggregation for Account ${accountId} returned no results. Setting totals to 0.`);
-                        }
-                        // 6. تحديث مستند Account بالحقول التجميعية الجديدة المحسوبة
-                        const updatedAccount = yield schemaAccounting_1.accounModel.findByIdAndUpdate(accountId, {
-                            $set: {
-                                amount: newTotalAmount, // تحديث الحقل 'amount' بالمجموع الجديد
-                                completedOperations: newCompleted, // تحديث عدد العمليات المكتملة
-                                pendingOperations: newPending, // تحديث عدد العمليات المعلقة
-                                remainingOperationsValue: newRemainingValue,
-                                deposits: deposits // تحديث قيمة العمليات المعلقة
-                            }
-                        }, { new: true } // لإرجاع مستند الحساب بعد التحديث
-                        );
-                        // });
                     }
+                    else {
+                        // هذا يحدث إذا كان طلب المبيعات المحذوف لم يكن مرتبطاً بأي حساب
+                        console.warn(`Deleted Sales Order ${id} had no accountId. Account totals not updated.`);
+                    }
+                    // --- انتهاء منطق تحديث الحساب المرتبط ---
                 }
             }
-            else {
-                // هذا يحدث إذا كان طلب المبيعات المحذوف لم يكن مرتبطاً بأي حساب
-                console.warn(`Deleted Sales Order ${id} had no accountId. Account totals not updated.`);
-            }
-            // --- انتهاء منطق تحديث الحساب المرتبط ---
             // 7. إرسال الاستجابة النهائية لعملية الحذف الأصلية
             res.status(200).json({
                 message: "Sales Order deleted successfully.",
@@ -485,7 +491,7 @@ const salesOrder = {
                         // 6. تحديث مستند Account بالحقول التجميعية الجديدة المحسوبة
                         const updatedAccount = yield schemaAccounting_1.accounModel.findByIdAndUpdate(accountId, {
                             $set: {
-                                amount: withdrawalsValue + deposits, // تحديث الحقل 'amount' بالمجموع الجديد
+                                amount: deposits - withdrawalsValue, // تحديث الحقل 'amount' بالمجموع الجديد
                                 completedOperations: newCompleted, // تحديث عدد العمليات المكتملة
                                 pendingOperations: newPending, // تحديث عدد العمليات المعلقة
                                 remainingOperationsValue: newRemainingValue,
@@ -497,6 +503,7 @@ const salesOrder = {
                         // --- انتهاء منطق تحديث الحساب المرتبط ---
                     }
                 }
+                console.log(updatedSalesOrder, "updatedSalesOrderssssss");
                 // 7. إرسال الرد النهائي
                 res.status(200).json({
                     // يمكنك إعادة مستند SalesOrderModel المحدث
